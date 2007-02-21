@@ -174,7 +174,10 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(const OLECHAR *query,
 
 	hr = spQuery.CreateInstance("GoogleDesktop.QueryAPI");
 	if( FAILED(hr) )
+	{
+		_RPTF0(_CRT_WARN, "Failed to create GoogleDesktop.QueryAPI!\n");
 		return NULL;
+	}
 
 	_bstr_t bstrQuery(::SysAllocString(query));
 	_variant_t vtCategory = vtMissing;
@@ -189,7 +192,10 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(const OLECHAR *query,
 	hr = spQuery->raw_Query(g_lCookie, bstrQuery, vtCategory, vtRanking, &pResults);
 
 	if( FAILED(hr) )
+	{
+		_RPTF0(_CRT_WARN, "Query failed!\n");
 		return NULL;
+	}
 
 	while((GD_QRS_COMPLETE != pResults->Getreadystate()) &&
 		(GD_QRS_FAILED == pResults->Getreadystate()))
@@ -213,7 +219,10 @@ IGoogleDesktopQueryResultSet *CGoogleDS::QueryEx(const OLECHAR *query,
 
 	hr = spQuery.CreateInstance("GoogleDesktop.QueryAPI");
 	if( FAILED(hr) )
+	{
+		_RPTF0(_CRT_WARN, "Failed to create GoogleDesktop.QueryAPI!\n");
 		return NULL;
+	}
 
 	_bstr_t bstrQuery(::SysAllocString(query));
 	_variant_t vtCategory = vtMissing;

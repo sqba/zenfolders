@@ -163,8 +163,6 @@ BOOL CDialog::Uninstall()
 {
 	TCHAR	szPath[MAX_PATH] = {0};
 
-	BOOL b;
-
 	lstrcpy(szPath, m_szDestinationPath);
 	lstrcat(szPath, "\\");
 	lstrcat(szPath, FILENAME_DLL);
@@ -180,20 +178,26 @@ BOOL CDialog::Uninstall()
 			FreeLibrary( hLibrary );
 			if( SUCCEEDED(hr) )
 			{
-				b = ::DeleteFile(szPath);
+				if( ::DeleteFile(szPath) )
+				{
+					RegDeleteKey(
+						HKEY_LOCAL_MACHINE,
+						TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\zenFolders"));
 
-				RegDeleteKey(
-					HKEY_LOCAL_MACHINE,
-					TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\zenFolders"));
+					m_bCleanup = true; // Tell main to call CleanUp()
 
-				m_bCleanup = true; // Tell main to call CleanUp()
+					SetMessage( TEXT("zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!") );
+				}
+				else
+				{
+					SetMessage( TEXT("Failed to remove all files.\nPlease restart and try uninstall again.\nSorry for the inconvenience...") );
+				}
 			}
 		}
-		else
-			FreeLibrary( hLibrary );
+		FreeLibrary( hLibrary );
 	}
 
-	SetMessage( TEXT("zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!") );
+	m_bUnInstall = false;
 
 	//HideOkButton();
 	//SetCancelButtonText( TEXT("Close") );
