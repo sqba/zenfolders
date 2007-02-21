@@ -1,10 +1,15 @@
 // Setup.cpp : Defines the entry point for the application.
 //
 
-//#include <Regstr.h>
+//#include <regstr.h>
 //#include <shlobj.h>
-#include "stdafx.h"
+#include <windows.h>
+//#include <shellapi.h>
+//#include <shlobj.h>
+//#include <shlwapi.h>
+#include <malloc.h>
 #include "resource.h"
+#include "dialog.h"
 
 
 #define RESOURCE_ID_DLL		104
@@ -12,7 +17,6 @@
 #define RESOURCE_ID_XML		105
 #define FILENAME_XML		"zenFolders.xml"
 #define FOLDER_NAME			TEXT("zenFolders")
-#define FILENAME_EXE		"setup.exe"
 
 
 typedef HRESULT  (__stdcall *SHGETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
@@ -24,10 +28,73 @@ typedef HRESULT (*DllUnregisterServer)(void);
 
 
 HINSTANCE	g_hInstance;
-HWND		g_hDialog;
+//HWND		g_hDialog;
 TCHAR		g_szDestinationPath[MAX_PATH] = {0};
+TCHAR		g_szModulePath[MAX_PATH] = {0};
+TCHAR		g_szTempPath[MAX_PATH] = {0};
 //TCHAR		g_szLastMessage[100] = {0};
+BOOL		g_bUninstall = FALSE;
+CDialog		*g_pDialog;
 
+
+void Selfdestruct()
+{
+	const char tempbatname[] = "_uninsep.bat" ;
+
+	// temporary .bat file
+	static char templ[] = 
+		":Repeat\r\n"
+		"del \"%s\"\r\n"
+		"if exist \"%s\" goto Repeat\r\n"
+//		"rmdir \"%s\"\r\n"
+		"del \"%s\"" ;
+	
+	
+	char modulename[MAX_PATH] ;    // absolute path of calling .exe file
+	char temppath[MAX_PATH] ;      // absolute path of temporary .bat file
+	char folder[MAX_PATH] ;
+	
+	::GetTempPath(MAX_PATH, temppath) ;
+	strcat(temppath, tempbatname) ;
+	
+	::GetModuleFileName(NULL, modulename, MAX_PATH) ;
+	strcpy (folder, modulename) ;
+	char *pb = strrchr(folder, '\\');
+	if (pb != NULL)
+		*pb = 0 ;
+	
+	HANDLE hf ;
+	
+	hf = ::CreateFile(
+		temppath,
+		GENERIC_WRITE,
+		0,
+		NULL, 
+		CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL) ;
+	
+	if (hf != INVALID_HANDLE_VALUE)
+	{
+		DWORD len ;
+		char *bat ;
+		
+		bat = (char*)alloca(strlen(templ) + 
+			strlen(modulename) * 2 + strlen(temppath) + 20) ;
+		
+		//wsprintf(bat, templ, modulename, modulename, folder, temppath) ;
+		wsprintf(bat, templ, modulename, modulename, temppath) ;
+		
+		::WriteFile(hf, bat, strlen(bat), &len, NULL) ;
+		::CloseHandle(hf) ;
+
+//		::MessageBox(0, temppath, "zzz", MB_ICONEXCLAMATION | MB_OK);
+		
+		::ShellExecute(NULL, "open", temppath, NULL, NULL, SW_HIDE);
+	}
+//	else
+//		::MessageBox(0, "INVALID_HANDLE_VALUE", "zzz", MB_ICONEXCLAMATION | MB_OK);
+}
 
 bool GetProgramFilesPath(LPTSTR pszPath)
 {
@@ -70,7 +137,8 @@ bool ExtractResourceToFile(int resourceId, LPCTSTR lpResourceFileName)
 	lstrcat(szPath, lpResourceFileName);
 
 	wsprintf(szMessage, "Extracting %s: ", szPath);
-	::SetDlgItemText(g_hDialog, IDC_MESSAGE, szMessage);
+	//::SetDlgItemText(g_hDialog, IDC_MESSAGE, szMessage);
+	g_pDialog->SetMessage(szMessage);
 	
 	hLibrary = g_hInstance;
 	hResource = ::FindResource(hLibrary, MAKEINTRESOURCE(resourceId), RT_RCDATA);
@@ -92,7 +160,7 @@ bool ExtractResourceToFile(int resourceId, LPCTSTR lpResourceFileName)
 					GENERIC_WRITE,
 					0,
 					NULL,
-					CREATE_ALWAYS,
+					CREATE_NEW, //CREATE_ALWAYS,
 					FILE_ATTRIBUTE_NORMAL,
 					NULL);
 				
@@ -107,18 +175,19 @@ bool ExtractResourceToFile(int resourceId, LPCTSTR lpResourceFileName)
 					lstrcat(szMessage, TEXT("OK"));
 				}
 				else
-					lstrcat(szMessage, TEXT("Failed to extract resource"));
+					wsprintf(szMessage, "Failed to extract %s", szPath);
 			}
 			else
 				lstrcat(szMessage, TEXT("Failed to lock resource"));
 		}  
 		else
-			lstrcat(szMessage, TEXT("Failed to load resource"));
+			wsprintf(szMessage, "Failed to load resource %d", resourceId);
 	}
 	else
-		lstrcat(szMessage, TEXT("Resource not found"));
+		wsprintf(szMessage, "Resource %d not found", resourceId);
 
-	::SetDlgItemText(g_hDialog, IDC_MESSAGE, szMessage);
+	//::SetDlgItemText(g_hDialog, IDC_MESSAGE, szMessage);
+	g_pDialog->SetMessage(szMessage);
 
 	return result;
 }
@@ -134,18 +203,20 @@ BOOL CreateUninstal()
 //REGSTR_PATH_UNINSTALL
 
 	TCHAR szSrcPath[MAX_PATH] = {0};
-	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, szSrcPath);
-	strcat(szSrcPath, "\\");
-	strcat(szSrcPath, FILENAME_EXE);
+//	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, szSrcPath);
+//	strcat(szSrcPath, "\\");
+	strcat(szSrcPath, g_szModulePath);
 
 	TCHAR szDstPath[MAX_PATH] = {0};
+	LPCTSTR pszModuleName = strrchr(g_szModulePath, '\\') + 1;
 	lstrcpy(szDstPath, g_szDestinationPath);
 	strcat(szDstPath, "\\");
-	strcat(szDstPath, FILENAME_EXE);
+	strcat(szDstPath, pszModuleName);
 
 	if( !::CopyFile(szSrcPath, szDstPath, FALSE) )
 	{
-		::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("Failed to copy setup."));
+		//::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("Failed to copy setup."));
+		g_pDialog->SetMessage( TEXT("Failed to copy setup.") );
 		return FALSE;
 	}
 
@@ -162,7 +233,8 @@ BOOL CreateUninstal()
 	
 	if(lResult != ERROR_SUCCESS)
 	{
-		::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("RegCreateKeyEx failed"));
+		//::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("RegCreateKeyEx failed"));
+		g_pDialog->SetMessage( TEXT("RegCreateKeyEx failed.") );
 		return FALSE;
 	}
 	
@@ -188,7 +260,8 @@ BOOL CreateUninstal()
 	
 	if(lResult != ERROR_SUCCESS)
 	{
-		::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("RegSetValueEx failed"));
+		//::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("RegSetValueEx failed"));
+		g_pDialog->SetMessage( TEXT("RegSetValueEx failed.") );
 		return FALSE;
 	}
 	
@@ -233,11 +306,16 @@ void Install()
 		if( RegisterActiveX() )
 		{
 			if( CreateUninstal() )
-				::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("zenFolders succesfully installed.\n"));
+			{
+				//::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("zenFolders succesfully installed.\n"));
+				g_pDialog->SetMessage( TEXT("zenFolders succesfully installed.") );
+			}
 
-			HWND hwndOK = ::GetDlgItem(g_hDialog, IDOK);
-			::ShowWindow(hwndOK, SW_HIDE) ;
-			::SetDlgItemText(g_hDialog, IDCANCEL, TEXT("Close"));
+			//HWND hwndOK = ::GetDlgItem(g_hDialog, IDOK);
+			//::ShowWindow(hwndOK, SW_HIDE) ;
+			g_pDialog->HideOkButton();
+			//::SetDlgItemText(g_hDialog, IDCANCEL, TEXT("Close"));
+			g_pDialog->SetCancelButtonText( TEXT("Close") );
 		}
 	}
 }
@@ -267,11 +345,16 @@ void Uninstall()
 			{
 				b = ::DeleteFile(szPath);
 
+				/*LPCTSTR pszModuleName = strrchr(g_szModulePath, '\\') + 1;
 				memset(szPath, 0, sizeof(szPath));
 				lstrcpy(szPath, g_szDestinationPath);
 				lstrcat(szPath, "\\");
-				lstrcat(szPath, FILENAME_EXE);
-				b = ::DeleteFile(szPath);
+				lstrcat(szPath, pszModuleName);
+				b = ::DeleteFile(szPath);*/
+
+				RegDeleteKey(
+					HKEY_LOCAL_MACHINE,
+					TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\zenFolders"));
 
 				//b = ::RemoveDirectory(g_szDestinationPath);
 			}
@@ -280,11 +363,14 @@ void Uninstall()
 			FreeLibrary( hLibrary );
 	}
 
-	::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!"));
+	//::SetDlgItemText(g_hDialog, IDC_MESSAGE, TEXT("zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!"));
+	g_pDialog->SetMessage( TEXT("zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!") );
 
-	HWND hwndOK = GetDlgItem(g_hDialog, IDOK);
-	::ShowWindow(hwndOK, SW_HIDE) ;
-	::SetDlgItemText(g_hDialog, IDCANCEL, TEXT("Close"));
+	//HWND hwndOK = GetDlgItem(g_hDialog, IDOK);
+	//::ShowWindow(hwndOK, SW_HIDE) ;
+	g_pDialog->HideOkButton();
+	//::SetDlgItemText(g_hDialog, IDCANCEL, TEXT("Close"));
+	g_pDialog->SetCancelButtonText( TEXT("Close") );
 
 	/*memset(szPath, 0, sizeof(szPath));
 	lstrcpy(szPath, g_szDestinationPath);
@@ -302,7 +388,10 @@ BOOL OnCommand(int id, int code)
 	switch(id)
 	{
 	case IDOK:
-		Install();
+		if(g_bUninstall)
+			Uninstall();
+		else
+			Install();
 		return TRUE;
 		break;
 	case IDCANCEL:
@@ -313,7 +402,7 @@ BOOL OnCommand(int id, int code)
 	}
 	return FALSE;
 }
-
+/*
 BOOL CALLBACK DialogProc(HWND hwnd,
 						 UINT message,
 						 WPARAM wParam,
@@ -334,6 +423,28 @@ BOOL CALLBACK DialogProc(HWND hwnd,
 	}
 	return FALSE;
 }
+*/
+/*
+bool CopyToTempAndExec()
+{
+	TCHAR szDstPath[MAX_PATH] = {0};
+	LPCTSTR pszModuleName = strrchr(g_szModulePath, '\\') + 1;
+
+	lstrcpy(szDstPath, g_szTempPath);
+	lstrcat(szDstPath, "\\");
+	lstrcat(szDstPath, pszModuleName);
+	lstrcat(szDstPath, " kill");
+
+	if(::CopyFile(g_szModulePath, szDstPath, FALSE))
+	{
+		//::MessageBox(0, szDstPath, "ShellExecute", MB_ICONEXCLAMATION | MB_OK);
+		::ShellExecute(NULL, "open", szDstPath, NULL, NULL, SW_NORMAL);
+		return true;
+	}
+
+	return false;
+}
+*/
 
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
@@ -344,8 +455,13 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	lstrcat(g_szDestinationPath, "\\");
 	lstrcat(g_szDestinationPath, FOLDER_NAME);
 
+	::GetTempPath(MAX_PATH, g_szTempPath);
+	::GetModuleFileName(NULL, g_szModulePath, MAX_PATH);
+
 	g_hInstance = hInstance;
-	
+
+	g_pDialog = new CDialog(hInstance, nCmdShow);
+/*
 	g_hDialog = ::CreateDialog(
 		hInstance, 
 		MAKEINTRESOURCE(IDD_MAIN), 
@@ -361,32 +477,55 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	}
 	
 	::ShowWindow(g_hDialog, nCmdShow) ;
+*/
+//	::MessageBox(0, lpCmdLine, "WinMain", MB_ICONEXCLAMATION | MB_OK);
 
 	if(0 == lstrcmpi(lpCmdLine, TEXT("uninstall")))
 	{
-		Uninstall();
+		g_bUninstall = TRUE;
+		/*TCHAR szMessage[MAX_PATH] = {0};
+		wsprintf(szMessage, TEXT("Remove zenFolders?"));
+		::SetDlgItemText(g_hDialog, IDC_MESSAGE, szMessage);*/
+		g_pDialog->SetMessage( TEXT("Remove zenFolders?") );
+//		Uninstall();
+//		CopyToTempAndExec();
+//		return 0;
 	}
+//	else if(0 == lstrcmpi(lpCmdLine, TEXT("kill")))
+//	{
+//		Uninstall();
+//	}
 	else
 	{
 		TCHAR szMessage[MAX_PATH] = {0};
 		wsprintf(szMessage, TEXT("zenFolders will be installed in '%s'"), g_szDestinationPath);
-		::SetDlgItemText(g_hDialog, IDC_MESSAGE, szMessage);
+		//::SetDlgItemText(g_hDialog, IDC_MESSAGE, szMessage);
+		g_pDialog->SetMessage( szMessage );
 	}
-	
+
 	MSG  msg;
 	int status;
 	while ((status = GetMessage (& msg, 0, 0, 0)) != 0)
 	{
 		if (status == -1)
 			return -1;
-		if (!::IsDialogMessage (g_hDialog, & msg))
+		//if (!::IsDialogMessage (g_hDialog, & msg))
+		if (!::IsDialogMessage (g_pDialog->m_hwnd, & msg))
 		{
 			::TranslateMessage ( & msg );
 			::DispatchMessage ( & msg );
 		}
 	}
 
+	if(g_bUninstall)
+	{
+//		::MessageBox(0, "g_bUninstall", "zzz", MB_ICONEXCLAMATION | MB_OK);
+		Selfdestruct();
+		// ubiti explorer, mamojebac zna da lokuje dll
+	}
+
 	return msg.wParam;
+
 	return 0;
 }
 
@@ -405,3 +544,7 @@ VersionMajor DWORD ProductVersion Major version number of application
 VersionMinor DWORD ProductVersion Minor version of application 
 
 */
+
+
+
+
