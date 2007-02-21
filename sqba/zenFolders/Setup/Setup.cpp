@@ -7,11 +7,11 @@
 //#include <shellapi.h>
 //#include <shlobj.h>
 //#include <shlwapi.h>
-#include <malloc.h>
+//#include <malloc.h>
 #include "resource.h"
 #include "dialog.h"
 
-
+/*
 void CleanUp()
 {
 	const char tempbatname[] = "_uninsep.bat" ;
@@ -36,6 +36,11 @@ void CleanUp()
 	char *pb = strrchr(folder, '\\');
 	if (pb != NULL)
 		*pb = 0 ;
+
+	TCHAR moduleName2[MAX_PATH] = {0};
+	CDialog::GetProgramFilesPath(moduleName2);
+	lstrcat(moduleName2, "\\");
+	lstrcat(moduleName2, strrchr(modulename, '\\')+1);
 	
 	HANDLE hf ;
 	
@@ -54,9 +59,9 @@ void CleanUp()
 		char *bat ;
 		
 		bat = (char*)alloca(strlen(templ) + 
-			strlen(modulename) * 2 + strlen(temppath) + 20) ;
+			strlen(moduleName2) * 2 + strlen(temppath) + 20) ;
 		
-		wsprintf(bat, templ, modulename, modulename, temppath) ;
+		wsprintf(bat, templ, moduleName2, moduleName2, temppath) ;
 		
 		::WriteFile(hf, bat, strlen(bat), &len, NULL) ;
 		::CloseHandle(hf) ;
@@ -64,7 +69,7 @@ void CleanUp()
 		::ShellExecute(NULL, "open", temppath, NULL, NULL, SW_HIDE);
 	}
 }
-
+*/
 int APIENTRY WinMain(HINSTANCE hInstance,
                      HINSTANCE hPrevInstance,
                      LPSTR     lpCmdLine,
@@ -80,9 +85,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 	{
 		if (status == -1)
 		{
-			if(bUninstall && pDialog->m_bCleanup)
+			if(pDialog->m_bCleanup)
 			{
-				CleanUp();
+				pDialog->CleanUp();
 				// ubiti explorer, mamojebac zna da lokuje dll
 			}
 			delete pDialog;
@@ -95,9 +100,9 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 		}
 	}
 
-	if(bUninstall && pDialog->m_bCleanup)
+	if(pDialog->m_bCleanup)
 	{
-		CleanUp();
+		pDialog->CleanUp();
 		// ubiti explorer, mamojebac zna da lokuje dll
 	}
 
@@ -105,23 +110,3 @@ int APIENTRY WinMain(HINSTANCE hInstance,
 
 	return msg.wParam;
 }
-
-
-
-/*
-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\zenFolders
- DisplayName
- UninstallString
-
-DisplayName REG_SZ ProductName Display name of application 
-UninstallPath REG_EXPAND_SZ N/A Full path to the application's uninstall program 
-InstallLocation REG_EXPAND_SZ ARPINSTALLLOCATION Full path where application is located (folder or .exe) 
-Publisher REG_SZ Manufacturer Publisher/Developer of application 
-VersionMajor DWORD ProductVersion Major version number of application 
-VersionMinor DWORD ProductVersion Minor version of application 
-
-*/
-
-
-
-

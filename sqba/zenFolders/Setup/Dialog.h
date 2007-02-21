@@ -17,21 +17,23 @@ public:
 	CDialog(HINSTANCE, int, bool);
 	virtual ~CDialog();
 
-	BOOL OnInit();
+	BOOL OnInit(HWND);
 	BOOL OnClose();
 	BOOL OnCommand(int, int);
+
+	void CleanUp();
 
 private:
 	BOOL Uninstall();
 	BOOL Install();
-	BOOL CreateUninstall();
-	bool RegisterActiveX();
+	BOOL CreateUninstall(BOOL);
+	bool RegisterActiveX(LPCTSTR);
+	bool UnRegisterActiveX(LPCTSTR);
 	bool ExtractResourceToFile(int, LPCTSTR, bool);
-	bool GetProgramFilesPath(LPTSTR);
 	void SetMessage(LPCTSTR);
-//	void HideOkButton();
-//	void SetCancelButtonText(LPCTSTR);
 	void Finish();
+	bool DirectoryExists(LPCTSTR);
+	bool GetProgramFilesPath(LPTSTR);
 
 public:
 	HWND m_hwnd;

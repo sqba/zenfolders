@@ -2,6 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include <malloc.h>
 #include "dialog.h"
 #include "resource.h"
 
@@ -11,6 +12,10 @@
 #define RESOURCE_ID_XML		105
 #define FILENAME_XML		"zenFolders.xml"
 #define FOLDER_NAME			TEXT("zenFolders")
+#define UNINSTALL_KEY		TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\zenFolders")
+
+
+//REGSTR_PATH_UNINSTALL
 
 
 typedef HRESULT  (__stdcall *SHGETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
@@ -36,7 +41,7 @@ BOOL CALLBACK DialogProc(HWND hwnd,
 	{
 	case WM_INITDIALOG:
 		pDlg = (CDialog*)lParam;
-		return pDlg->OnInit();
+		return pDlg->OnInit(hwnd);
 
 	case WM_COMMAND:
 		pDlg = (CDialog*)::GetWindowLong(hwnd, DWL_USER);
@@ -47,7 +52,7 @@ BOOL CALLBACK DialogProc(HWND hwnd,
 		return TRUE;
 
 	case WM_CLOSE:
-		pDlg = (CDialog*)lParam;
+		pDlg = (CDialog*)::GetWindowLong(hwnd, DWL_USER);
 		return pDlg->OnClose();
 	}
 	return FALSE;
@@ -55,9 +60,10 @@ BOOL CALLBACK DialogProc(HWND hwnd,
 
 CDialog::CDialog(HINSTANCE hInstance, int nCmdShow, bool bUnInstall)
 {
-	m_bCleanup = false;
-	m_hInstance = hInstance;
-	m_bUnInstall = bUnInstall;
+//	m_bCleanup		= bUnInstall;
+	m_bCleanup		= false;
+	m_hInstance		= hInstance;
+	m_bUnInstall	= bUnInstall;
 
 	GetProgramFilesPath(m_szDestinationPath);
 	lstrcat(m_szDestinationPath, "\\");
@@ -66,13 +72,14 @@ CDialog::CDialog(HINSTANCE hInstance, int nCmdShow, bool bUnInstall)
 	::GetTempPath(MAX_PATH, m_szTempPath);
 	::GetModuleFileName(NULL, m_szModulePath, MAX_PATH);
 
-	m_hwnd = ::CreateDialog(
+	HWND hwnd = ::CreateDialogParam(
 		hInstance, 
 		MAKEINTRESOURCE(IDD_MAIN), 
 		0, 
-		DialogProc);
+		DialogProc,
+		(LPARAM)this);
 	
-	if (!m_hwnd)
+	if (!hwnd)
 	{
 		char buf[100];
 		wsprintf(buf, "Error x%x", ::GetLastError());
@@ -80,22 +87,13 @@ CDialog::CDialog(HINSTANCE hInstance, int nCmdShow, bool bUnInstall)
 		return;
 	}
 
-	::SetWindowLong(m_hwnd, DWL_USER, (LONG)this);
+	::SetWindowLong(hwnd, DWL_USER, (LONG)this);
 	
-	::ShowWindow(m_hwnd, nCmdShow) ;
+	::ShowWindow(hwnd, nCmdShow) ;
+
+	m_hwnd = hwnd;
 
 	//::SetFocus( GetDlgItem(m_hDlg, IDC_FOLDER_NAME) );
-
-	if(bUnInstall)
-	{
-		SetMessage( TEXT("Remove zenFolders?") );
-	}
-	else
-	{
-		TCHAR szMessage[MAX_PATH] = {0};
-		wsprintf(szMessage, TEXT("zenFolders will be installed in '%s'"), m_szDestinationPath);
-		SetMessage( szMessage );
-	}
 }
 
 CDialog::~CDialog()
@@ -103,8 +101,42 @@ CDialog::~CDialog()
 
 }
 
-BOOL CDialog::OnInit()
+BOOL CDialog::OnInit(HWND hwnd)
 {
+	m_hwnd = hwnd;
+
+	BOOL result = FALSE;
+	TCHAR szMessage[MAX_PATH] = {0};
+	TCHAR szPath[MAX_PATH] = {0};
+
+	lstrcpy(szPath, m_szDestinationPath);
+	if( DirectoryExists(szPath) )
+	{
+		lstrcat(szPath, "\\");
+		lstrcat(szPath, FILENAME_DLL);
+		if( DirectoryExists(szPath) )
+		{
+			m_bUnInstall = !m_bUnInstall;
+		}
+	}
+
+	if(m_bUnInstall)
+	{
+		SetMessage( TEXT("Remove zenFolders?") );
+	}
+	else
+	{
+		TCHAR szMessage[MAX_PATH] = {0};
+		wsprintf(szMessage, TEXT("zenFolders will be installed in\n'%s'"), m_szDestinationPath);
+		SetMessage( szMessage );
+	}
+
+	return TRUE;
+}
+
+BOOL CDialog::OnClose()
+{
+	::DestroyWindow(m_hwnd);
 	return TRUE;
 }
 
@@ -119,38 +151,19 @@ BOOL CDialog::OnCommand(int id, int code)
 			return Install();
 		break;
 	case IDCANCEL:
-		//::EndDialog(g_hDialog, IDCANCEL);
-		//::DestroyWindow(g_hDialog);
 		if(m_bUnInstall)
-			CreateUninstall();
+			CreateUninstall(TRUE);
 		::PostQuitMessage(1);
 		break;
 	}
 	return FALSE;
 }
 
-BOOL CDialog::OnClose()
-{
-	::DestroyWindow(m_hwnd);
-	return TRUE;
-}
-
 void CDialog::SetMessage(LPCTSTR pszMessage)
 {
 	::SetDlgItemText(m_hwnd, IDC_MESSAGE, pszMessage);
 }
-/*
-void CDialog::HideOkButton()
-{
-	HWND hwndOK = ::GetDlgItem(m_hwnd, IDOK);
-	::ShowWindow(hwndOK, SW_HIDE) ;
-}
 
-void CDialog::SetCancelButtonText(LPCTSTR pszCaption)
-{
-	::SetDlgItemText(m_hwnd, IDCANCEL, pszCaption);
-}
-*/
 void CDialog::Finish()
 {
 	HWND hwndOK = ::GetDlgItem(m_hwnd, IDOK);
@@ -159,92 +172,150 @@ void CDialog::Finish()
 	::SetDlgItemText(m_hwnd, IDCANCEL, TEXT("Close"));
 }
 
+bool CDialog::RegisterActiveX(LPCTSTR lpszPath)
+{
+	bool result = FALSE;
+
+	HMODULE hLibrary = ::LoadLibrary(lpszPath);
+	if (NULL != hLibrary)
+	{
+		DllRegisterServer func;
+		func = (DllRegisterServer)::GetProcAddress(hLibrary, TEXT("DllRegisterServer"));
+		if(func != NULL)
+		{
+			result = SUCCEEDED( func() );
+		}
+		FreeLibrary( hLibrary );
+	}
+
+	return result;
+}
+
+bool CDialog::UnRegisterActiveX(LPCTSTR lpszPath)
+{
+	bool result = FALSE;
+
+	HMODULE hLibrary = ::LoadLibrary(lpszPath);
+	if (NULL != hLibrary)
+	{
+		DllUnregisterServer func;
+		func = (DllUnregisterServer)::GetProcAddress(hLibrary, TEXT("DllUnregisterServer"));
+		if(func != NULL)
+		{
+			result = SUCCEEDED( func() );
+		}
+		FreeLibrary( hLibrary );
+	}
+
+	return result;
+}
+
+bool CDialog::DirectoryExists(LPCTSTR lpszPath)
+{
+	WIN32_FIND_DATA FindFileData;
+
+	HANDLE hFind = FindFirstFile(lpszPath, &FindFileData);
+
+	if(hFind != INVALID_HANDLE_VALUE)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+BOOL CDialog::Install()
+{
+	BOOL result = FALSE;
+	TCHAR szMessage[MAX_PATH] = {0};
+	TCHAR szPath[MAX_PATH] = {0};
+
+	lstrcpy(szPath, m_szDestinationPath);
+	if( DirectoryExists(szPath) || ::CreateDirectory(szPath, NULL) )
+	{
+		if( ExtractResourceToFile(RESOURCE_ID_DLL, FILENAME_DLL, false) )
+		{
+			ExtractResourceToFile(RESOURCE_ID_XML, FILENAME_XML, false);
+
+			lstrcat(szPath, "\\");
+			lstrcat(szPath, FILENAME_DLL);
+
+			if( RegisterActiveX(szPath) )
+			{
+				if( CreateUninstall(FALSE) )
+				{
+					wsprintf(szMessage, TEXT("zenFolders succesfully installed."));
+				}
+
+				result = TRUE;
+			}
+			else
+				wsprintf(szMessage, "Failed to register ActiveX control.");
+		}
+		else
+		{
+			//if( DirectoryExists(szPath) )
+			//return Uninstall();
+			wsprintf(szMessage, "Failed to extract file %s: \nProbably previos uninstallation failed.\nPlease restart the computer before installing again.\nThank You", szPath);
+		}
+	}
+	else
+		wsprintf(szMessage, "Failed to create folder %s", szPath);
+
+	SetMessage( szMessage );
+
+	Finish();
+
+	return result;
+}
+
 BOOL CDialog::Uninstall()
 {
-	TCHAR	szPath[MAX_PATH] = {0};
+	BOOL result = FALSE;
+	TCHAR szPath[MAX_PATH] = {0};
+	TCHAR szMessage[MAX_PATH] = {0};
 
 	lstrcpy(szPath, m_szDestinationPath);
 	lstrcat(szPath, "\\");
 	lstrcat(szPath, FILENAME_DLL);
 
-	HMODULE hLibrary = LoadLibrary(szPath);
-	if (NULL != hLibrary)
+	if( UnRegisterActiveX(szPath) )
 	{
-		DllUnregisterServer func;
-		func = (DllUnregisterServer)GetProcAddress(hLibrary, TEXT("DllUnregisterServer"));
-		if(func != NULL)
+		if( ::DeleteFile(szPath) )
 		{
-			HRESULT hr = func();
-			FreeLibrary( hLibrary );
-			if( SUCCEEDED(hr) )
-			{
-				if( ::DeleteFile(szPath) )
-				{
-					RegDeleteKey(
-						HKEY_LOCAL_MACHINE,
-						TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\zenFolders"));
+			RegDeleteKey(
+				HKEY_LOCAL_MACHINE,
+				UNINSTALL_KEY);
 
-					m_bCleanup = true; // Tell main to call CleanUp()
+			result = true;
 
-					SetMessage( TEXT("zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!") );
-				}
-				else
-				{
-					SetMessage( TEXT("Failed to remove all files.\nPlease restart and try uninstall again.\nSorry for the inconvenience...") );
-				}
-			}
+			m_bCleanup = true; // Tell main to call CleanUp()
+
+			wsprintf(szMessage, "zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!");
 		}
-		FreeLibrary( hLibrary );
+		else
+			wsprintf(szMessage, TEXT("Failed to remove all files.\nPlease restart and try uninstall again.\nSorry for the inconvenience..."));
 	}
+	else
+		wsprintf(szMessage, "Failed to unregister ActiveX control.");
 
 	m_bUnInstall = false;
 
-	//HideOkButton();
-	//SetCancelButtonText( TEXT("Close") );
+	SetMessage( szMessage );
+
 	Finish();
 
-	return TRUE;
+	return result;
 }
 
-BOOL CDialog::Install()
-{
-	TCHAR	szPath[MAX_PATH] = {0};
-
-	lstrcpy(szPath, m_szDestinationPath);
-	BOOL b = ::CreateDirectory(szPath, NULL);
-
-	if( ExtractResourceToFile(RESOURCE_ID_DLL, FILENAME_DLL, true) )
-	{
-		ExtractResourceToFile(RESOURCE_ID_XML, FILENAME_XML, false);
-
-		if( RegisterActiveX() )
-		{
-			if( CreateUninstall() )
-			{
-				SetMessage( TEXT("zenFolders succesfully installed.") );
-			}
-
-			//HideOkButton();
-			//SetCancelButtonText( TEXT("Close") );
-			Finish();
-
-			return TRUE;
-		}
-	}
-	return FALSE;
-}
-
-BOOL CDialog::CreateUninstall()
+BOOL CDialog::CreateUninstall(BOOL silent)
 {
 	HKEY  hKey;
 	LONG  lResult;
 	DWORD dwDisp;
 
-//REGSTR_PATH_UNINSTALL
 
 	TCHAR szSrcPath[MAX_PATH] = {0};
-//	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, szSrcPath);
-//	strcat(szSrcPath, "\\");
 	strcat(szSrcPath, m_szModulePath);
 
 	TCHAR szDstPath[MAX_PATH] = {0};
@@ -255,8 +326,11 @@ BOOL CDialog::CreateUninstall()
 
 	if( !::CopyFile(szSrcPath, szDstPath, FALSE) )
 	{
-		SetMessage( TEXT("Failed to copy setup.") );
-		return FALSE;
+		if(!silent)
+		{
+			SetMessage( TEXT("Failed to copy setup.") );
+			return FALSE;
+		}
 	}
 
 	lResult = ::RegCreateKeyEx(
@@ -272,8 +346,11 @@ BOOL CDialog::CreateUninstall()
 	
 	if(lResult != ERROR_SUCCESS)
 	{
-		SetMessage( TEXT("RegCreateKeyEx failed.") );
-		return FALSE;
+		if(!silent)
+		{
+			SetMessage( TEXT("RegCreateKeyEx failed.") );
+			return FALSE;
+		}
 	}
 	
 	lResult = ::RegSetValueEx(
@@ -293,40 +370,19 @@ BOOL CDialog::CreateUninstall()
 		REG_EXPAND_SZ,
 		(LPBYTE)szDstPath,
 		sizeof(szDstPath));
-	
+
 	RegCloseKey(hKey);
-	
+
 	if(lResult != ERROR_SUCCESS)
 	{
-		SetMessage( TEXT("RegSetValueEx failed.") );
-		return FALSE;
+		if(!silent)
+		{
+			SetMessage( TEXT("RegSetValueEx failed.") );
+			return FALSE;
+		}
 	}
 	
 	return TRUE;
-}
-
-bool CDialog::RegisterActiveX()
-{
-	bool	result = FALSE;
-	TCHAR	szPath[MAX_PATH] = {0};
-
-	lstrcpy(szPath, m_szDestinationPath);
-	lstrcat(szPath, "\\");
-	lstrcat(szPath, FILENAME_DLL);
-
-	HMODULE hLibrary = ::LoadLibrary(szPath);
-	if (NULL != hLibrary)
-	{
-		DllRegisterServer func;
-		func = (DllRegisterServer)::GetProcAddress(hLibrary, TEXT("DllRegisterServer"));
-		if(func != NULL)
-		{
-			result = SUCCEEDED( func() );
-		}
-		FreeLibrary( hLibrary );
-	}
-
-	return result;
 }
 
 bool CDialog::ExtractResourceToFile(int resourceId, LPCTSTR lpResourceFileName, bool bOverwrite)
@@ -431,3 +487,80 @@ bool CDialog::GetProgramFilesPath(LPTSTR pszPath)
 	}
 	return result;
 }
+
+void CDialog::CleanUp()
+{
+	const char tempbatname[] = "_uninsep.bat" ;
+
+	// temporary .bat file
+	static char templ[] = 
+		":Repeat\r\n"
+		"del \"%s\"\r\n"
+		"if exist \"%s\" goto Repeat\r\n"
+		"del \"%s\"" ;
+	
+	char modulename[MAX_PATH] ;    // absolute path of calling .exe file
+	char temppath[MAX_PATH] ;      // absolute path of temporary .bat file
+	char folder[MAX_PATH] ;
+	
+	::GetTempPath(MAX_PATH, temppath) ;
+	strcat(temppath, tempbatname) ;
+	
+	::GetModuleFileName(NULL, modulename, MAX_PATH) ;
+	strcpy (folder, modulename) ;
+	char *pb = strrchr(folder, '\\');
+	if (pb != NULL)
+		*pb = 0 ;
+
+	TCHAR moduleName2[MAX_PATH] = {0};
+	lstrcpy(moduleName2, m_szDestinationPath);
+	lstrcat(moduleName2, "\\");
+	lstrcat(moduleName2, strrchr(modulename, '\\')+1);
+	
+	HANDLE hf ;
+	
+	hf = ::CreateFile(
+		temppath,
+		GENERIC_WRITE,
+		0,
+		NULL, 
+		CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL) ;
+	
+	if (hf != INVALID_HANDLE_VALUE)
+	{
+		DWORD len ;
+		char *bat ;
+		
+		bat = (char*)alloca(strlen(templ) + 
+			strlen(moduleName2) * 2 + strlen(temppath) + 20) ;
+		
+		wsprintf(bat, templ, moduleName2, moduleName2, temppath) ;
+		
+		::WriteFile(hf, bat, strlen(bat), &len, NULL) ;
+		::CloseHandle(hf) ;
+		
+		::ShellExecute(NULL, "open", temppath, NULL, NULL, SW_HIDE);
+	}
+}
+
+
+
+/*
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\zenFolders
+ DisplayName
+ UninstallString
+
+DisplayName REG_SZ ProductName Display name of application 
+UninstallPath REG_EXPAND_SZ N/A Full path to the application's uninstall program 
+InstallLocation REG_EXPAND_SZ ARPINSTALLLOCATION Full path where application is located (folder or .exe) 
+Publisher REG_SZ Manufacturer Publisher/Developer of application 
+VersionMajor DWORD ProductVersion Major version number of application 
+VersionMinor DWORD ProductVersion Minor version of application 
+
+*/
+
+
+
+
