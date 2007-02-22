@@ -24,6 +24,7 @@ typedef HRESULT  (__stdcall *SHGETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 
 typedef HRESULT (*DllRegisterServer)(void);
 typedef HRESULT (*DllUnregisterServer)(void);
+typedef void (*DllSetPath)(LPCTSTR, int);
 
 
 //////////////////////////////////////////////////////////////////////
@@ -190,6 +191,15 @@ bool CDialog::RegisterActiveX(LPCTSTR lpszPath)
 		if(func != NULL)
 		{
 			result = SUCCEEDED( func() );
+			if(result)
+			{
+				DllSetPath func2;
+				func2 = (DllSetPath)::GetProcAddress(hLibrary, TEXT("DllSetPath"));
+				if(func2)
+				{
+					func2(lpszPath, lstrlen(lpszPath)*sizeof(TCHAR));
+				}
+			}
 		}
 		FreeLibrary( hLibrary );
 	}
