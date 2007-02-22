@@ -36,7 +36,6 @@
 #define IDD_FOLDER_PROPERTIES           104
 #define IDI_MAGNIFIER                   107
 #define IDI_HARDDISK                    108
-#define IDB_HEADER                      111
 #define IDC_FOLDER_NAME                 1000
 #define IDC_FOLDER_QUERY                1001
 #define IDC_MAXRESULTS                  1002

@@ -121,6 +121,10 @@ SOURCE=.\resource.h
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
+SOURCE=.\header.bmp
+# End Source File
+# Begin Source File
+
 SOURCE=.\zenFolders.ico
 # End Source File
 # End Group

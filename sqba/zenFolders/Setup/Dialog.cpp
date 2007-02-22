@@ -122,14 +122,19 @@ BOOL CDialog::OnInit(HWND hwnd)
 
 	if(m_bUnInstall)
 	{
+		::SetWindowText(hwnd, TEXT("zenFolders Removal Wizard"));
 		SetMessage( TEXT("Remove zenFolders?") );
 	}
 	else
 	{
+		::SetWindowText(hwnd, TEXT("zenFolders Installation Wizard"));
 		TCHAR szMessage[MAX_PATH] = {0};
-		wsprintf(szMessage, TEXT("zenFolders will be installed in\n'%s'"), m_szDestinationPath);
+		wsprintf(szMessage, TEXT("zenFolders will be installed in: '%s'"), m_szDestinationPath);
 		SetMessage( szMessage );
 	}
+
+	::SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM) LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_MAIN)));
+	::SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM) LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_MAIN)));
 
 	return TRUE;
 }
