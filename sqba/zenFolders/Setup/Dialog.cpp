@@ -122,6 +122,7 @@ BOOL CDialog::OnInit(HWND hwnd)
 
 	if(m_bUnInstall)
 	{
+		//::LoadString(m_hInstance, IDS_COLUMN1, szString, sizeof(szString));
 		::SetWindowText(hwnd, TEXT("zenFolders Removal Wizard"));
 		SetMessage( TEXT("Remove zenFolders?") );
 	}

@@ -2,6 +2,11 @@
 // Microsoft Developer Studio generated include file.
 // Used by Setup.rc
 //
+#define IDS_INSTALL_SUCCESS             1
+#define IDS_REGISTERACTIVEXFAILED       2
+#define IDS_EXTRACTFAILED               3
+#define IDS_CREATEFOLDERFAILED          4
+#define IDS_INSTALLDIALOGTITLE          5
 #define IDD_MAIN                        101
 #define IDI_MAIN                        102
 #define IDB_HEADER                      103
