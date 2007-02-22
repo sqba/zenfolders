@@ -299,7 +299,7 @@ BOOL CDialog::Uninstall()
 			wsprintf(szMessage, "zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!");
 		}
 		else
-			wsprintf(szMessage, TEXT("Failed to remove all files.\nPlease restart and try uninstall again.\nSorry for the inconvenience..."));
+			wsprintf(szMessage, TEXT("Failed to remove all files.\nNothing to worry about.\nPlease restart and try uninstall again.\nSorry for the inconvenience..."));
 	}
 	else
 		wsprintf(szMessage, "Failed to unregister ActiveX control.");
