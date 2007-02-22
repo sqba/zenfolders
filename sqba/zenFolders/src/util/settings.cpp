@@ -15,6 +15,10 @@ BOOL CSettings::SaveCurrentPath()
 {
 	TCHAR szFullPath[MAX_PATH];
 	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, szFullPath);
+//	::GetModuleFileName(NULL, szFullPath, MAX_PATH);
+//	LPSTR p = strrchr(szFullPath, '\\');
+//	*p = 0;
+//	_RPTF1(_CRT_WARN, "szFullPath: \n", szFullPath);
 	strcat(szFullPath, "\\");
 	strcat(szFullPath, ZENFOLDERS_XML);
 //	_RPTF1(_CRT_WARN, "szFullPath = %s\n", szFullPath);

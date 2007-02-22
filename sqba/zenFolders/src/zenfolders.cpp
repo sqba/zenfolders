@@ -202,7 +202,9 @@ STDAPI DllUnregisterServer(void)
 	}
 
 	if( !CGoogleDS::UnregisterPlugin() )
+	{
 		_RPTF0(_CRT_WARN, "CGoogleDS::UnregisterPlugin() failed\n");
+	}
 
 	::CoFreeUnusedLibraries();
 
@@ -224,6 +226,28 @@ void gRelease(int cls)
 	g_DllRefCount--;
 	g_references[cls]--;
 }
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+__declspec( dllexport ) void DllSetPath(LPCTSTR lpszPath, int len)
+{
+	TCHAR szPath[MAX_PATH] = {0};
+	lstrcpy(szPath, lpszPath);
+	LPSTR p = strrchr(szPath, '\\');
+	*p = 0;
+	strcat(szPath, "\\");
+	strcat(szPath, ZENFOLDERS_XML);
+	_RPTF1(_CRT_WARN, "szPath: \n", szPath);
+	CRegistry::SaveString(
+		MAIN_KEY_STRING,
+		TEXT("Path"),
+		szPath,
+		len);
+}
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef __cplusplus
 extern "C" {

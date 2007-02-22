@@ -110,13 +110,13 @@ BOOL CDialog::OnInit(HWND hwnd)
 	TCHAR szPath[MAX_PATH] = {0};
 
 	lstrcpy(szPath, m_szDestinationPath);
-	if( DirectoryExists(szPath) )
+	if( !m_bUnInstall && DirectoryExists(szPath) )
 	{
 		lstrcat(szPath, "\\");
 		lstrcat(szPath, FILENAME_DLL);
 		if( DirectoryExists(szPath) )
 		{
-			m_bUnInstall = !m_bUnInstall;
+			m_bUnInstall = true;//!m_bUnInstall;
 		}
 	}
 
