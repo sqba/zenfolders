@@ -27,7 +27,9 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData)
 	}
 	else
 	{
-		pResults = CGoogleDS::Query(query, NULL, ranking, maxResults);
+		//pResults = CGoogleDS::Query(query, NULL, ranking, maxResults);
+		_bstr_t category(TEXT("file"));
+		pResults = CGoogleDS::Query(query, category, ranking, maxResults);
 	}
 
 	if(NULL == pResults)

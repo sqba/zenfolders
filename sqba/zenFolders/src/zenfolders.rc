@@ -81,8 +81,8 @@ BEGIN
     LTEXT           "http://zenFolders.googlepages.com",IDC_STATIC,64,216,
                     114,8
     COMBOBOX        IDC_CATEGORY,104,155,51,78,CBS_DROPDOWN | CBS_SORT | 
-                    WS_DISABLED | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Category:",IDC_STATIC,68,157,32,8,WS_DISABLED
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Category:",IDC_STATIC,68,157,32,8
     CONTROL         "Relevance",IDC_RANKING_RELEVANCE,"Button",
                     BS_AUTORADIOBUTTON | WS_TABSTOP,104,170,49,9
     CONTROL         "Recency",IDC_RANKING_RECENCY,"Button",

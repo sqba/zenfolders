@@ -443,23 +443,26 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 				LPCTSTR ext = CString::GetExtension(pData->fileData.szPath);
 				if(ext)
 				{
-					ext++;
+					if(lstrlen(ext) < 5)
+					{
+						ext++;
 
-					LoadString(g_hInst, IDS_ADDEXTFOLDER, szText, nTextSize);
-					wsprintf(txt, szText, ext, ext);
-					AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_ADDEXTFOLDER, TRUE, FALSE);
+						LoadString(g_hInst, IDS_ADDEXTFOLDER, szText, nTextSize);
+						wsprintf(txt, szText, ext, ext);
+						AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_ADDEXTFOLDER, TRUE, FALSE);
 
-					LoadString(g_hInst, IDS_HIDEEXTENSION, szText, nTextSize);
-					wsprintf(txt, szText, ext);
-					AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_HIDEEXTENSION, TRUE, FALSE);
+						LoadString(g_hInst, IDS_HIDEEXTENSION, szText, nTextSize);
+						wsprintf(txt, szText, ext);
+						AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_HIDEEXTENSION, TRUE, FALSE);
 
-					LoadString(g_hInst, IDS_SHOWONLYEXTENSION, szText, nTextSize);
-					wsprintf(txt, szText, ext);
-					AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_SHOWONLYEXTENSION, TRUE, FALSE);
+						LoadString(g_hInst, IDS_SHOWONLYEXTENSION, szText, nTextSize);
+						wsprintf(txt, szText, ext);
+						AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_SHOWONLYEXTENSION, TRUE, FALSE);
 
-					LoadString(g_hInst, IDS_OPENCONTAININGFOLDER, szText, nTextSize);
-					wsprintf(txt, szText, ext);
-					AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_OPENCONTAININGFOLDER1, TRUE, FALSE);
+						LoadString(g_hInst, IDS_OPENCONTAININGFOLDER, szText, nTextSize);
+						wsprintf(txt, szText, ext);
+						AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_OPENCONTAININGFOLDER1, TRUE, FALSE);
+					}
 				}
 			}
 		}
