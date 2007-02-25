@@ -116,6 +116,8 @@ BOOL CGoogleDS::RegisterPlugin()
 		// just read-only access.
 		g_lCookie = spRegistration->RegisterPlugin(guid, TRUE);
 
+		_RPTF1(_CRT_WARN, "RegisterPlugin returned %d", g_lCookie);
+
 		hr = spRegistrar->FinishComponentRegistration();
 		if (FAILED(hr))
 		{
