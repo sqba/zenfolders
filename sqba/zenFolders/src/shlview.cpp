@@ -1587,8 +1587,8 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 							
 							ZeroMemory(&cmi, sizeof(cmi));
 							cmi.cbSize = sizeof(cmi);
-							cmi.hwnd = m_hWnd;
-							cmi.lpVerb = (LPCSTR)MAKEINTRESOURCE(uCommand);
+							cmi.hwnd = m_hwndParent;
+							cmi.lpVerb = (LPCSTR)MAKEINTRESOURCE(uCommand - MENU_OFFSET);
 							
 							pContextMenu->InvokeCommand(&cmi);
 						}
