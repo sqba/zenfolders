@@ -3,6 +3,7 @@
 //#include <windows.h>
 //#include <commctrl.h>
 
+#include "commands.h"
 #include "zenfolders.h"
 #include "shlview.h"
 #include "guid.h"
@@ -29,31 +30,36 @@
 typedef struct
 {
 	int   idCommand;
+	UINT  uImageSet;
 	int   iImage;
-	int   idButtonString;
-	int   idMenuString;
-	int   nStringOffset;
+	int   idString;
 	BYTE  bState;
 	BYTE  bStyle;
 } MYTOOLINFO, *LPMYTOOLINFO;
 
-MYTOOLINFO g_Tools1[] = 
+MYTOOLINFO g_Tools[] = 
 {
-	IDM_VIEW_KEYS,
-	0,
-	IDS_TB_VIEW_KEYS,
-	IDS_MI_VIEW_KEYS,
-	0,
-	TBSTATE_ENABLED,
-	TBSTYLE_BUTTON,
+	IDM_CREATE_FOLDER,
+		IDB_VIEW_SMALL_COLOR, VIEW_NEWFOLDER,
+		IDS_CREATE_FOLDER,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON,
 	IDM_VIEW_IDW,
-	0,
-	IDS_TB_VIEW_IDW,
-	IDS_MI_VIEW_IDW,
-	0,
-	TBSTATE_ENABLED,
-	TBSTYLE_BUTTON,
-	-1, 0, 0, 0, 0,
+		IDB_VIEW_SMALL_COLOR, VIEW_LARGEICONS,
+		IDS_MI_VIEW_IDW,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON,
+	IDM_VIEW_IDW,
+		IDB_VIEW_SMALL_COLOR, VIEW_SMALLICONS,
+		IDS_MI_VIEW_IDW,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON,
+	IDM_VIEW_IDW,
+		IDB_VIEW_SMALL_COLOR, VIEW_LIST,
+		IDS_MI_VIEW_IDW,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON,
+	IDM_VIEW_IDW,
+		IDB_VIEW_SMALL_COLOR, VIEW_DETAILS,
+		IDS_MI_VIEW_IDW,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON,
+	0, -1, 0, 0, 0, 0,
 };
 
 
@@ -68,7 +74,6 @@ extern LPPIDLMGR	g_pPidlMgr;
 
 int					g_nColumn1;
 int					g_nColumn2;
-BOOL				g_bViewKeys;
 //HWND				g_hwndList;
 
 
@@ -154,7 +159,8 @@ CShellView::CShellView(CShellFolder *pFolder, LPCITEMIDLIST pidl)
 	m_pCommDlgBrowser	= NULL;
 	m_pListView			= NULL;
 	m_pWebBrowser		= NULL;
-	
+//	m_hAccels = LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDR_ACCELS));
+
 	m_pSFParent = pFolder;
 	if(m_pSFParent)
 		m_pSFParent->AddRef();
@@ -530,6 +536,8 @@ STDMETHODIMP CShellView::CreateViewWindow(LPSHELLVIEW pPrevView,
 	
 	if(!*phWnd)
 		return E_FAIL;
+
+	MergeToolbar();
 	
 	m_pShellBrowser->AddRef();
 
@@ -772,6 +780,21 @@ Return Value
 **************************************************************************/
 STDMETHODIMP CShellView::TranslateAccelerator(LPMSG pMsg)
 {
+/*
+	if(m_fInEdit)
+	{
+		if((pmsg->message >= WM_KEYFIRST) && (pmsg->message <= WM_KEYLAST))
+		{
+			TranslateMessage(pmsg);
+			DispatchMessage(pmsg);
+			return S_OK;
+		}
+	}
+	else if(::TranslateAccelerator(m_hWnd, m_hAccels, pmsg))
+		return S_OK;
+	
+	return S_FALSE;
+*/
 	return E_NOTIMPL;
 }
 
@@ -1080,6 +1103,38 @@ LRESULT CShellView::OnNotify(UINT CtlID, LPNMHDR lpnmh)
 {
 	switch(lpnmh->code)
 	{
+	case TTN_NEEDTEXTA:
+		{
+			LPNMTTDISPINFOA pttt = (LPNMTTDISPINFOA)lpnmh;
+			int            i;
+			
+			for(i = 0; -1 != g_Tools[i].idCommand; i++)
+			{
+				if(g_Tools[i].idCommand == pttt->hdr.idFrom)
+				{
+					LoadStringA(g_hInst, g_Tools[i].idString, pttt->szText, sizeof(pttt->szText));
+					return TRUE;
+				}
+			}
+		}
+		break;
+		
+	case TTN_NEEDTEXTW:
+		{
+			LPNMTTDISPINFOW pttt = (LPNMTTDISPINFOW)lpnmh;
+			int            i;
+			
+			for(i = 0; -1 != g_Tools[i].idCommand; i++)
+			{
+				if(g_Tools[i].idCommand == pttt->hdr.idFrom)
+				{
+					LoadStringW(g_hInst, g_Tools[i].idString, pttt->szText, sizeof(pttt->szText));
+					return TRUE;
+				}
+			}
+		}
+		break;
+
 	case NM_SETFOCUS:
 		OnSetFocus();
 		break;
@@ -1106,6 +1161,7 @@ LRESULT CShellView::OnNotify(UINT CtlID, LPNMHDR lpnmh)
 return 0;
 
 	case LVN_ITEMCHANGED:
+		UpdateToolbar();
 		OnItemChanged( (LPNMLISTVIEW)lpnmh );
 		break;
 
@@ -1365,6 +1421,8 @@ LRESULT CShellView::OnActivate(UINT uState)
 	}
 	
 	m_uState = uState;
+
+	UpdateToolbar();
 	
 	return 0;
 }
@@ -1491,7 +1549,7 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 						NULL);
 				}
 				
-				if(uCommand > 0)
+				/*if(uCommand > 0)
 				{
 					CMINVOKECOMMANDINFO  cmi;
 					
@@ -1501,7 +1559,43 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 					cmi.lpVerb = (LPCSTR)MAKEINTRESOURCE(uCommand - MENU_OFFSET);
 					
 					pContextMenu->InvokeCommand(&cmi);
+				}*/
+				if(uCommand > 0)
+				{
+					//some commands need to be handled by the view itself
+					switch(uCommand)
+					{
+					case IDM_VIEW_LARGE:
+						//OnViewLarge();
+						break;
+						
+					case IDM_VIEW_SMALL:
+						//OnViewSmall();
+						break;
+						
+					case IDM_VIEW_LIST:
+						//OnViewList();
+						break;
+						
+					case IDM_VIEW_DETAILS:
+						//OnViewDetails();
+						break;
+						
+					default:
+						{
+							CMINVOKECOMMANDINFO  cmi;
+							
+							ZeroMemory(&cmi, sizeof(cmi));
+							cmi.cbSize = sizeof(cmi);
+							cmi.hwnd = m_hWnd;
+							cmi.lpVerb = (LPCSTR)MAKEINTRESOURCE(uCommand);
+							
+							pContextMenu->InvokeCommand(&cmi);
+						}
+						break;
+					}
 				}
+
 				
 				DestroyMenu(hMenu);
 			}
@@ -1511,12 +1605,11 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 		
 		m_pMalloc->Free(aSelectedItems);
    }
+   UpdateToolbar();
 }
 
 LRESULT CShellView::OnInitMenuPopup(HMENU hMenu)
 {
-	CheckMenuItem(hMenu, IDM_VIEW_KEYS, MF_BYCOMMAND | (g_bViewKeys ? MF_CHECKED: MF_UNCHECKED));
-	
 	EnableMenuItem(hMenu, IDM_VIEW_IDW, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
 	CheckMenuItem(hMenu, IDM_VIEW_IDW, MF_BYCOMMAND | MF_UNCHECKED);
 	
@@ -1528,16 +1621,18 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 //	_RPTF1(_CRT_WARN, "OnCommand (%d)\n", dwCmdID);
 	switch(dwCmdID)
 	{
-	case IDM_VIEW_KEYS:
-		g_bViewKeys = ! g_bViewKeys;
-		Refresh();
-		break;
-		
 	case IDM_VIEW_IDW:
 		break;
 		
 	case IDM_MYFILEITEM:
 		MessageBeep(MB_OK);
+		break;
+		
+	case IDM_CREATE_FOLDER:
+		MessageBeep(MB_OK);
+		break;
+
+	default:
 		break;
 	}
 	
@@ -1648,7 +1743,7 @@ void CShellView::FillList(void)
 {
 	LPENUMIDLIST   pEnumIDList;
 	
-	if(SUCCEEDED(m_pSFParent->EnumObjects(m_hWnd, SHCONTF_NONFOLDERS | (g_bViewKeys ? SHCONTF_FOLDERS : 0), &pEnumIDList)))
+	if(SUCCEEDED(m_pSFParent->EnumObjects(m_hWnd, SHCONTF_NONFOLDERS | SHCONTF_FOLDERS, &pEnumIDList)))
 	{
 		LPITEMIDLIST   pidl;
 		DWORD          dwFetched;
@@ -1706,14 +1801,14 @@ HMENU CShellView::BuildMenu(void)
 		int            nTools,
 			i;
 		//get the number of items in our global array
-		for(nTools = 0; g_Tools1[nTools].idCommand != -1; nTools++) {}
+		for(nTools = 0; g_Tools[nTools].idCommand != -1; nTools++) {}
 		
 		//add the menu items
 		for(i = 0; i < nTools; i++)
 		{
 			LoadString(
 				g_hInst,
-				g_Tools1[i].idMenuString,
+				g_Tools[i].idString,
 				szText,
 				sizeof(szText));
 			
@@ -1721,12 +1816,12 @@ HMENU CShellView::BuildMenu(void)
 			mii.cbSize = sizeof(mii);
 			mii.fMask = MIIM_TYPE | MIIM_ID | MIIM_STATE;
 			
-			if(TBSTYLE_SEP != g_Tools1[i].bStyle)
+			if(TBSTYLE_SEP != g_Tools[i].bStyle)
 			{
 				mii.fType = MFT_STRING;
 				mii.fState = MFS_ENABLED;
 				mii.dwTypeData = szText;
-				mii.wID = g_Tools1[i].idCommand;
+				mii.wID = g_Tools[i].idCommand;
 			}
 			else
 			{
@@ -1831,4 +1926,93 @@ HRESULT CShellView::StateChange(ULONG uChange)
 		return m_pCommDlgBrowser->OnStateChange((IShellView*)this, uChange);
 	}
 	return E_NOTIMPL;
+}
+
+VOID CShellView::MergeToolbar(VOID)
+{
+	int         i;
+	TBADDBITMAP tbab;
+	LRESULT     lStdOffset;
+	LRESULT     lViewOffset;
+	
+	m_pShellBrowser->SetToolbarItems(NULL, 0, FCT_MERGE);
+	
+	tbab.hInst = HINST_COMMCTRL;
+	tbab.nID = (int)IDB_STD_SMALL_COLOR;
+	m_pShellBrowser->SendControlMsg(FCW_TOOLBAR, TB_ADDBITMAP, 0, (LPARAM)&tbab, &lStdOffset);
+	
+	tbab.hInst = HINST_COMMCTRL;
+	tbab.nID = (int)IDB_VIEW_SMALL_COLOR;
+	m_pShellBrowser->SendControlMsg(FCW_TOOLBAR, TB_ADDBITMAP, 0, (LPARAM)&tbab, &lViewOffset);
+	
+	//get the number of items in tool array
+	for(i = 0; -1 != g_Tools[i].idCommand; i++) {}
+	
+	LPTBBUTTON  ptbb = (LPTBBUTTON)GlobalAlloc(GPTR, sizeof(TBBUTTON) * i);
+	
+	if(ptbb)
+	{
+		for(i = 0; -1 != g_Tools[i].idCommand; i++)
+		{
+			(ptbb + i)->iBitmap = 0;
+			switch(g_Tools[i].uImageSet)
+			{
+			case IDB_STD_SMALL_COLOR:
+				(ptbb + i)->iBitmap = lStdOffset + g_Tools[i].iImage;
+				break;
+				
+			case IDB_VIEW_SMALL_COLOR:
+				(ptbb + i)->iBitmap = lViewOffset + g_Tools[i].iImage;
+				break;
+			}
+			
+			(ptbb + i)->idCommand = g_Tools[i].idCommand;
+			(ptbb + i)->fsState = g_Tools[i].bState;
+			(ptbb + i)->fsStyle = g_Tools[i].bStyle;
+			(ptbb + i)->dwData = 0;
+			(ptbb + i)->iString = 0;
+		}
+		
+		m_pShellBrowser->SetToolbarItems(ptbb, i, FCT_MERGE);
+		
+		GlobalFree((HGLOBAL)ptbb);
+	}
+	
+	UpdateToolbar();
+}
+
+LRESULT CShellView::UpdateToolbar(VOID)
+{
+	LRESULT  lResult;
+	UINT     uCommand;
+
+	//enable/disable/check the toolbar items here
+	switch(m_FolderSettings.ViewMode)
+	{
+	case FVM_ICON:
+		uCommand = IDM_VIEW_LARGE;
+		break;
+		
+	case FVM_SMALLICON:
+		uCommand = IDM_VIEW_SMALL;
+		break;
+		
+	case FVM_LIST:
+		uCommand = IDM_VIEW_LIST;
+		break;
+		
+	case FVM_DETAILS:
+	default:
+		uCommand = IDM_VIEW_DETAILS;
+		break;
+	}
+
+	m_pShellBrowser->SendControlMsg(
+		FCW_TOOLBAR, 
+		TB_CHECKBUTTON,
+		uCommand, 
+		MAKELPARAM(TRUE, 0), 
+		&lResult);
+	
+	return 0;
 }

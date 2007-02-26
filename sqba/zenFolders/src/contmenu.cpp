@@ -1,6 +1,7 @@
 
 #include <crtdbg.h>
 
+#include "commands.h"
 #include "contmenu.h"
 #include "cfgxml.h"
 #include "viewlist.h"
@@ -10,22 +11,6 @@
 
 
 #define ARRAYSIZE(a)    (sizeof(a)/sizeof(a[0]))
-
-
-#define IDM_EXPLORE					0
-#define IDM_OPEN					1
-#define IDM_RENAME					2
-#define IDM_EXECUTE					3
-#define IDM_CREATE_FOLDER			4
-#define IDM_REMOVE_FOLDER			5
-#define IDM_PROPERTIES				6
-#define IDM_ADDEXTFOLDER			7
-#define IDM_HIDEEXTENSION			8
-#define IDM_SHOWONLYEXTENSION		9
-#define IDM_OPENCONTAININGFOLDER1	10
-#define IDM_CLEARSEARCH				11
-
-#define IDM_LAST					IDM_CLEARSEARCH
 
 
 extern LPCONFIGXML	g_pConfigXML;

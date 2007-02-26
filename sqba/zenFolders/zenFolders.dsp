@@ -280,6 +280,10 @@ SOURCE=.\src\clsfact.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\commands.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\contmenu.h
 # End Source File
 # Begin Source File

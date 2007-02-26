@@ -40,7 +40,7 @@ BOOL CSettings::SaveGlobalSettings(void)
 	DWORD dwArray[4];
 	dwArray[0] = g_nColumn1;
 	dwArray[1] = g_nColumn2;
-	dwArray[2] = g_bViewKeys;
+	dwArray[2] = 0;//g_bViewKeys;
 	dwArray[3] = g_lCookie;
 
 	return CRegistry::SaveValue(
@@ -100,7 +100,7 @@ BOOL CSettings::GetGlobalSettings(void)
 	//set up the default data
 	g_nColumn1 = INITIAL_COLUMN_SIZE;
 	g_nColumn2 = INITIAL_COLUMN_SIZE;
-	g_bViewKeys = TRUE;
+//	g_bViewKeys = TRUE;
 //	g_bShowIDW = FALSE;
 	
 	if(!CRegistry::GetValue(MAIN_KEY_STRING,
@@ -111,7 +111,7 @@ BOOL CSettings::GetGlobalSettings(void)
 
 	g_nColumn1	= dwArray[0];
 	g_nColumn2	= dwArray[1];
-	g_bViewKeys	= dwArray[2];
+//	g_bViewKeys	= dwArray[2];
 	g_lCookie	= dwArray[3];
 
 	if(g_nColumn1 < 0)

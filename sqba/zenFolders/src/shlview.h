@@ -84,6 +84,9 @@ private:
 	void DoContextMenu(WORD, WORD, BOOL);
 	HRESULT StateChange(ULONG uChange);
 
+	VOID MergeToolbar(VOID);
+	LRESULT UpdateToolbar(VOID);
+
 private:
 	static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -101,6 +104,7 @@ private:
 	ICommDlgBrowser *m_pCommDlgBrowser;
 	CListView		*m_pListView;
 	CWebBrowser		*m_pWebBrowser;
+	//HACCEL			m_hAccels;
 };
 
 #endif   //SHELLVIEW_H

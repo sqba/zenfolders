@@ -22,7 +22,7 @@
 
 extern int  g_nColumn1;
 extern int  g_nColumn2;
-extern BOOL g_bViewKeys;
+//extern BOOL g_bViewKeys;
 extern int  g_lCookie;
 
 class CSettings  
