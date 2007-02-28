@@ -32,8 +32,6 @@ IDI_ZENFOLDERS          ICON    DISCARDABLE     "../icons/zenFolders.ico"
 IDI_FOLDEROPEN          ICON    DISCARDABLE     "../icons/folderop.ico"
 IDI_FOLDER              ICON    DISCARDABLE     "../icons/folder.ico"
 IDI_FILE                ICON    DISCARDABLE     "../icons/file.ico"
-IDI_MAGNIFIER           ICON    DISCARDABLE     "..\\icons\\magnifier.ico"
-IDI_HARDDISK            ICON    DISCARDABLE     "..\\icons\\harddisk.ico"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -183,11 +181,11 @@ BEGIN
     IDS_MI_FILEITEM         "&Registry File Item"
     IDS_SHOWONLYEXTENSION   "Show only '%s' files"
     IDS_HIDEEXTENSION       "Hide all '%s' files"
-    IDS_ADDEXTFOLDER        "Move all .%s files to '%s files' folder"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
+    IDS_ADDEXTFOLDER        "Move all .%s files to '%s files' folder"
     IDS_EXPLORE             "&Explore"
     IDS_OPEN                "&Open"
     IDS_REMOVE_FOLDER       "&Delete"

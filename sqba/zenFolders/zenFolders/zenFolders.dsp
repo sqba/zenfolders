@@ -244,15 +244,7 @@ SOURCE=.\icons\folderop.ico
 # End Source File
 # Begin Source File
 
-SOURCE=.\icons\harddisk.ico
-# End Source File
-# Begin Source File
-
 SOURCE=.\icons\header.bmp
-# End Source File
-# Begin Source File
-
-SOURCE=.\icons\magnifier.ico
 # End Source File
 # Begin Source File
 

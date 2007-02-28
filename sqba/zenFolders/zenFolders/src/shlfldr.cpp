@@ -610,53 +610,66 @@ STDMETHODIMP CShellFolder::GetDisplayNameOf(LPCITEMIDLIST pidl,
 											DWORD dwFlags, 
 											LPSTRRET lpName)
 {
-	/*if (pidl->mkid.cb == 0) // Root
-	{
-		HRESULT hr;
-		IShellFolder *pDesktop;
-		hr = ::SHGetDesktopFolder(&pDesktop);
-		if(FAILED(hr))
-			return E_FAIL;
-
-		STRRET strret;
-		strret.uType = STRRET_WSTR;
-		hr = pDesktop->GetDisplayNameOf(pidl, SHGDN_NORMAL, lpName);
-		if(FAILED(hr))
-			return E_FAIL;
-
-		return S_OK;
-	}*/
-
 	int cchOleStr;
 	TCHAR szText[MAX_PATH] = {0};
 	LPITEMIDLIST pidlRel = CPidlManager::GetLastItem(pidl);
-	
-	/*TRACE_PIDL_PATH("CShellFolder::GetDisplayNameOf(%s)\n", pidl);
-	_RPTF1(_CRT_WARN, "CShellFolder::GetDisplayNameOf(%d)\n", pidl->mkid.cb);
-	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-	//CPidl cpidl(pidl);
-	//if(!cpidl.IsRoot() && !cpidl.IsFolder() && !cpidl.IsFile())
-	if( !CPidlManager::IsOurPidl(pidl) )
-	{
-		_RPTF1(_CRT_WARN, "CShellFolder::GetDisplayNameOf (FS PIDL, %d)\n", pidl->mkid.cb);
-	}*/
 
+	if (NULL==pidl || pidl->mkid.cb == 0)//root folder
+	{
+		CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
+	}
+	else
+	{
+		SHGNO a = (SHGNO)GET_SHGDN_FOR(dwFlags);
+		SHGNO b = (SHGNO)GET_SHGDN_RELATION(dwFlags);
+
+		if(a == SHGDN_FORADDRESSBAR)
+		{
+			int d = 1;
+		}
+
+		switch(GET_SHGDN_FOR(dwFlags))
+		{
+		case SHGDN_FOREDITING:
+		case SHGDN_FORADDRESSBAR:
+			CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
+			break;
+//		case SHGDN_FORPARSING:
+//			break;
+		default:
+			switch(GET_SHGDN_RELATION(dwFlags))
+			{
+			case SHGDN_INFOLDER:
+				CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
+				break;
+			case SHGDN_NORMAL:
+				{
+					CPidl cpidl(pidl);
+					if( cpidl.IsFile() )
+					{
+						cpidl.GetFSPath(szText, sizeof(szText));
+					}
+					else
+					{
+						LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
+						//::SHGetPathFromIDList(pidlFQ, szText);
+						CPidlManager::GetPidlPath(pidlFQ, szText, sizeof(szText));
+						g_pPidlMgr->Delete(pidlFQ);
+					}
+				}
+				break;
+			default:
+				return E_INVALIDARG;
+			}
+		}
+	}
+/*
 	if(dwFlags & SHGDN_FORPARSING)
 	{
 		CPidl cpidl(pidl);
 		if( cpidl.IsFile() )
 		{
 			cpidl.GetFSPath(szText, sizeof(szText));
-			/*if(dwFlags & SHGDN_INFOLDER)
-			{
-				TCHAR szPath[MAX_PATH] = {0};
-				cpidl.GetPath(szPath, sizeof(szPath));
-				lstrcpy(szText, CString::GetFilename(szPath)+1);
-			}
-			else
-			{
-				cpidl.GetPath(szText, sizeof(szText));
-			}*/
 		}
 		else
 		{
@@ -675,7 +688,6 @@ STDMETHODIMP CShellFolder::GetDisplayNameOf(LPCITEMIDLIST pidl,
 	}
 	else
 	{
-		//CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
 		if(dwFlags & SHGDN_INFOLDER)
 		{
 			CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
@@ -688,7 +700,7 @@ STDMETHODIMP CShellFolder::GetDisplayNameOf(LPCITEMIDLIST pidl,
 			g_pPidlMgr->Delete(pidlFQ);
 		}
 	}
-
+*/
 	//get the number of characters required
 	cchOleStr = lstrlen(szText) + 1;
 
