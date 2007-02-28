@@ -343,6 +343,8 @@ BOOL CEnumIDList::EnumerateFiles(MSXML2::IXMLDOMNodePtr node)
 	BOOL bHasSubFolders = (m_iFolderCount > 0);
 	pResults = CGoogleDS::Query(&data, bHasSubFolders);
 
+	BOOL bFilesOnly = (0 == lstrcmpi(data.folderData.szCategory, "file"));
+
 	if(NULL == pResults)
 		return TRUE;
 
@@ -356,7 +358,7 @@ BOOL CEnumIDList::EnumerateFiles(MSXML2::IXMLDOMNodePtr node)
 			return FALSE;
 
 		LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-		if(pData->fileData.pidlFS)
+		if(!bFilesOnly || pData->fileData.pidlFS)
 		{
 			if(!AddToEnumList(pidl))
 				return FALSE;
