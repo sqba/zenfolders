@@ -4,7 +4,7 @@
 
 #include "registry.h"
 
-
+/*
 DWORD CRegistry::GetKeyName(HKEY hKeyRoot,
 							LPCTSTR pszSubKey,
 							DWORD dwIndex,
@@ -176,7 +176,7 @@ LPTSTR CRegistry::GetNextRegElement(LPTSTR pszNext, LPTSTR pszOut, DWORD dwOut)
 	
 	return pszTail;
 }
-
+*/
 BOOL CRegistry::SaveValue(LPCTSTR lpKeyName,
 						  LPCTSTR lpValueName,
 						  LPBYTE lpData,
@@ -217,6 +217,7 @@ BOOL CRegistry::SaveValue(LPCTSTR lpKeyName,
 	
 	return TRUE;
 }
+
 BOOL CRegistry::SaveValue(LPCTSTR lpKeyName,
 						  LPCTSTR lpValueName,
 						  LPBYTE lpData,
@@ -231,6 +232,54 @@ BOOL CRegistry::SaveString(LPCTSTR lpKeyName,
 						   DWORD dwSize)
 {
 	return SaveValue(lpKeyName, lpValueName, (LPBYTE)lpData, dwSize, REG_SZ);
+}
+
+BOOL CRegistry::SaveValueGlobal(LPCTSTR lpKeyName,
+								LPCTSTR lpValueName,
+								LPBYTE lpData,
+								DWORD dwSize,
+								DWORD dwType)
+{
+	HKEY  hKey;
+	LONG  lResult;
+	DWORD dwDisp;
+	
+	lResult = RegCreateKeyEx(
+		HKEY_LOCAL_MACHINE,
+		lpKeyName,
+		0,
+		NULL,
+		REG_OPTION_NON_VOLATILE, 
+		KEY_ALL_ACCESS,
+		NULL, 
+		&hKey,
+		&dwDisp);
+	
+	if(lResult != ERROR_SUCCESS)
+		return FALSE;
+	
+	//save the last printer selected
+	lResult = RegSetValueEx(
+		hKey,
+		lpValueName,
+		0,
+		dwType,
+		lpData,
+		dwSize);
+	
+	RegCloseKey(hKey);
+	
+	if(lResult != ERROR_SUCCESS)
+		return FALSE;
+	
+	return TRUE;
+}
+
+BOOL CRegistry::SaveIntGlobal(LPCTSTR lpKeyName,
+							  LPCTSTR lpValueName,
+							  INT value)
+{
+	return SaveValueGlobal(lpKeyName, lpValueName, (LPBYTE)&value, sizeof(INT), REG_DWORD);
 }
 
 BOOL CRegistry::GetValue(LPCTSTR lpKeyName,
@@ -259,6 +308,34 @@ BOOL CRegistry::GetValue(LPCTSTR lpKeyName,
 	return TRUE;
 */
 	return GetValue(HKEY_CURRENT_USER, lpKeyName, lpValueName, lpData, dwSize);
+}
+
+BOOL CRegistry::GetValueGlobal(LPCTSTR lpKeyName,
+							   LPCTSTR lpValueName,
+							   LPBYTE lpData,
+							   DWORD dwSize)
+{
+/*
+	HKEY  hKey;
+	LONG  lResult;
+	DWORD dwType;
+	
+	lResult = RegOpenKeyEx(HKEY_CURRENT_USER, lpKeyName, 0, KEY_ALL_ACCESS, &hKey);
+	
+	if(lResult != ERROR_SUCCESS)
+		return FALSE;
+	
+	//save the last printer selected
+	lResult = RegQueryValueEx(hKey, lpValueName, NULL, &dwType, lpData, &dwSize);
+	
+	RegCloseKey(hKey);
+	
+	if(lResult != ERROR_SUCCESS)
+		return FALSE;
+	
+	return TRUE;
+*/
+	return GetValue(HKEY_LOCAL_MACHINE, lpKeyName, lpValueName, lpData, dwSize);
 }
 
 BOOL CRegistry::GetValue(HKEY hKey,

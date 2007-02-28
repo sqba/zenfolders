@@ -1,4 +1,4 @@
-# Microsoft Developer Studio Project File - Name="packager" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="Packager" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
@@ -13,17 +13,17 @@ CFG=packager - Win32 Debug
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "packager.mak" CFG="packager - Win32 Debug"
+!MESSAGE NMAKE /f "packager.mak" CFG="Packager - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "packager - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "packager - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "Packager - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "Packager - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""$/sqba/zenFolders/packager", HJEAAAAA"
+# PROP Scc_ProjName ""$/sqba/zenFolders/Packager", HJEAAAAA"
 # PROP Scc_LocalPath "."
 CPP=cl.exe
 RSC=rc.exe
@@ -82,8 +82,8 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "packager - Win32 Release"
-# Name "packager - Win32 Debug"
+# Name "Packager - Win32 Release"
+# Name "Packager - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -91,14 +91,6 @@ LINK32=link.exe
 
 SOURCE=.\packager.cpp
 # End Source File
-# End Group
-# Begin Group "Header Files"
-
-# PROP Default_Filter "h;hpp;hxx;hm;inl"
-# End Group
-# Begin Group "Resource Files"
-
-# PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # End Group
 # End Target
 # End Project

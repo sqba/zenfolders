@@ -6,6 +6,7 @@
 
 #define MAIN_KEY_STRING		(TEXT("Software\\zenFolders"))
 #define VALUE_STRING		(TEXT("Display Settings"))
+#define COOKIE_STRING		(TEXT("Cookie"))
 #define INITIAL_COLUMN_SIZE	100
 #define DEFAULT_MAX_RESULTS	100
 

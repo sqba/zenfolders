@@ -41,7 +41,9 @@ BOOL CSettings::SaveGlobalSettings(void)
 	dwArray[0] = g_nColumn1;
 	dwArray[1] = g_nColumn2;
 	dwArray[2] = 0;//g_bViewKeys;
-	dwArray[3] = g_lCookie;
+//	dwArray[3] = g_lCookie;
+
+	CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, g_lCookie);
 
 	return CRegistry::SaveValue(
 		MAIN_KEY_STRING,
@@ -112,7 +114,12 @@ BOOL CSettings::GetGlobalSettings(void)
 	g_nColumn1	= dwArray[0];
 	g_nColumn2	= dwArray[1];
 //	g_bViewKeys	= dwArray[2];
-	g_lCookie	= dwArray[3];
+//	g_lCookie	= dwArray[3];
+
+	CRegistry::GetValueGlobal(MAIN_KEY_STRING,
+		COOKIE_STRING,
+		(LPBYTE)&g_lCookie,
+		sizeof(int));
 
 	if(g_nColumn1 < 0)
 		g_nColumn1 = INITIAL_COLUMN_SIZE;
