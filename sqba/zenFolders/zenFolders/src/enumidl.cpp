@@ -340,7 +340,8 @@ BOOL CEnumIDList::EnumerateFiles(MSXML2::IXMLDOMNodePtr node)
 	if( !CConfigXML::GetFolderInfo(&data, node) )
 		return FALSE;
 
-	pResults = CGoogleDS::Query(&data);
+	BOOL bHasSubFolders = (m_iFolderCount > 0);
+	pResults = CGoogleDS::Query(&data, bHasSubFolders);
 
 	if(NULL == pResults)
 		return TRUE;

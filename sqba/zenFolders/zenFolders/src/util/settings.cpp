@@ -43,7 +43,7 @@ BOOL CSettings::SaveGlobalSettings(void)
 	dwArray[2] = 0;//g_bViewKeys;
 //	dwArray[3] = g_lCookie;
 
-	CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, g_lCookie);
+//	CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, g_lCookie);
 
 	return CRegistry::SaveValue(
 		MAIN_KEY_STRING,

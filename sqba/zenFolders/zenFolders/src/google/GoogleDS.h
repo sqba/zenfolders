@@ -15,7 +15,7 @@ using namespace GoogleDesktopAPILib;
 class CGoogleDS  
 {
 public:
-	static IGoogleDesktopQueryResultSet *Query(LPPIDLDATA);
+	static IGoogleDesktopQueryResultSet *Query(LPPIDLDATA, BOOL);
 
 	static BOOL RegisterPlugin();
 	static BOOL UnregisterPlugin();

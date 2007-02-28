@@ -428,7 +428,8 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 				LPCTSTR ext = CString::GetExtension(pData->fileData.szPath);
 				if(ext)
 				{
-					if(lstrlen(ext) < 5)
+					int len = lstrlen(ext);
+					if((len <= 5) && (len != lstrlen(pData->fileData.szPath)))
 					{
 						ext++;
 

@@ -5,11 +5,13 @@
 #include <crtdbg.h>
 
 #include "GoogleDS.h"
+#include "../util/registry.h"
 #include "../util/settings.h"
 
 int  g_lCookie;
 
-IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData)
+IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData,
+											   BOOL bHasSubFolders)
 {
 	IGoogleDesktopQueryResultSet *pResults = NULL;
 	LPFOLDERDATA pFolderData = &pData->folderData;
@@ -18,7 +20,12 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData)
 	_bstr_t query(pFolderData->szQuery);
 
 	if(0 == lstrlen(pFolderData->szQuery))
-		query = pData->szName;
+	{
+		if(!bHasSubFolders)
+			query = pData->szName;
+		else
+			return NULL;
+	}
 
 	if(lstrlen(pFolderData->szCategory) > 0)
 	{
@@ -35,7 +42,8 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData)
 	if(NULL == pResults)
 	{
 		// Just try to register again
-		CGoogleDS::RegisterPlugin();
+		if(	!CGoogleDS::IsInstalled() )
+			CGoogleDS::RegisterPlugin();
 	}
 
 	return pResults;
@@ -115,6 +123,8 @@ BOOL CGoogleDS::RegisterPlugin()
 		// if false, then we're asking for read-write access instead of
 		// just read-only access.
 		g_lCookie = spRegistration->RegisterPlugin(guid, TRUE);
+
+		CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, g_lCookie);
 
 		_RPTF1(_CRT_WARN, "RegisterPlugin returned %d", g_lCookie);
 
