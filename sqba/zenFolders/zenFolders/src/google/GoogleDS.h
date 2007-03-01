@@ -24,8 +24,9 @@ public:
 	static BOOL IsRegistered();
 
 private:
-	static IGoogleDesktopQueryResultSet *Query(const OLECHAR*, const OLECHAR*, int, int);
-	static IGoogleDesktopQueryResultSet *QueryEx(const OLECHAR*, const OLECHAR*, int, int);
+	static IGoogleDesktopQueryResultSet *Query(const OLECHAR*, const OLECHAR*, int, int, HRESULT*);
+	static IGoogleDesktopQueryResultSet *QueryEx(const OLECHAR*, const OLECHAR*, int, int, HRESULT*);
+	const TCHAR* GDErrorToString(HRESULT);
 
 private:
 	static HRESULT AddPairToSafeArray(int, const OLECHAR*, SAFEARRAY FAR*);

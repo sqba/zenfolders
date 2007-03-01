@@ -8,7 +8,88 @@
 #include "../util/registry.h"
 #include "../util/settings.h"
 
+
+
+
+// returned when a crawler component tries to register for an already handled extension
+#define E_EXTENSION_REGISTERED           MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0001)
+
+// specifies that the component must register before performing any operations
+#define E_COMPONENT_NOT_REGISTERED       MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0002)
+
+// returned when a component tries to use an inexistent schema
+#define E_NO_SUCH_SCHEMA                 MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0003)
+
+// returned when a component tries to use an inexistent property
+#define E_NO_SUCH_PROPERTY               MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0004)
+
+// specifies that the component has been disabled by the user
+#define E_COMPONENT_DISABLED             MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0005)
+
+// specifies that the component is already registered
+#define E_COMPONENT_ALREADY_REGISTERED   MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0006)
+
+// specifies that indexing is paused and any sent events will be ignored
+#define S_INDEXING_PAUSED                MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_ITF, 0x0007)
+
+// specifies that the event was rejected because of data size limits
+#define E_EVENT_TOO_LARGE                MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0008)
+
+// specifies that Google Desktop is not running
+#define E_SERVICE_NOT_RUNNING            MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0009)
+
+// specifies that an event has invalid flags
+#define E_INVALID_EVENT_FLAGS            MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x000A)
+
+// specifies that the component is prohibited by the user's group policy
+#define E_COMPONENT_PROHIBITED           MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x000B)
+
+// specifies that the historical event sent could not be delivered immediately 
+// and a delay is recommended before sending again
+#define E_SEND_DELAYED                   MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x000C)
+
+// specifies that the provided property has been truncated due to size limits
+#define S_PROPERTY_TRUNCATED             MAKE_HRESULT(SEVERITY_SUCCESS, FACILITY_ITF, 0x000D)
+
+// specifies that the provided property is too large and cannot be accepted
+#define E_PROPERTY_TOO_LARGE             MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x000E)
+
+// returned when a property is not set
+#define E_PROPERTY_NOT_SET               MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x000F)
+
+// returned when the Google Destop system is exiting.
+#define E_SERVICE_IS_EXITING             MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0010)
+
+// returned when the application that made the call is exiting
+#define E_APPLICATION_IS_EXITING         MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0011)
+
+// specifies that the event could not be delivered and a re-send is required
+#define E_RETRY_SEND                     MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0012)
+
+// specifies that the event could not be delivered because required
+// resources were not available and the send operation timed out
+#define E_SEND_TIMEOUT                   MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0013)
+
+// specifies that the gadget registration was cancelled by the user
+#define E_REGISTRATION_CANCELLED_BY_USER MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0014)
+
+// specifies that the search has been locked by the user
+#define E_SEARCH_LOCKED                  MAKE_HRESULT(SEVERITY_ERROR, FACILITY_ITF, 0x0015)
+
+
+
+
+
+
+
+
+
+
+
+
+
 int  g_lCookie;
+
 
 IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData,
 											   BOOL bHasSubFolders)
@@ -27,22 +108,24 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData,
 			return NULL;
 	}
 
+	HRESULT hr;
+
 	if(lstrlen(pFolderData->szCategory) > 0)
 	{
 		_bstr_t category(pFolderData->szCategory);
-		pResults = CGoogleDS::Query(query, category, ranking, maxResults);
+		pResults = CGoogleDS::Query(query, category, ranking, maxResults, &hr);
 	}
 	else
 	{
 		//pResults = CGoogleDS::Query(query, NULL, ranking, maxResults);
 		_bstr_t category(TEXT("file"));
-		pResults = CGoogleDS::Query(query, category, ranking, maxResults);
+		pResults = CGoogleDS::Query(query, category, ranking, maxResults, &hr);
 	}
 
 	if(NULL == pResults)
 	{
 		// Just try to register again
-		if(	!CGoogleDS::IsInstalled() )
+		if(hr == E_COMPONENT_NOT_REGISTERED)
 			CGoogleDS::RegisterPlugin();
 	}
 
@@ -180,14 +263,14 @@ BOOL CGoogleDS::UnregisterPlugin()
 IGoogleDesktopQueryResultSet *CGoogleDS::Query(const OLECHAR *query,
 											   const OLECHAR *category,
 											   int ranking,
-											   int maxCount)
+											   int maxCount,
+											   HRESULT *hr)
 {
-	HRESULT hr;
 	IGoogleDesktopQueryAPIPtr spQuery;
 	IGoogleDesktopQueryResultSet *pResults = NULL;
 
-	hr = spQuery.CreateInstance("GoogleDesktop.QueryAPI");
-	if( FAILED(hr) )
+	*hr = spQuery.CreateInstance("GoogleDesktop.QueryAPI");
+	if( FAILED(&hr) )
 	{
 		_RPTF0(_CRT_WARN, "Failed to create GoogleDesktop.QueryAPI!\n");
 		return NULL;
@@ -203,9 +286,15 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(const OLECHAR *query,
 		vtCategory = vtTemp;
 	}
 
-	hr = spQuery->raw_Query(g_lCookie, bstrQuery, vtCategory, vtRanking, &pResults);
+	*hr = spQuery->raw_Query(g_lCookie, bstrQuery, vtCategory, vtRanking, &pResults);
 
-	if( FAILED(hr) )
+	if( FAILED(&hr) )
+	{
+		_RPTF0(_CRT_WARN, "Query failed!\n");
+		return NULL;
+	}
+
+	if(NULL == pResults)
 	{
 		_RPTF0(_CRT_WARN, "Query failed!\n");
 		return NULL;
@@ -224,15 +313,15 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(const OLECHAR *query,
 IGoogleDesktopQueryResultSet *CGoogleDS::QueryEx(const OLECHAR *query,
 												 const OLECHAR *category,
 												 int ranking,
-												 int maxCount)
+												 int maxCount,
+												 HRESULT *hr)
 {
-	HRESULT hr;
 	IGoogleDesktopQueryPtr ptrQuery;
 	IGoogleDesktopQueryAPIPtr spQuery;
 	IGoogleDesktopQueryResultSet *pResults;
 
-	hr = spQuery.CreateInstance("GoogleDesktop.QueryAPI");
-	if( FAILED(hr) )
+	*hr = spQuery.CreateInstance("GoogleDesktop.QueryAPI");
+	if( FAILED(&hr) )
 	{
 		_RPTF0(_CRT_WARN, "Failed to create GoogleDesktop.QueryAPI!\n");
 		return NULL;
@@ -248,7 +337,7 @@ IGoogleDesktopQueryResultSet *CGoogleDS::QueryEx(const OLECHAR *query,
 		vtCategory = vtTemp;
 	}
 
-	hr = spQuery->raw_QueryEx(g_lCookie, bstrQuery, vtCategory, vtRanking, &ptrQuery);
+	*hr = spQuery->raw_QueryEx(g_lCookie, bstrQuery, vtCategory, vtRanking, &ptrQuery);
 
 //	_variant_t async(FALSE);
 //	ptrQuery->SetOption("async", async);
@@ -291,4 +380,66 @@ BOOL CGoogleDS::IsRegistered()
 		return FALSE;
 
 	return TRUE;
+}
+
+
+const TCHAR* CGoogleDS::GDErrorToString(HRESULT hr)
+{
+	switch (hr) {
+	case E_EXTENSION_REGISTERED:
+		return TEXT("A component tried to register for an already handled extension");
+		
+	case E_COMPONENT_NOT_REGISTERED:
+		return TEXT("The component must register before performing any operations");
+		
+	case E_NO_SUCH_SCHEMA:
+		return TEXT("Schema name not found");
+		
+	case E_NO_SUCH_PROPERTY:
+		return TEXT("Property name not found");
+		
+	case E_COMPONENT_DISABLED:
+		return TEXT("The component has been disabled by the user");
+		
+	case E_COMPONENT_ALREADY_REGISTERED:
+		return TEXT("The component is already registered");
+		
+	case S_INDEXING_PAUSED:
+		return TEXT("Indexing is paused and any sent events will be ignored");
+		
+	case E_EVENT_TOO_LARGE:
+		return TEXT("The event was rejected because of data size limits");
+		
+	case E_SERVICE_NOT_RUNNING:
+		return TEXT("Google Desktop is not running");
+		
+	case E_INVALID_EVENT_FLAGS:
+		return TEXT("An event has invalid flags");
+		
+	case E_COMPONENT_PROHIBITED:
+		return TEXT("The component is prohibited by the user's group policy");
+		
+	case E_SEND_DELAYED:
+		return TEXT("The historical event sent could not be delivered immediately. A delay is recommended before sending again");
+		
+	case S_PROPERTY_TRUNCATED:
+		return TEXT("The provided property has been truncated due to size limits");
+		
+	case E_PROPERTY_TOO_LARGE:
+		return TEXT("The provided property is too large and cannot be accepted");
+		
+	case E_PROPERTY_NOT_SET:
+		return TEXT("Property has not been set");
+		
+	case E_SERVICE_IS_EXITING:
+		return TEXT("Google Destop is exiting");
+		
+	case E_APPLICATION_IS_EXITING:
+		return TEXT("The application that made the call is exiting");
+		
+	case E_RETRY_SEND:
+		return TEXT("The event could not be delivered and a re-send is required");
+	}
+	
+	return TEXT("<unknown error>");
 }
