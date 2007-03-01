@@ -110,6 +110,7 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData,
 
 	HRESULT hr;
 
+START:
 	if(lstrlen(pFolderData->szCategory) > 0)
 	{
 		_bstr_t category(pFolderData->szCategory);
@@ -126,7 +127,11 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData,
 	{
 		// Just try to register again
 		if(hr == E_COMPONENT_NOT_REGISTERED)
-			CGoogleDS::RegisterPlugin();
+		{
+			UnregisterPlugin(); // Just in case somebody changed the cookie in the registry
+			if(CGoogleDS::RegisterPlugin())
+				goto START;
+		}
 	}
 
 	return pResults;
@@ -222,6 +227,7 @@ BOOL CGoogleDS::RegisterPlugin()
 	}
 	catch(...)
 	{
+		_RPTF0(_CRT_WARN, "Exception in RegisterPlugin()!\n");
 		return FALSE;
 	}
 }
