@@ -116,10 +116,7 @@ BOOL CSettings::GetGlobalSettings(void)
 //	g_bViewKeys	= dwArray[2];
 //	g_lCookie	= dwArray[3];
 
-	CRegistry::GetValueGlobal(MAIN_KEY_STRING,
-		COOKIE_STRING,
-		(LPBYTE)&g_lCookie,
-		sizeof(int));
+	g_lCookie = GetGoogleCookie();
 
 	if(g_nColumn1 < 0)
 		g_nColumn1 = INITIAL_COLUMN_SIZE;
@@ -232,4 +229,20 @@ UINT CSettings::GetRootName(LPCITEMIDLIST pidl, LPTSTR lpszName, UINT len)
 	//lstrcpy(lpszName, TEXT("Searches"));
 
 	return lstrlen(lpszName);
+}
+
+int CSettings::GetGoogleCookie()
+{
+	int cookie = 0;
+	CRegistry::GetValueGlobal(
+		MAIN_KEY_STRING,
+		COOKIE_STRING,
+		(LPBYTE)&cookie,
+		sizeof(int));
+	return cookie;
+}
+
+void CSettings::SetGoogleCookie(int cookie)
+{
+	CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, cookie);
 }

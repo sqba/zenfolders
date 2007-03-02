@@ -34,6 +34,8 @@ public:
 	static BOOL SaveGlobalSettings(void);
 	static BOOL GetGlobalSettings(void);
 	static UINT GetRootName(LPCITEMIDLIST, LPTSTR, UINT);
+	static int GetGoogleCookie();
+	static void SetGoogleCookie(int);
 };
 
 #endif // SETTINGS_H

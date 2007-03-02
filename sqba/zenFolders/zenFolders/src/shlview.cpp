@@ -17,7 +17,6 @@
 #include "util/string.h"
 #include "util/settings.h"
 
-//#define USE_ADSENSE
 
 #define IDM_VIEW_KEYS	(FCIDM_SHVIEWFIRST + 0x500)
 #define IDM_VIEW_IDW	(FCIDM_SHVIEWFIRST + 0x501)
@@ -26,6 +25,9 @@
 #define ID_LISTVIEW		2000
 #define MENU_OFFSET		1
 #define MENU_MAX		100
+
+//#define USE_ADSENSE
+//#define USE_TOOLBAR
 
 typedef struct
 {
@@ -541,7 +543,9 @@ STDMETHODIMP CShellView::CreateViewWindow(LPSHELLVIEW pPrevView,
 	if(!*phWnd)
 		return E_FAIL;
 
+#ifdef USE_TOOLBAR
 	MergeToolbar();
+#endif
 	
 	m_pShellBrowser->AddRef();
 
@@ -1165,7 +1169,9 @@ LRESULT CShellView::OnNotify(UINT CtlID, LPNMHDR lpnmh)
 return 0;
 
 	case LVN_ITEMCHANGED:
+#ifdef USE_TOOLBAR
 		UpdateToolbar();
+#endif
 		OnItemChanged( (LPNMLISTVIEW)lpnmh );
 		break;
 
@@ -1426,7 +1432,9 @@ LRESULT CShellView::OnActivate(UINT uState)
 	
 	m_uState = uState;
 
+#ifdef USE_TOOLBAR
 	UpdateToolbar();
+#endif
 	
 	return 0;
 }
@@ -1608,8 +1616,11 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 		}
 		
 		m_pMalloc->Free(aSelectedItems);
-   }
-   UpdateToolbar();
+	}
+
+#ifdef USE_TOOLBAR
+	UpdateToolbar();
+#endif
 }
 
 LRESULT CShellView::OnInitMenuPopup(HMENU hMenu)

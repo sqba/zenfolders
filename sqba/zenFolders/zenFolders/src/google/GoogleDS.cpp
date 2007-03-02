@@ -5,7 +5,6 @@
 #include <crtdbg.h>
 
 #include "GoogleDS.h"
-#include "../util/registry.h"
 #include "../util/settings.h"
 
 
@@ -212,7 +211,7 @@ BOOL CGoogleDS::RegisterPlugin()
 		// just read-only access.
 		g_lCookie = spRegistration->RegisterPlugin(guid, TRUE);
 
-		CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, g_lCookie);
+		CSettings::SetGoogleCookie(g_lCookie);
 
 		_RPTF1(_CRT_WARN, "RegisterPlugin returned %d", g_lCookie);
 
