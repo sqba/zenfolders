@@ -165,7 +165,8 @@ CShellView::CShellView(CShellFolder *pFolder, LPCITEMIDLIST pidl)
 	m_pCommDlgBrowser	= NULL;
 	m_pListView			= NULL;
 	m_pWebBrowser		= NULL;
-//	m_hAccels = LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDR_ACCELS));
+	m_bInEdit			= FALSE;
+	m_hAccels = LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDR_ACCELERATORS));
 
 	m_pSFParent = pFolder;
 	if(m_pSFParent)
@@ -788,22 +789,22 @@ Return Value
 **************************************************************************/
 STDMETHODIMP CShellView::TranslateAccelerator(LPMSG pMsg)
 {
-/*
-	if(m_fInEdit)
+
+	if(m_bInEdit)
 	{
-		if((pmsg->message >= WM_KEYFIRST) && (pmsg->message <= WM_KEYLAST))
+		if((pMsg->message >= WM_KEYFIRST) && (pMsg->message <= WM_KEYLAST))
 		{
-			TranslateMessage(pmsg);
-			DispatchMessage(pmsg);
+			TranslateMessage(pMsg);
+			DispatchMessage(pMsg);
 			return S_OK;
 		}
 	}
-	else if(::TranslateAccelerator(m_hWnd, m_hAccels, pmsg))
+	else if(::TranslateAccelerator(m_hWnd, m_hAccels, pMsg))
 		return S_OK;
 	
 	return S_FALSE;
-*/
-	return E_NOTIMPL;
+
+//	return E_NOTIMPL;
 }
 
 /**************************************************************************
@@ -1191,9 +1192,11 @@ return 0;
 		break;
 
 	case LVN_BEGINLABELEDIT:
+		m_bInEdit = TRUE;
 		return OnBeginLabelEdit( (NMLVDISPINFO*)lpnmh );
 
 	case LVN_ENDLABELEDIT:
+		m_bInEdit = FALSE;
 		OnEndLabelEdit( (NMLVDISPINFO*)lpnmh );
 		break;
 
@@ -1650,6 +1653,9 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 			LoadString(g_hInst, IDS_NEWFOLDER, szText, nTextSize);
 			CPidl pidlNew = m_pSFParent->CreateSubfolder(NULL, szText);
 		}
+		break;
+
+	case IDM_DELETE:
 		break;
 
 	default:

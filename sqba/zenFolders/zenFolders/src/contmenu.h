@@ -37,13 +37,14 @@ private:
 	void OnShowOnlyExtension(LPCITEMIDLIST);
 	void OnOpenContainingFolder(LPCITEMIDLIST);
 	void OnClearSearch(LPCITEMIDLIST);
+	void OnRemoveFolders(LPITEMIDLIST*);
 
 private:
 	DWORD			m_ObjRefCount;
 	LPITEMIDLIST	*m_aPidls;
 	IMalloc			*m_pMalloc;
 	CShellFolder	*m_pSFParent;
-	BOOL			m_fAllValues;
+	BOOL			m_fAllFiles;
 };
 
 #endif// CONTMENU_H

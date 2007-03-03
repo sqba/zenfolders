@@ -40,13 +40,15 @@
 #define IDC_RANKING_RELEVANCE           108
 #define IDC_RANKING_RECENCY             109
 #define IDC_CATEGORY                    110
+#define IDR_ACCELERATORS                111
+#define IDM_DELETE                      40001
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        111
-#define _APS_NEXT_COMMAND_VALUE         40001
+#define _APS_NEXT_RESOURCE_VALUE        112
+#define _APS_NEXT_COMMAND_VALUE         40002
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

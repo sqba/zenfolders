@@ -45,11 +45,11 @@ CContextMenu::CContextMenu(CShellFolder *pSFParent,
 		FillPidlTable(aPidls, uItemCount);
 	}
 	
-	m_fAllValues = 1;
+	m_fAllFiles = 1;
 	UINT  u;
 	for(u = 0; u < uItemCount; u++)
 	{
-		m_fAllValues &= (CPidlManager::IsFile(aPidls[u]) ? 1 : 0);
+		m_fAllFiles &= (CPidlManager::IsFile(aPidls[u]) ? 1 : 0);
 	}
 
 //	_RPTF1(_CRT_WARN, "CContextMenu(%d)\n", g_DllRefCount);
@@ -258,8 +258,9 @@ STDMETHODIMP CContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 		break;
 	
 	case IDM_REMOVE_FOLDER:
-		if(NULL != m_aPidls[0])
-			m_pSFParent->RemoveSubfolder(m_aPidls[0]);
+//		if(NULL != m_aPidls[0])
+//			m_pSFParent->RemoveSubfolder(m_aPidls[0]);
+		OnRemoveFolders( m_aPidls );
 		break;
 
 	case IDM_PROPERTIES:
@@ -376,7 +377,7 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 
 	if(!(CMF_DEFAULTONLY & uFlags))
 	{
-		if(!m_fAllValues)
+		if(!m_fAllFiles)
 		{
 			BOOL  fExplore = uFlags & CMF_EXPLORE;
 			
@@ -400,7 +401,7 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 			AddMenuItem(hMenu, NULL, indexMenu++); // Separator
 
 			LoadString(g_hInst, IDS_REMOVE_FOLDER, szText, nTextSize);
-			AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_REMOVE_FOLDER, CanRenameItems(), FALSE);
+			AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_REMOVE_FOLDER, TRUE, FALSE);
 
 			if(uFlags & CMF_CANRENAME)
 			{
@@ -742,4 +743,12 @@ void CContextMenu::OnOpenContainingFolder(LPCITEMIDLIST pidl)
 void CContextMenu::OnClearSearch(LPCITEMIDLIST pidl)
 {
 	m_pSFParent->ClearSearch(pidl);
+}
+
+void CContextMenu::OnRemoveFolders(LPITEMIDLIST *aPidls)
+{
+	for(int i=0; aPidls[i]; i++)
+	{
+		m_pSFParent->RemoveSubfolder(aPidls[i]);
+	}
 }

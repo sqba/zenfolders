@@ -104,7 +104,8 @@ private:
 	ICommDlgBrowser *m_pCommDlgBrowser;
 	CListView		*m_pListView;
 	CWebBrowser		*m_pWebBrowser;
-	//HACCEL			m_hAccels;
+	HACCEL			m_hAccels;
+	BOOL			m_bInEdit;
 };
 
 #endif   //SHELLVIEW_H
