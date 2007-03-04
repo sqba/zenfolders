@@ -70,6 +70,8 @@ private:
 	LRESULT OnSettingChange(LPCTSTR);
 	LRESULT OnNotify(UINT, LPNMHDR);
 
+	void OnRemoveFolders();
+
 	int FindItemPidl(LPCITEMIDLIST);
 	int InsertItem(LPCITEMIDLIST);
 	BOOL InitList(void);

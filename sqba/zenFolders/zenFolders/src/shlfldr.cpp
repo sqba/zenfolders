@@ -913,55 +913,7 @@ void CShellFolder::ShowProperties(LPCITEMIDLIST pidl)
 		pDlg->Show();
 }
 
-LPITEMIDLIST CShellFolder::CreateSubfolder(LPCITEMIDLIST pidlParent,
-										   LPCTSTR pszName)
-{
-	MSXML2::IXMLDOMNodePtr ptrChildNode;
-	LPITEMIDLIST pidlNew = NULL;
-	LPITEMIDLIST pidlFQ = NULL;
-	BOOL bUnderThisFolder = FALSE;
-
-	MSXML2::IXMLDOMNodePtr ptrNode = m_pidlFQ.GetNode();
-
-	ptrChildNode = g_pConfigXML->CreateFolder( pszName, ptrNode );
-
-	if(NULL == pidlParent)
-	{
-		pidlNew = g_pPidlMgr->CreateFolder(ptrChildNode);
-		bUnderThisFolder = TRUE;
-	}
-	else
-	{
-		CPidl pidlLocal(pidlParent);
-		pidlNew = pidlLocal + g_pPidlMgr->CreateFolder(ptrChildNode);
-	}
-
-	pidlFQ = CreateFQPidl(pidlNew);
-
-	::SHChangeNotify(SHCNE_MKDIR, SHCNF_IDLIST, pidlFQ, NULL);
-	TRACE_PIDL_PATH("CShellFolder::CreateSubfolder(%s)\n", pidlFQ);
-
-	if(!bUnderThisFolder)
-	{
-		// Just add the folder, no need for full reload!
-		g_pViewList->Refresh();
-	}
-	else
-	{
-		//Get active listview and send it LVN_BEGINLABELEDIT
-		CShellView *pView = g_pViewList->GetActiveView();
-		if(pView)
-		{
-			pView->AddNewFolder(pidlFQ);
-		}
-	}
-
-	g_pPidlMgr->Delete(pidlNew);
-
-	return pidlFQ;
-}
-
-BOOL CShellFolder::RemoveSubfolder(LPCITEMIDLIST pidl, BOOL bVerify)
+BOOL CShellFolder::RemoveFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 {
 	if(NULL == pidl)
 		return FALSE;
@@ -970,30 +922,66 @@ BOOL CShellFolder::RemoveSubfolder(LPCITEMIDLIST pidl, BOOL bVerify)
 
 	if(bVerify)
 	{
-		TCHAR msg[100] = {0};
-		wsprintf(
-			msg,
-			TEXT("Are you sure you want to remove the folder '%s'?"),
-			pData->szName);
+		TCHAR szQuestion[200] = {0};
+		::LoadString(g_hInst, IDS_DELETEFOLDER, szQuestion, ARRAYSIZE(szQuestion));
 
-		int nResult = ::MessageBox(
-			NULL, //hWnd,
-			msg,
-			TEXT("Confirm Folder Delete"),
-			MB_YESNO);
+		TCHAR szCaption[50] = {0};
+		::LoadString(g_hInst, IDS_DELETEFOLDER_CAPTION, szCaption, ARRAYSIZE(szCaption));
+
+		TCHAR msg[100] = {0};
+		wsprintf(msg, szQuestion, pData->szName);
+
+		int nResult = ::MessageBox( NULL/*hWnd*/, msg, szCaption, MB_YESNO);
 		if(IDYES != nResult)
 			return FALSE;
 	}
 
-
 	LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
 	g_pConfigXML->RemoveFolder(pidlFQ);
-//	TRACE_PIDL_PATH("CShellFolder::RemoveSubfolder(%s)\n", pidlFQ);
+//	TRACE_PIDL_PATH("CShellFolder::RemoveFolder(%s)\n", pidlFQ);
 	::SHChangeNotify(SHCNE_RMDIR, SHCNF_IDLIST, pidlFQ, NULL);
 	g_pPidlMgr->Delete(pidlFQ);
 	g_pViewList->Refresh();
 
 	return FALSE;
+}
+
+void CShellFolder::RemoveFolders(LPITEMIDLIST *aPidls)
+{
+	int i, count=0;
+
+	// Count the folders to delete
+	for(i=0; aPidls[i]; i++)
+	{
+		if( !CPidlManager::IsFile(aPidls[i]) )
+			count++;
+	}
+
+	if(count == 1)
+	{
+		RemoveFolder( aPidls[0], TRUE );
+	}
+	else if(count > 0)
+	{
+		TCHAR szQuestion[200] = {0};
+		::LoadString(g_hInst, IDS_DELETEFOLDERS, szQuestion, ARRAYSIZE(szQuestion));
+
+		TCHAR szCaption[50] = {0};
+		::LoadString(g_hInst, IDS_DELETEFOLDERS_CAPTION, szCaption, ARRAYSIZE(szCaption));
+
+		TCHAR msg[100] = {0};
+		wsprintf(msg, szQuestion, count);
+
+		int nResult = ::MessageBox( NULL/*hWnd*/,msg, szCaption,MB_YESNO);
+
+		if(IDYES == nResult)
+		{
+			for(i=0; aPidls[i]; i++)
+			{
+				RemoveFolder( aPidls[i], FALSE );
+			}
+		}
+	}
 }
 
 void CShellFolder::RemoveFiletype(LPCTSTR ext)
@@ -1098,7 +1086,7 @@ void CShellFolder::ShowOnlyExtension(LPCTSTR ext)
 	g_pConfigXML->SaveFolder( m_pidlFQ.GetFull() );
 }
 
-void CShellFolder::ClearSearch(LPCITEMIDLIST pidl)
+void CShellFolder::ClearFolderSearch(LPCITEMIDLIST pidl)
 {
 	if(NULL == pidl)
 	{
@@ -1116,4 +1104,100 @@ void CShellFolder::ClearSearch(LPCITEMIDLIST pidl)
 
 		g_pViewList->Refresh();
 	}
+}
+
+LPITEMIDLIST CShellFolder::CreateSubfolder(LPCITEMIDLIST pidlParent,
+										   LPCTSTR pszName)
+{
+	MSXML2::IXMLDOMNodePtr ptrChildNode;
+	LPITEMIDLIST pidlNew = NULL;
+	LPITEMIDLIST pidlFQ = NULL;
+	BOOL bUnderThisFolder = FALSE;
+
+	MSXML2::IXMLDOMNodePtr ptrNode = m_pidlFQ.GetNode();
+
+	ptrChildNode = g_pConfigXML->CreateFolder( pszName, ptrNode );
+
+	if(NULL == pidlParent)
+	{
+		pidlNew = g_pPidlMgr->CreateFolder(ptrChildNode);
+		bUnderThisFolder = TRUE;
+	}
+	else
+	{
+		CPidl pidlLocal(pidlParent);
+		pidlNew = pidlLocal + g_pPidlMgr->CreateFolder(ptrChildNode);
+	}
+
+	pidlFQ = CreateFQPidl(pidlNew);
+
+	::SHChangeNotify(SHCNE_MKDIR, SHCNF_IDLIST, pidlFQ, NULL);
+	TRACE_PIDL_PATH("CShellFolder::CreateSubfolder(%s)\n", pidlFQ);
+
+	if(!bUnderThisFolder)
+	{
+		// Just add the folder, no need for full reload!
+		g_pViewList->Refresh();
+	}
+	else
+	{
+		//Get active listview and send it LVN_BEGINLABELEDIT
+		CShellView *pView = g_pViewList->GetActiveView();
+		if(pView)
+		{
+			pView->AddNewFolder(pidlFQ);
+		}
+	}
+
+	g_pPidlMgr->Delete(pidlNew);
+
+	return pidlFQ;
+}
+
+LPITEMIDLIST CShellFolder::CreateNewFolder(LPCITEMIDLIST pidlParent)
+{
+	TCHAR szName[100] = {0};
+	LPITEMIDLIST pidlFQ = NULL;
+	LPITEMIDLIST pidlNew = NULL;
+	MSXML2::IXMLDOMNodePtr ptrChildNode;
+
+	MSXML2::IXMLDOMNodePtr ptrNode = m_pidlFQ.GetNode();
+
+	::LoadString(g_hInst, IDS_NEWFOLDER, szName, ARRAYSIZE(szName));
+
+	ptrChildNode = g_pConfigXML->CreateFolder( szName, ptrNode );
+
+	if(pidlParent)
+	{
+		CPidl pidlLocal(pidlParent);
+		pidlNew = pidlLocal + g_pPidlMgr->CreateFolder(ptrChildNode);
+	}
+	else
+	{
+		pidlNew = g_pPidlMgr->CreateFolder(ptrChildNode);
+	}
+
+	pidlFQ = CreateFQPidl(pidlNew);
+
+	::SHChangeNotify(SHCNE_MKDIR, SHCNF_IDLIST, pidlFQ, NULL);
+	TRACE_PIDL_PATH("CShellFolder::CreateNewFolder(%s)\n", pidlFQ);
+
+	if(pidlParent)
+	{
+		//Get active listview and send it LVN_BEGINLABELEDIT
+		CShellView *pView = g_pViewList->GetActiveView();
+		if(pView)
+		{
+			pView->AddNewFolder(pidlFQ);
+		}
+	}
+	else
+	{
+		// Just add the folder, no need for full reload!
+		g_pViewList->Refresh();
+	}
+
+	g_pPidlMgr->Delete(pidlNew);
+
+	return pidlFQ;
 }

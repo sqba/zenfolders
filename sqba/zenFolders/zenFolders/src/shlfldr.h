@@ -46,14 +46,16 @@ public:
 	
 public:
 	BOOL GetFolderPath(LPTSTR, DWORD);
-	BOOL RemoveSubfolder(LPCITEMIDLIST, BOOL bVerify = TRUE);
+	BOOL RemoveFolder(LPCITEMIDLIST, BOOL bVerify = TRUE);
+	void RemoveFolders(LPITEMIDLIST*);
 	void ShowProperties(LPCITEMIDLIST);
 	void RemoveFiletype(LPCTSTR);
 	void ShowOnlyExtension(LPCTSTR);
 	void AddExtensionSubfolder(LPCTSTR);
 	LPENUMIDLIST CreateList(DWORD, HRESULT*);
 	LPITEMIDLIST CreateSubfolder(LPCITEMIDLIST, LPCTSTR);
-	void ClearSearch(LPCITEMIDLIST);
+	void ClearFolderSearch(LPCITEMIDLIST);
+	LPITEMIDLIST CreateNewFolder(LPCITEMIDLIST);
 
 	LPITEMIDLIST CreateFQPidl(LPCITEMIDLIST);
 

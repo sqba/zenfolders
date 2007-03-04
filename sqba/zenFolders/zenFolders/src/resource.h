@@ -29,6 +29,10 @@
 #define IDS_CLEARSEARCH                 25
 #define IDS_APPTITLE                    26
 #define IDS_APPDESC                     27
+#define IDS_DELETEFOLDERS               28
+#define IDS_DELETEFOLDERS_CAPTION       29
+#define IDS_DELETEFOLDER                30
+#define IDS_DELETEFOLDER_CAPTION        31
 #define IDI_ZENFOLDERS                  100
 #define IDI_FOLDEROPEN                  101
 #define IDI_FOLDER                      102

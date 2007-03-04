@@ -1647,15 +1647,11 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 		break;
 		
 	case IDM_CREATE_FOLDER:
-		{
-			TCHAR	szText[100] = {0};
-			UINT	nTextSize = ARRAYSIZE(szText);
-			LoadString(g_hInst, IDS_NEWFOLDER, szText, nTextSize);
-			CPidl pidlNew = m_pSFParent->CreateSubfolder(NULL, szText);
-		}
+		m_pSFParent->CreateNewFolder(NULL);
 		break;
 
 	case IDM_DELETE:
+		OnRemoveFolders();
 		break;
 
 	default:
@@ -1663,6 +1659,35 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 	}
 	
 	return 0;
+}
+
+void CShellView::OnRemoveFolders()
+{
+	UINT     i;
+	LVITEM   lvItem;
+	
+	lvItem.mask = LVIF_PARAM;
+	lvItem.iItem = -1;
+	lvItem.iSubItem = 0;
+
+	LPITEMIDLIST   *pPidls;
+
+	int nCount = m_pListView->GetSelectedCount() + 1;
+
+	pPidls = (LPITEMIDLIST*)m_pMalloc->Alloc(nCount * sizeof(LPITEMIDLIST));
+	if(pPidls)
+	{
+		for(i = 0; -1 != (lvItem.iItem = m_pListView->GetNextItem(lvItem.iItem, LVNI_SELECTED)); i++)
+		{
+			if(m_pListView->GetItem(&lvItem))
+			{
+				pPidls[i] = (LPITEMIDLIST)lvItem.lParam;
+			}
+		}
+		pPidls[nCount-1] = NULL;
+		m_pSFParent->RemoveFolders(pPidls);
+		m_pMalloc->Free(pPidls);
+	}
 }
 
 void CShellView::OnEndTrack()

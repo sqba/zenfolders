@@ -208,6 +208,10 @@ BEGIN
     IDS_CLEARSEARCH         "Clear search string"
     IDS_APPTITLE            "zenFolders"
     IDS_APPDESC             "zenFolders - Google Desktop Search Namespace Extension"
+    IDS_DELETEFOLDERS       "Are you sure you want to remove these %d folders?"
+    IDS_DELETEFOLDERS_CAPTION "Confirm Folders Delete"
+    IDS_DELETEFOLDER        "Are you sure you want to remove the folder '%s'?"
+    IDS_DELETEFOLDER_CAPTION "Confirm Folder Delete"
 END
 
 #endif    // English (U.S.) resources

@@ -221,77 +221,51 @@ STDMETHODIMP CContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	
 	if(LOWORD(lpcmi->lpVerb) > IDM_LAST)
 		return ResultFromScode(E_INVALIDARG);
-	
-	int i;
 
 	switch(LOWORD(lpcmi->lpVerb))
 	{
 	case IDM_EXPLORE:
 	case IDM_OPEN:
-		// Find the first item in the list that is not a value.
-		// These commands  should never be invoked if there isn't
-		// at least one key item in the list.
-		for(i=0; m_aPidls[i]; i++)
-		{
-			if( !CPidlManager::IsFile(m_aPidls[i]) )
-				break;
-		}
-		OnOpenFolder(m_aPidls[i],
-			lpcmi->hwnd,
-			(LOWORD(lpcmi->lpVerb) == IDM_EXPLORE));
+		OnOpenFolder(lpcmi);
 		break;
 		
 	case IDM_RENAME:
 		break;
 	
 	case IDM_EXECUTE:
-		for(i=0; m_aPidls[i]; i++)
-		{
-			if( CPidlManager::IsFile(m_aPidls[i]) )
-				break;
-		}
-		OnExecute(m_aPidls[i]);
+		OnExecute();
 		break;
 	
 	case IDM_CREATE_FOLDER:
-		OnCreateNewFolder( m_aPidls[0] );
+		OnCreateNewFolder();
 		break;
 	
 	case IDM_REMOVE_FOLDER:
-//		if(NULL != m_aPidls[0])
-//			m_pSFParent->RemoveSubfolder(m_aPidls[0]);
-		OnRemoveFolders( m_aPidls );
+		OnRemoveFolders();
 		break;
 
 	case IDM_PROPERTIES:
-		if(NULL != m_aPidls[0])
-			OnShowProperties(m_pSFParent->CreateFQPidl(m_aPidls[0]));
-		else
-			OnShowProperties(NULL);
+		OnShowProperties();
 		break;
 
 	case IDM_ADDEXTFOLDER:
-		if(NULL != m_aPidls[0])
-			OnCreateExtensionFolder(m_aPidls[0]);
+		OnCreateExtensionFolder();
 		break;
 
 	case IDM_HIDEEXTENSION:
-		if(NULL != m_aPidls[0])
-			OnHideExtension(m_aPidls[0]);
+		OnHideExtension();
 		break;
 
 	case IDM_SHOWONLYEXTENSION:
-		if(NULL != m_aPidls[0])
-			OnShowOnlyExtension(m_aPidls[0]);
+		OnShowOnlyExtension();
 		break;
 
 	case IDM_OPENCONTAININGFOLDER1:
-		if(NULL != m_aPidls[0])
-			OnOpenContainingFolder(m_aPidls[0]);
+		OnOpenContainingFolder();
 		break;
 
 	case IDM_CLEARSEARCH:
-		OnClearSearch(m_aPidls[0]);
+		OnClearSearch();
 		break;
 	}
 	
@@ -424,32 +398,26 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 				LoadString(g_hInst, IDS_OPEN, szText, nTextSize);
 				AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_EXECUTE, TRUE, TRUE);
 
-				LPPIDLDATA pData = CPidlManager::GetDataPointer(m_aPidls[0]);
-				TCHAR txt[100] = {0};
-				LPCTSTR ext = CString::GetExtension(pData->fileData.szPath);
+				LPCTSTR ext = GetFileExtension(m_aPidls[0]);
 				if(ext)
 				{
-					int len = lstrlen(ext);
-					if((len <= 5) && (len != lstrlen(pData->fileData.szPath)))
-					{
-						ext++;
+					TCHAR txt[100] = {0};
 
-						LoadString(g_hInst, IDS_ADDEXTFOLDER, szText, nTextSize);
-						wsprintf(txt, szText, ext, ext);
-						AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_ADDEXTFOLDER, TRUE, FALSE);
+					LoadString(g_hInst, IDS_ADDEXTFOLDER, szText, nTextSize);
+					wsprintf(txt, szText, ext, ext);
+					AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_ADDEXTFOLDER, TRUE, FALSE);
 
-						LoadString(g_hInst, IDS_HIDEEXTENSION, szText, nTextSize);
-						wsprintf(txt, szText, ext);
-						AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_HIDEEXTENSION, TRUE, FALSE);
+					LoadString(g_hInst, IDS_HIDEEXTENSION, szText, nTextSize);
+					wsprintf(txt, szText, ext);
+					AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_HIDEEXTENSION, TRUE, FALSE);
 
-						LoadString(g_hInst, IDS_SHOWONLYEXTENSION, szText, nTextSize);
-						wsprintf(txt, szText, ext);
-						AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_SHOWONLYEXTENSION, TRUE, FALSE);
+					LoadString(g_hInst, IDS_SHOWONLYEXTENSION, szText, nTextSize);
+					wsprintf(txt, szText, ext);
+					AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_SHOWONLYEXTENSION, TRUE, FALSE);
 
-						LoadString(g_hInst, IDS_OPENCONTAININGFOLDER, szText, nTextSize);
-						wsprintf(txt, szText, ext);
-						AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_OPENCONTAININGFOLDER1, TRUE, FALSE);
-					}
+					LoadString(g_hInst, IDS_OPENCONTAININGFOLDER, szText, nTextSize);
+					wsprintf(txt, szText, ext);
+					AddMenuItem(hMenu, txt, indexMenu++, idCmdFirst+IDM_OPENCONTAININGFOLDER1, TRUE, FALSE);
 				}
 			}
 		}
@@ -584,8 +552,41 @@ void CContextMenu::AddMenuItem(HMENU hMenu,
 	InsertMenuItem(hMenu, indexMenu, TRUE, &mii);
 }
 
-void CContextMenu::OnExecute(LPCITEMIDLIST pidl)
+LPCTSTR CContextMenu::GetFileExtension(LPCITEMIDLIST pidl)
 {
+	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
+	LPCTSTR ext = CString::GetExtension(pData->fileData.szPath);
+	if(ext)
+		ext++;
+	int len = lstrlen(ext);
+	if((len <= 5) && (len != lstrlen(pData->fileData.szPath)))
+		return ext;
+	else
+		return NULL;
+}
+
+///////////////////////////////////////////////////////////////////////////
+//
+// Command handlers
+//
+
+void CContextMenu::OnExecute()
+{
+	LPCITEMIDLIST pidl = NULL;
+
+	// Get first file from the selection
+	for(int i=0; m_aPidls[i]; i++)
+	{
+		if( CPidlManager::IsFile(m_aPidls[i]) )
+		{
+			pidl = m_aPidls[i];
+			break;
+		}
+	}
+
+	if(NULL == pidl)
+		return;
+
 /*
 	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
 	SHELLEXECUTEINFO  sei;
@@ -611,10 +612,27 @@ void CContextMenu::OnExecute(LPCITEMIDLIST pidl)
 	}
 }
 
-void CContextMenu::OnOpenFolder(LPCITEMIDLIST pidl, HWND hwnd, bool bExplore)
+void CContextMenu::OnOpenFolder(LPCMINVOKECOMMANDINFO lpcmi)
 {
 	LPITEMIDLIST  pidlFQ;
 	SHELLEXECUTEINFO  sei;
+	LPCITEMIDLIST pidl = NULL;
+
+	// Get first folder from the selection
+	for(int i=0; m_aPidls[i]; i++)
+	{
+		if( !CPidlManager::IsFile(m_aPidls[i]) )
+		{
+			pidl = m_aPidls[i];
+			break;
+		}
+	}
+
+	if(NULL == pidl)
+		return;
+
+	HWND hwnd = lpcmi->hwnd;
+	bool bExplore = (LOWORD(lpcmi->lpVerb) == IDM_EXPLORE);
 
 	pidlFQ = m_pSFParent->CreateFQPidl(pidl);
 
@@ -635,22 +653,17 @@ void CContextMenu::OnOpenFolder(LPCITEMIDLIST pidl, HWND hwnd, bool bExplore)
 	g_pPidlMgr->Delete(pidlFQ);
 }
 
-void CContextMenu::OnShowProperties(LPCITEMIDLIST pidl)
+void CContextMenu::OnShowProperties()
 {
+	LPCITEMIDLIST pidl = NULL;
+
+	if(NULL != m_aPidls[0])
+		pidl = m_pSFParent->CreateFQPidl(m_aPidls[0]);
+
 	CPidl pidlTemp(pidl);
 	if( (NULL == pidl) || !pidlTemp.IsFile() )
 	{
-		/*LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-		SHELLEXECUTEINFO  sei;
-		ZeroMemory(&sei, sizeof(sei));
-		sei.cbSize = sizeof(SHELLEXECUTEINFO);
-		sei.lpIDList = pidl;
-		sei.nShow = SW_SHOW;
-		sei.fMask = SEE_MASK_INVOKEIDLIST;
-		sei.lpVerb = "properties";
-		ShellExecuteEx(&sei);*/
 		m_pSFParent->ShowProperties( pidl );
-		return;
 	}
 	else
 	{
@@ -666,60 +679,50 @@ void CContextMenu::OnShowProperties(LPCITEMIDLIST pidl)
 	}
 }
 
-void CContextMenu::OnCreateExtensionFolder(LPCITEMIDLIST pidl)
+void CContextMenu::OnCreateExtensionFolder()
 {
-	// Get file extension
-	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-	LPCTSTR ext = CString::GetExtension(pData->fileData.szPath);
-	ext++;
-
-	// Add new folder
-	m_pSFParent->AddExtensionSubfolder( ext );
-
-	// Add '-filetype:...' to the parent folder's query
-	m_pSFParent->RemoveFiletype( ext );
-
-	// Refresh the list view
-	g_pViewList->Refresh();
+	if( m_aPidls[0] )
+	{
+		LPCTSTR ext = GetFileExtension( m_aPidls[0] );
+		m_pSFParent->AddExtensionSubfolder( ext );
+		m_pSFParent->RemoveFiletype( ext );
+		g_pViewList->Refresh();
+	}
 }
 
-void CContextMenu::OnHideExtension(LPCITEMIDLIST pidl)
+void CContextMenu::OnHideExtension()
 {
-	// Get file extension
-	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-	LPCTSTR ext = CString::GetExtension(pData->fileData.szPath);
-	ext++;
-
-	// Add '-filetype:...' to the parent folder's query
-	m_pSFParent->RemoveFiletype(ext);
-
-	// Refresh the list view
-	g_pViewList->Refresh();
+	if( m_aPidls[0] )
+	{
+		LPCTSTR ext = GetFileExtension( m_aPidls[0] );
+		m_pSFParent->RemoveFiletype( ext );
+		g_pViewList->Refresh();
+	}
 }
 
-void CContextMenu::OnCreateNewFolder(LPCITEMIDLIST pidl)
+void CContextMenu::OnCreateNewFolder()
 {
-	TCHAR	szText[100] = {0};
-	UINT	nTextSize = ARRAYSIZE(szText);
-	LoadString(g_hInst, IDS_NEWFOLDER, szText, nTextSize);
-	CPidl pidlNew = m_pSFParent->CreateSubfolder(pidl, szText);
+	if( m_aPidls[0] )
+	{
+		// Using CPidl here because it destroys returned pidl
+		CPidl pidlNew = m_pSFParent->CreateNewFolder( m_aPidls[0] );
+	}
 }
 
-void CContextMenu::OnShowOnlyExtension(LPCITEMIDLIST pidl)
+void CContextMenu::OnShowOnlyExtension()
 {
-	// Get file extension
-	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-	LPCTSTR ext = CString::GetExtension(pData->fileData.szPath);
-	ext++;
-
-	m_pSFParent->ShowOnlyExtension(ext);
-
-	// Refresh the list view
-	g_pViewList->Refresh();
+	if( m_aPidls[0] )
+	{
+		LPCTSTR ext = GetFileExtension( m_aPidls[0] );
+		m_pSFParent->ShowOnlyExtension( ext );
+		g_pViewList->Refresh();
+	}
 }
 
-void CContextMenu::OnOpenContainingFolder(LPCITEMIDLIST pidl)
+void CContextMenu::OnOpenContainingFolder()
 {
+//	if(NULL == m_aPidls[0])
+//		return;
 	/*CPidl cpidl(pidl);
 	if( cpidl.IsFile() )
 	{
@@ -740,15 +743,15 @@ void CContextMenu::OnOpenContainingFolder(LPCITEMIDLIST pidl)
 	}*/
 }
 
-void CContextMenu::OnClearSearch(LPCITEMIDLIST pidl)
+void CContextMenu::OnClearSearch()
 {
-	m_pSFParent->ClearSearch(pidl);
+	if( m_aPidls[0] )
+	{
+		m_pSFParent->ClearFolderSearch( m_aPidls[0] );
+	}
 }
 
-void CContextMenu::OnRemoveFolders(LPITEMIDLIST *aPidls)
+void CContextMenu::OnRemoveFolders()
 {
-	for(int i=0; aPidls[i]; i++)
-	{
-		m_pSFParent->RemoveSubfolder(aPidls[i]);
-	}
+	m_pSFParent->RemoveFolders( m_aPidls );
 }

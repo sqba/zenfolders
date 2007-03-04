@@ -27,17 +27,19 @@ private:
 	void FreePidlTable(void);
 	BOOL FillPidlTable(LPCITEMIDLIST*, UINT);
 	BOOL CanRenameItems(void);
+	LPCTSTR GetFileExtension(LPCITEMIDLIST);
 	void AddMenuItem(HMENU, LPTSTR, UINT, UINT=0, BOOL=TRUE, BOOL=FALSE);
-	void OnExecute(LPCITEMIDLIST);
-	void OnOpenFolder(LPCITEMIDLIST, HWND, bool);
-	void OnShowProperties(LPCITEMIDLIST);
-	void OnCreateExtensionFolder(LPCITEMIDLIST);
-	void OnHideExtension(LPCITEMIDLIST);
-	void OnCreateNewFolder(LPCITEMIDLIST);
-	void OnShowOnlyExtension(LPCITEMIDLIST);
-	void OnOpenContainingFolder(LPCITEMIDLIST);
-	void OnClearSearch(LPCITEMIDLIST);
-	void OnRemoveFolders(LPITEMIDLIST*);
+
+	void OnExecute();
+	void OnOpenFolder(LPCMINVOKECOMMANDINFO);
+	void OnShowProperties();
+	void OnCreateExtensionFolder();
+	void OnHideExtension();
+	void OnCreateNewFolder();
+	void OnShowOnlyExtension();
+	void OnOpenContainingFolder();
+	void OnClearSearch();
+	void OnRemoveFolders();
 
 private:
 	DWORD			m_ObjRefCount;
