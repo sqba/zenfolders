@@ -27,7 +27,7 @@
 #define MENU_MAX		100
 
 //#define USE_ADSENSE
-//#define USE_TOOLBAR
+#define USE_TOOLBAR
 
 typedef struct
 {
@@ -65,7 +65,7 @@ MYTOOLINFO g_Tools[] =
 		IDB_VIEW_SMALL_COLOR, VIEW_DETAILS,
 		IDS_MI_VIEW_IDW,
 		TBSTATE_ENABLED, TBSTYLE_BUTTON,*/
-	0, -1, 0, 0, 0, 0,
+	-1, 0, 0, 0, 0, 0,
 };
 
 
@@ -2034,6 +2034,7 @@ VOID CShellView::MergeToolbar(VOID)
 
 LRESULT CShellView::UpdateToolbar(VOID)
 {
+/*
 	LRESULT  lResult;
 	UINT     uCommand;
 
@@ -2064,6 +2065,6 @@ LRESULT CShellView::UpdateToolbar(VOID)
 		uCommand, 
 		MAKELPARAM(TRUE, 0), 
 		&lResult);
-	
+*/
 	return 0;
 }
