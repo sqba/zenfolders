@@ -32,8 +32,14 @@ private:
 	bool ExtractResourceToFile(int, LPCTSTR, bool);
 	void SetMessage(LPCTSTR);
 	void Finish();
-	bool DirectoryExists(LPCTSTR);
+	bool Exists(LPCTSTR);
 	bool GetProgramFilesPath(LPTSTR);
+	bool IsAlreadyInstalled();
+	bool IsSameVersion();
+	bool GetVersion(LPCTSTR, DWORD*, DWORD*, DWORD*, DWORD*);
+	void SetMessage(int);
+	void SetMessage(int, LPCTSTR);
+	void AppendMessage(int, LPCTSTR, bool);
 
 public:
 	HWND m_hwnd;
@@ -42,6 +48,7 @@ public:
 private:
 	HINSTANCE	m_hInstance;
 	bool		m_bUnInstall;
+	bool		m_bNewVersion;
 	TCHAR		m_szDestinationPath[MAX_PATH];
 	TCHAR		m_szModulePath[MAX_PATH];
 	TCHAR		m_szTempPath[MAX_PATH];

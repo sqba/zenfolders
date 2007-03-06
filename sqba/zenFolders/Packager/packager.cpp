@@ -128,7 +128,7 @@ void SetVersionFromDLL(LPCTSTR lpszInstallerFileName, LPCTSTR lpszDLLFileName)
 			VS_FIXEDFILEINFO *pFixedInfoDLL = (VS_FIXEDFILEINFO *) roundpos(pVerInfoDLL, pOffsetBytesDLL, 4);
 
 
-			DWORD dwSizeEXE = GetFileVersionInfoSize((LPTSTR)lpszDLLFileName, &dwHandle);
+			DWORD dwSizeEXE = GetFileVersionInfoSize((LPTSTR)lpszInstallerFileName, &dwHandle);
 			if (0 < dwSizeEXE)
 			{
 				LPBYTE lpBufferEXE = new BYTE[dwSizeEXE];

@@ -325,3 +325,52 @@ int CShellNSE::GetName(GUID guid, LPCTSTR lpszName, int size)
 
 	return 0;
 }
+
+BOOL CShellNSE::IsRegistered(HINSTANCE hInst, GUID guid)
+{
+	int		i;
+	TCHAR	szSubKey[MAX_PATH];
+	TCHAR	szCLSID[MAX_PATH];
+	TCHAR	szModule[MAX_PATH];
+	HKEY	hkResult;
+
+	CString::GuidToString(guid, szCLSID, ARRAYSIZE(szCLSID));
+
+	//get this DLL's path and file name
+	GetModuleFileName(hInst, szModule, ARRAYSIZE(szModule));
+/*
+	for(i = 0; ClsidEntries[i].hRootKey; i++)
+	{
+		wsprintf(szSubKey, ClsidEntries[i].lpszSubKey, szCLSID);
+		if( ERROR_SUCCESS == RegOpenKey(ClsidEntries[i].hRootKey, szSubKey, &hkResult))
+		{
+			return TRUE;
+		}
+	}
+*/
+	wsprintf(szSubKey, TEXT(STR_SHELLFOLDER_KEY), szCLSID);
+	if( ERROR_SUCCESS == RegOpenKey(HKEY_CLASSES_ROOT, szSubKey, &hkResult) )
+	{
+		return TRUE;
+	}
+	
+	wsprintf(szSubKey, TEXT(STR_NAMESPACE_KEY), TEXT(ROOT_LOCATION), szCLSID);
+	if( ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, szSubKey, &hkResult) )
+	{
+		return TRUE;
+	}
+	
+	OSVERSIONINFO  osvi;
+	osvi.dwOSVersionInfoSize = sizeof(osvi);
+	GetVersionEx(&osvi);
+	if(VER_PLATFORM_WIN32_NT == osvi.dwPlatformId)
+	{
+		lstrcpy( szSubKey, TEXT(STR_SHELLEX_KEY));
+		if( ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, szSubKey, &hkResult) )
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}

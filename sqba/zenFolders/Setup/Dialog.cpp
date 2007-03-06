@@ -7,15 +7,38 @@
 #include "resource.h"
 
 
-#define RESOURCE_ID_DLL		104
-#define FILENAME_DLL		"zenFolders.dll"
-#define RESOURCE_ID_XML		105
-#define FILENAME_XML		"zenFolders.xml"
-#define FOLDER_NAME			TEXT("zenFolders")
-#define UNINSTALL_KEY		TEXT("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\zenFolders")
+#define RESOURCE_ID_DLL	104
+#define FILENAME_DLL	"zenFolders.dll"
+#define RESOURCE_ID_XML	105
+#define FILENAME_XML	"zenFolders.xml"
+#define FOLDER_NAME		"zenFolders"
+#define UNINSTALL_KEY	"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\zenFolders"
 
 
 //REGSTR_PATH_UNINSTALL
+
+
+#define roundoffs(a,b,r) (((BYTE *) (b) - (BYTE *) (a) + ((r) - 1)) & ~((r) - 1))
+#define roundpos(a,b,r) (((BYTE *) (a)) + roundoffs(a,b,r))
+
+struct VS_VERSIONINFO
+{
+    WORD                wLength;
+    WORD                wValueLength;
+    WORD                wType;
+    WCHAR               szKey[1];
+    WORD                wPadding1[1];
+    VS_FIXEDFILEINFO    Value;
+    WORD                wPadding2[1];
+    WORD                wChildren[1];
+};
+
+struct
+{
+    WORD wLanguage;
+    WORD wCodePage;
+} *lpTranslate;
+
 
 
 typedef HRESULT  (__stdcall *SHGETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
@@ -25,6 +48,7 @@ typedef HRESULT  (__stdcall *SHGETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 typedef HRESULT (*DllRegisterServer)(void);
 typedef HRESULT (*DllUnregisterServer)(void);
 typedef void (*DllSetPath)(LPCTSTR, int);
+typedef bool (*DllIsRegistered)();
 
 
 //////////////////////////////////////////////////////////////////////
@@ -65,6 +89,7 @@ CDialog::CDialog(HINSTANCE hInstance, int nCmdShow, bool bUnInstall)
 	m_bCleanup		= false;
 	m_hInstance		= hInstance;
 	m_bUnInstall	= bUnInstall;
+	m_bNewVersion	= false;
 
 	GetProgramFilesPath(m_szDestinationPath);
 	lstrcat(m_szDestinationPath, "\\");
@@ -104,39 +129,34 @@ CDialog::~CDialog()
 
 BOOL CDialog::OnInit(HWND hwnd)
 {
+	TCHAR szCaption[MAX_PATH] = {0};
+
 	m_hwnd = hwnd;
 
-	BOOL result = FALSE;
-	TCHAR szMessage[MAX_PATH] = {0};
-	TCHAR szPath[MAX_PATH] = {0};
-
-	lstrcpy(szPath, m_szDestinationPath);
-	if( !m_bUnInstall && DirectoryExists(szPath) )
+	if( IsAlreadyInstalled() )
 	{
-		lstrcat(szPath, "\\");
-		lstrcat(szPath, FILENAME_DLL);
-		if( DirectoryExists(szPath) )
-		{
-			m_bUnInstall = true;//!m_bUnInstall;
-		}
+		if( IsSameVersion() )
+			m_bUnInstall = true;
+		else
+			m_bNewVersion = true;
 	}
 
+	// Set dialog icon, big and small
+	::SendMessage(hwnd, WM_SETICON, ICON_BIG,
+		(LPARAM)LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_MAIN)));
+	::SendMessage(hwnd, WM_SETICON, ICON_SMALL,
+		(LPARAM)LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_MAIN)));
+
+	// Set dialog caption
+	int caption = m_bUnInstall ? IDS_CAPTION_UNINSTALL : IDS_CAPTION_INSTALL;
+	::LoadString(m_hInstance, caption, szCaption, sizeof(szCaption));
+	::SetWindowText(hwnd, szCaption);
+
+	// Set dialog message
 	if(m_bUnInstall)
-	{
-		//::LoadString(m_hInstance, IDS_COLUMN1, szString, sizeof(szString));
-		::SetWindowText(hwnd, TEXT("zenFolders Removal Wizard"));
-		SetMessage( TEXT("Remove zenFolders?") );
-	}
+		SetMessage( IDS_BODY_UNINSTALL );
 	else
-	{
-		::SetWindowText(hwnd, TEXT("zenFolders Installation Wizard"));
-		TCHAR szMessage[MAX_PATH] = {0};
-		wsprintf(szMessage, TEXT("zenFolders will be installed in: '%s'"), m_szDestinationPath);
-		SetMessage( szMessage );
-	}
-
-	::SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM) LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_MAIN)));
-	::SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM) LoadIcon(m_hInstance, MAKEINTRESOURCE(IDI_MAIN)));
+		SetMessage(IDS_BODY_INSTALL, m_szDestinationPath);
 
 	return TRUE;
 }
@@ -152,11 +172,23 @@ BOOL CDialog::OnCommand(int id, int code)
 	switch(id)
 	{
 	case IDOK:
-		if(m_bUnInstall)
+		if(m_bNewVersion)
+		{
+			if( Uninstall() )
+				return Install();
+			else
+			{
+				// Write something to RunOnce registry key
+				// Keep in mind that Uninstall() already did!
+				SetMessage( IDS_RESTARTBEFOREUPDATE );
+			}
+		}
+		else if(m_bUnInstall)
 			return Uninstall();
 		else
 			return Install();
 		break;
+
 	case IDCANCEL:
 		if(m_bUnInstall)
 			CreateUninstall(TRUE);
@@ -164,19 +196,6 @@ BOOL CDialog::OnCommand(int id, int code)
 		break;
 	}
 	return FALSE;
-}
-
-void CDialog::SetMessage(LPCTSTR pszMessage)
-{
-	::SetDlgItemText(m_hwnd, IDC_MESSAGE, pszMessage);
-}
-
-void CDialog::Finish()
-{
-	HWND hwndOK = ::GetDlgItem(m_hwnd, IDOK);
-	::ShowWindow(hwndOK, SW_HIDE) ;
-
-	::SetDlgItemText(m_hwnd, IDCANCEL, TEXT("Close"));
 }
 
 bool CDialog::RegisterActiveX(LPCTSTR lpszPath)
@@ -226,30 +245,20 @@ bool CDialog::UnRegisterActiveX(LPCTSTR lpszPath)
 	return result;
 }
 
-bool CDialog::DirectoryExists(LPCTSTR lpszPath)
-{
-	WIN32_FIND_DATA FindFileData;
-
-	HANDLE hFind = FindFirstFile(lpszPath, &FindFileData);
-
-	if(hFind != INVALID_HANDLE_VALUE)
-	{
-		return true;
-	}
-
-	return false;
-}
-
 BOOL CDialog::Install()
 {
 	BOOL result = FALSE;
 	TCHAR szMessage[MAX_PATH] = {0};
 	TCHAR szPath[MAX_PATH] = {0};
+	int msg = IDS_INSTALL_SUCCESS;
+
+	SetMessage( TEXT("") );
 
 	lstrcpy(szPath, m_szDestinationPath);
-	if( DirectoryExists(szPath) || ::CreateDirectory(szPath, NULL) )
+
+	if( Exists(szPath) || ::CreateDirectory(szPath, NULL) )
 	{
-		if( ExtractResourceToFile(RESOURCE_ID_DLL, FILENAME_DLL, false) )
+		if( ExtractResourceToFile(RESOURCE_ID_DLL, FILENAME_DLL, true) )
 		{
 			ExtractResourceToFile(RESOURCE_ID_XML, FILENAME_XML, false);
 
@@ -259,26 +268,25 @@ BOOL CDialog::Install()
 			if( RegisterActiveX(szPath) )
 			{
 				if( CreateUninstall(FALSE) )
+					msg = IDS_INSTALL_SUCCESS;
+				else
 				{
-					wsprintf(szMessage, TEXT("zenFolders succesfully installed."));
 				}
 
 				result = TRUE;
 			}
 			else
-				wsprintf(szMessage, "Failed to register ActiveX control.");
+				msg = IDS_REGISTERACTIVEXFAILED;
 		}
 		else
-		{
-			//if( DirectoryExists(szPath) )
-			//return Uninstall();
-			wsprintf(szMessage, "Failed to extract file %s: \nProbably previos uninstallation failed.\nPlease restart the computer before installing again.\nThank You", szPath);
-		}
+			msg = IDS_INSTALL_FAILED;
+
+		AppendMessage( msg, NULL, true );
 	}
 	else
-		wsprintf(szMessage, "Failed to create folder %s", szPath);
-
-	SetMessage( szMessage );
+	{
+		AppendMessage( IDS_CREATEFOLDERFAILED, szPath, true );
+	}
 
 	Finish();
 
@@ -287,9 +295,13 @@ BOOL CDialog::Install()
 
 BOOL CDialog::Uninstall()
 {
-	BOOL result = FALSE;
+	BOOL result = TRUE;
 	TCHAR szPath[MAX_PATH] = {0};
 	TCHAR szMessage[MAX_PATH] = {0};
+
+	SetMessage( TEXT("") );
+
+	int msg = IDS_UNINSTALL_RESTART;
 
 	lstrcpy(szPath, m_szDestinationPath);
 	lstrcat(szPath, "\\");
@@ -297,27 +309,26 @@ BOOL CDialog::Uninstall()
 
 	if( UnRegisterActiveX(szPath) )
 	{
+		RegDeleteKey( HKEY_LOCAL_MACHINE, UNINSTALL_KEY);
 		if( ::DeleteFile(szPath) )
 		{
-			RegDeleteKey(
-				HKEY_LOCAL_MACHINE,
-				UNINSTALL_KEY);
-
-			result = true;
-
 			m_bCleanup = true; // Tell main to call CleanUp()
-
-			wsprintf(szMessage, "zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!");
+			msg = IDS_UNINSTALL_SUCCESS;
 		}
 		else
-			wsprintf(szMessage, TEXT("Failed to remove all files.\nNothing to worry about.\nPlease restart and try uninstall again.\nSorry for the inconvenience..."));
+		{
+			// Write something to RunOnce registry key
+		}
 	}
 	else
-		wsprintf(szMessage, "Failed to unregister ActiveX control.");
+	{
+		msg = IDS_UNREGISTERACTIVEXFAILED;
+		result = FALSE;
+	}
 
 	m_bUnInstall = false;
 
-	SetMessage( szMessage );
+	AppendMessage( msg, NULL, true );
 
 	Finish();
 
@@ -329,7 +340,7 @@ BOOL CDialog::CreateUninstall(BOOL silent)
 	HKEY  hKey;
 	LONG  lResult;
 	DWORD dwDisp;
-
+	TCHAR szMessage[MAX_PATH] = {0};
 
 	TCHAR szSrcPath[MAX_PATH] = {0};
 	strcat(szSrcPath, m_szModulePath);
@@ -344,7 +355,8 @@ BOOL CDialog::CreateUninstall(BOOL silent)
 	{
 		if(!silent)
 		{
-			SetMessage( TEXT("Failed to copy setup.") );
+			::LoadString(m_hInstance, IDS_SETUPCOPYFAILED, szMessage, sizeof(szMessage));
+			SetMessage( szMessage );
 			return FALSE;
 		}
 	}
@@ -364,7 +376,8 @@ BOOL CDialog::CreateUninstall(BOOL silent)
 	{
 		if(!silent)
 		{
-			SetMessage( TEXT("RegCreateKeyEx failed.") );
+			::LoadString(m_hInstance, IDS_CREATEUNINSTALLKEYFAILED, szMessage, sizeof(szMessage));
+			SetMessage( szMessage );
 			return FALSE;
 		}
 	}
@@ -393,7 +406,8 @@ BOOL CDialog::CreateUninstall(BOOL silent)
 	{
 		if(!silent)
 		{
-			SetMessage( TEXT("RegSetValueEx failed.") );
+			::LoadString(m_hInstance, IDS_SETUNINSTALLKEYFAILED, szMessage, sizeof(szMessage));
+			SetMessage( szMessage );
 			return FALSE;
 		}
 	}
@@ -408,15 +422,13 @@ bool CDialog::ExtractResourceToFile(int resourceId, LPCTSTR lpResourceFileName, 
 	HGLOBAL	hResourceLoaded;
 	LPBYTE	lpBuffer;
 	bool	result = false;
-	TCHAR	szMessage[MAX_PATH] = {0};
 	TCHAR	szPath[MAX_PATH] = {0};
 
 	lstrcpy(szPath, m_szDestinationPath);
 	lstrcat(szPath, "\\");
 	lstrcat(szPath, lpResourceFileName);
 
-	wsprintf(szMessage, "Extracting %s: ", szPath);
-	SetMessage(szMessage);
+	AppendMessage( IDS_EXTRACTING, szPath, true );
 	
 	hLibrary = m_hInstance;
 	hResource = ::FindResource(hLibrary, MAKEINTRESOURCE(resourceId), RT_RCDATA);
@@ -450,28 +462,24 @@ bool CDialog::ExtractResourceToFile(int resourceId, LPCTSTR lpResourceFileName, 
 
 					result = true;
 
-					lstrcat(szMessage, TEXT("OK"));
+					AppendMessage( IDS_EXTRACTINGOK, NULL, false );
 				}
 				else if(bOverwrite)
-					wsprintf(szMessage, "Failed to extract %s", szPath);
+					AppendMessage( IDS_EXTRACTINGFAILED, NULL, false );
 				else
-					wsprintf(szMessage, "Skipped %s", szPath);
+					AppendMessage( IDS_EXTRACTINGSKIPPED, NULL, false );
 			}
 			else
-				lstrcat(szMessage, TEXT("Failed to lock resource"));
+				AppendMessage( IDS_LOCKRESOURCEFAILED, NULL, false );
 		}  
 		else
-			wsprintf(szMessage, "Failed to load resource %d", resourceId);
+			AppendMessage( IDS_LOADRESOURCEFAILED, NULL, false );
 	}
 	else
-		wsprintf(szMessage, "Resource %d not found", resourceId);
-
-	SetMessage(szMessage);
+		AppendMessage( IDS_RESOURCENOTFOUND, NULL, false );
 
 	if(!result)
 	{
-		//HideOkButton();
-		//SetCancelButtonText( TEXT("Close") );
 		Finish();
 	}
 
@@ -561,6 +569,158 @@ void CDialog::CleanUp()
 	}
 }
 
+void CDialog::Finish()
+{
+	HWND hwndOK = ::GetDlgItem(m_hwnd, IDOK);
+	::ShowWindow(hwndOK, SW_HIDE) ;
+	::SetDlgItemText(m_hwnd, IDCANCEL, TEXT("Close"));
+}
+
+bool CDialog::IsAlreadyInstalled()
+{
+	bool result = false;
+	TCHAR szPath[MAX_PATH] = {0};
+	lstrcpy(szPath, m_szDestinationPath);
+
+	if( Exists(szPath) )
+	{
+		lstrcat(szPath, "\\");
+		lstrcat(szPath, FILENAME_DLL);
+		if( Exists(szPath) )
+		{
+			// Check if the DLL is registered
+			HMODULE hLibrary = ::LoadLibrary(szPath);
+			if (NULL != hLibrary)
+			{
+				DllIsRegistered IsRegistered;
+				IsRegistered = (DllIsRegistered)::GetProcAddress(hLibrary, TEXT("DllIsRegistered"));
+				if(IsRegistered != NULL)
+				{
+					result = IsRegistered();
+				}
+				FreeLibrary( hLibrary );
+			}
+		}
+	}
+	return result;
+}
+
+bool CDialog::IsSameVersion()
+{
+	TCHAR szPath[MAX_PATH] = {0};
+	lstrcpy(szPath, m_szDestinationPath);
+	lstrcat(szPath, "\\");
+	lstrcat(szPath, FILENAME_DLL);
+
+	DWORD a1, b1, c1, d1;
+	if( GetVersion(szPath, &a1, &b1, &c1, &d1) )
+	{
+		DWORD a2, b2, c2, d2;
+		if( GetVersion(m_szModulePath, &a2, &b2, &c2, &d2) )
+		{
+			return ((a1==a2) && (b1==b2) && (c1==c2) && (d1=d2));
+		}
+	}
+
+	return false;
+}
+
+bool CDialog::GetVersion(LPCTSTR lpszFilename, DWORD *a, DWORD *b, DWORD *c, DWORD *d)
+{
+	DWORD dwHandle, dwResult = 0;
+	
+	// determine the size of the resource information
+	DWORD dwSize = ::GetFileVersionInfoSize((LPTSTR)lpszFilename, &dwHandle);
+	if (0 < dwSize)
+	{
+		LPBYTE lpBuffer = new BYTE[dwSize];
+		
+		if (::GetFileVersionInfo((LPTSTR)lpszFilename, 0, dwSize, lpBuffer) != FALSE)
+		{
+			// 'point to' the start of the version information block
+			VS_VERSIONINFO *pVerInfo = (VS_VERSIONINFO*)lpBuffer;
+			
+			// the fixed section starts right after the 'VS_VERSION_INFO' string
+			LPBYTE pOffsetBytes = (BYTE*)&pVerInfo->szKey[wcslen(pVerInfo->szKey) + 1];
+			
+			VS_FIXEDFILEINFO *pFixedInfo = (VS_FIXEDFILEINFO*)roundpos(pVerInfo, pOffsetBytes, 4);
+
+			*a = pFixedInfo->dwFileVersionMS;
+			*b = pFixedInfo->dwFileVersionLS;
+			*c = pFixedInfo->dwProductVersionMS;
+			*d = pFixedInfo->dwProductVersionLS;
+		}
+		
+		delete [] lpBuffer;
+
+		return true;
+	}
+
+	return false;
+}
+
+bool CDialog::Exists(LPCTSTR lpszPath)
+{
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hFind = ::FindFirstFile(lpszPath, &FindFileData);
+	return (hFind != INVALID_HANDLE_VALUE);
+}
+
+void CDialog::SetMessage(LPCTSTR pszMessage)
+{
+	::SetDlgItemText(m_hwnd, IDC_MESSAGE, pszMessage);
+}
+
+void CDialog::SetMessage(int msg)
+{
+	TCHAR szMessage[MAX_PATH] = {0};
+
+	::LoadString(m_hInstance, msg, szMessage, sizeof(szMessage));
+
+	SetMessage( szMessage );
+}
+
+void CDialog::SetMessage(int msg, LPCTSTR pszMessage)
+{
+	TCHAR szTemp[MAX_PATH] = {0};
+	TCHAR szMessage[MAX_PATH] = {0};
+
+	::LoadString(m_hInstance, msg, szTemp, sizeof(szTemp));
+
+	wsprintf(szMessage, szTemp, pszMessage);
+
+	SetMessage( szMessage );
+}
+
+void CDialog::AppendMessage(int msg, LPCTSTR pszParam, bool bNewLine)
+{
+	UINT uLen;
+	TCHAR szMessage[MAX_PATH] = {0};
+	TCHAR szBody[MAX_PATH] = {0};
+
+	uLen = ::GetDlgItemText(
+		m_hwnd,
+		IDC_MESSAGE,
+		szBody,
+		sizeof(szBody));
+
+	if(pszParam)
+	{
+		TCHAR szTemp[MAX_PATH] = {0};
+		::LoadString(m_hInstance, msg, szTemp, sizeof(szTemp));
+		wsprintf(szMessage, szTemp, pszParam);
+	}
+	else
+	{
+		::LoadString(m_hInstance, msg, szMessage, sizeof(szMessage));
+	}
+
+	if(bNewLine && (lstrlen(szBody) > 0))
+		lstrcat(szBody, "\n");
+	lstrcat(szBody, szMessage);
+
+	SetMessage( szBody );
+}
 
 
 /*

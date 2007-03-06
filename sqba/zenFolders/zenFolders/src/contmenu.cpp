@@ -655,27 +655,9 @@ void CContextMenu::OnOpenFolder(LPCMINVOKECOMMANDINFO lpcmi)
 
 void CContextMenu::OnShowProperties()
 {
-	LPCITEMIDLIST pidl = NULL;
-
-	if(NULL != m_aPidls[0])
-		pidl = m_pSFParent->CreateFQPidl(m_aPidls[0]);
-
-	CPidl pidlTemp(pidl);
-	if( (NULL == pidl) || !pidlTemp.IsFile() )
+	for(int i=0; m_aPidls[i]; i++)
 	{
-		m_pSFParent->ShowProperties( pidl );
-	}
-	else
-	{
-		LPPIDLDATA pData = pidlTemp.GetData();
-		SHELLEXECUTEINFO  sei;
-		ZeroMemory(&sei, sizeof(sei));
-		sei.cbSize = sizeof(SHELLEXECUTEINFO);
-		sei.lpFile = pData->fileData.szPath;
-		sei.nShow = SW_SHOW;
-		sei.fMask = SEE_MASK_INVOKEIDLIST;
-		sei.lpVerb = "properties";
-		ShellExecuteEx(&sei);
+		m_pSFParent->ShowProperties( m_aPidls[i] );
 	}
 }
 
@@ -702,7 +684,7 @@ void CContextMenu::OnHideExtension()
 
 void CContextMenu::OnCreateNewFolder()
 {
-	if( m_aPidls[0] )
+//	if( m_aPidls[0] )
 	{
 		// Using CPidl here because it destroys returned pidl
 		CPidl pidlNew = m_pSFParent->CreateNewFolder( m_aPidls[0] );

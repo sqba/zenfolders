@@ -39,6 +39,10 @@ CListView::CListView(HINSTANCE hInst, HWND hWnd)
 	LONG style = GetWindowLong(hwndHeader, GWL_STYLE);
 	style |= HDS_BUTTONS;
 	SetWindowLong(hwndHeader, GWL_STYLE, style);
+
+	//dwStyle = ListView_GetExtendedListViewStyle(m_hwndList);
+	//dwStyle |= LVS_EX_FULLROWSELECT;
+	//ListView_SetExtendedListViewStyle(m_hwndList, dwStyle);
 }
 
 CListView::~CListView()
@@ -161,4 +165,9 @@ int CListView::InsertItem(LPARAM lParam)
 void CListView::SetExtendedListViewStyle(DWORD dwExStyles)
 {
 	ListView_SetExtendedListViewStyle(m_hwndList, dwExStyles);
+}
+
+void CListView::SelectItem(int index)
+{
+	ListView_SetItemState(m_hwndList, index, LVIS_SELECTED|LVIS_FOCUSED, LVIS_STATEIMAGEMASK);
 }

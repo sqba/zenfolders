@@ -65,7 +65,7 @@ END
 //
 
 IDD_FOLDER_PROPERTIES DIALOG DISCARDABLE  0, 0, 241, 258
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Folder Properties"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -121,8 +121,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,3
- PRODUCTVERSION 1,0,0,3
+ FILEVERSION 1,0,0,4
+ PRODUCTVERSION 1,0,0,4
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -140,14 +140,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "oneFingerZen\0"
             VALUE "FileDescription", "zenFolders\0"
-            VALUE "FileVersion", "1, 0, 0, 3\0"
+            VALUE "FileVersion", "1, 0, 0, 4\0"
             VALUE "InternalName", "zenFolders\0"
             VALUE "LegalCopyright", "Copyright oneFingerZen© 2007\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "zenFolders.dll\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "OneFingerZen zenFolders\0"
-            VALUE "ProductVersion", "1, 0, 0, 3\0"
+            VALUE "ProductVersion", "1, 0, 0, 4\0"
             VALUE "SpecialBuild", "\0"
         END
     END

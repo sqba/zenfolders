@@ -21,6 +21,8 @@ public:
 	static HRESULT RegisterProperties(HINSTANCE, GUID, GUID);
 	static HRESULT UnregisterProperties(HINSTANCE, GUID);
 
+	static BOOL IsRegistered(HINSTANCE, GUID);
+
 	static int GetName(GUID, LPCTSTR, int);
 
 private:

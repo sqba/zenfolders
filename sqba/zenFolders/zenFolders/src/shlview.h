@@ -71,6 +71,8 @@ private:
 	LRESULT OnNotify(UINT, LPNMHDR);
 
 	void OnRemoveFolders();
+	void OnCreateNewFolder();
+	void OnShowProperties();
 
 	int FindItemPidl(LPCITEMIDLIST);
 	int InsertItem(LPCITEMIDLIST);
@@ -108,6 +110,7 @@ private:
 	CWebBrowser		*m_pWebBrowser;
 	HACCEL			m_hAccels;
 	BOOL			m_bInEdit;
+	int				m_iLastSelectedItem;
 };
 
 #endif   //SHELLVIEW_H

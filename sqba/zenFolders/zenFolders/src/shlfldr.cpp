@@ -895,6 +895,11 @@ LPENUMIDLIST CShellFolder::CreateList(DWORD dwFlags, HRESULT *hr)
 	return list;
 }
 
+BOOL CShellFolder::IsRoot()
+{
+	return (NULL == m_pSFParent);
+}
+
 void CShellFolder::ShowProperties(LPCITEMIDLIST pidl)
 {
 //	if(NULL != m_pDlg)
@@ -905,43 +910,67 @@ void CShellFolder::ShowProperties(LPCITEMIDLIST pidl)
 
 //	TRACE_PIDL_PATH("CShellFolder::ShowProperties(%s)\n", pidl);
 
-	LPCITEMIDLIST tmpPidl = pidl ? pidl : m_pidlFQ.GetFull();
-	CShellFolder *pParent = pidl ? this : m_pSFParent;
+	if( (NULL == pidl) || !CPidlManager::IsFile(pidl) )
+	{
+		if(IsRoot())
+			return;
 
-	CFolderPropertiesDlg *pDlg = new CFolderPropertiesDlg(pParent, tmpPidl);
-	if(pDlg)
-		pDlg->Show();
+		LPCITEMIDLIST tmpPidl = pidl ? pidl : m_pidlFQ.GetFull();
+		CShellFolder *pParent = pidl ? this : m_pSFParent;
+
+		CFolderPropertiesDlg *pDlg;
+		pDlg = new CFolderPropertiesDlg(pParent, tmpPidl);
+		if(pDlg)
+			pDlg->Show();
+	}
+	else
+	{
+		LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
+		SHELLEXECUTEINFO  sei;
+		ZeroMemory(&sei, sizeof(sei));
+		sei.cbSize = sizeof(SHELLEXECUTEINFO);
+		sei.lpFile = pData->fileData.szPath;
+		sei.nShow = SW_SHOW;
+		sei.fMask = SEE_MASK_INVOKEIDLIST;
+		sei.lpVerb = "properties";
+		ShellExecuteEx(&sei);
+	}
 }
 
 BOOL CShellFolder::RemoveFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 {
 	if(NULL == pidl)
-		return FALSE;
-
-	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-
-	if(bVerify)
 	{
-		TCHAR szQuestion[200] = {0};
-		::LoadString(g_hInst, IDS_DELETEFOLDER, szQuestion, ARRAYSIZE(szQuestion));
-
-		TCHAR szCaption[50] = {0};
-		::LoadString(g_hInst, IDS_DELETEFOLDER_CAPTION, szCaption, ARRAYSIZE(szCaption));
-
-		TCHAR msg[100] = {0};
-		wsprintf(msg, szQuestion, pData->szName);
-
-		int nResult = ::MessageBox( NULL/*hWnd*/, msg, szCaption, MB_YESNO);
-		if(IDYES != nResult)
-			return FALSE;
+		m_pSFParent->RemoveFolder(m_pidlRel.GetRelative(), bVerify);
 	}
+	else
+	{
+		LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
 
-	LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
-	g_pConfigXML->RemoveFolder(pidlFQ);
-//	TRACE_PIDL_PATH("CShellFolder::RemoveFolder(%s)\n", pidlFQ);
-	::SHChangeNotify(SHCNE_RMDIR, SHCNF_IDLIST, pidlFQ, NULL);
-	g_pPidlMgr->Delete(pidlFQ);
-	g_pViewList->Refresh();
+		if(bVerify)
+		{
+			TCHAR szQuestion[200] = {0};
+			::LoadString(g_hInst, IDS_DELETEFOLDER, szQuestion, ARRAYSIZE(szQuestion));
+
+			TCHAR szCaption[50] = {0};
+			::LoadString(g_hInst, IDS_DELETEFOLDER_CAPTION, szCaption, ARRAYSIZE(szCaption));
+
+			TCHAR msg[100] = {0};
+			wsprintf(msg, szQuestion, pData->szName);
+
+			int nResult = ::MessageBox( NULL/*hWnd*/, msg, szCaption, MB_YESNO);
+			if(IDYES != nResult)
+				return FALSE;
+		}
+
+		LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
+		g_pConfigXML->RemoveFolder(pidlFQ);
+		//TRACE_PIDL_PATH("CShellFolder::RemoveFolder(%s)\n", pidlFQ);
+		_RPTF1(_CRT_WARN, "CShellFolder::RemoveFolder(%s)\n", pData->szName);
+		::SHChangeNotify(SHCNE_RMDIR, SHCNF_IDLIST, pidlFQ, NULL);
+		g_pPidlMgr->Delete(pidlFQ);
+		g_pViewList->Refresh();
+	}
 
 	return FALSE;
 }
@@ -1182,19 +1211,11 @@ LPITEMIDLIST CShellFolder::CreateNewFolder(LPCITEMIDLIST pidlParent)
 	::SHChangeNotify(SHCNE_MKDIR, SHCNF_IDLIST, pidlFQ, NULL);
 	TRACE_PIDL_PATH("CShellFolder::CreateNewFolder(%s)\n", pidlFQ);
 
-	if(pidlParent)
+	//Get active listview and send it LVN_BEGINLABELEDIT
+	CShellView *pView = g_pViewList->GetActiveView();
+	if(pView)
 	{
-		//Get active listview and send it LVN_BEGINLABELEDIT
-		CShellView *pView = g_pViewList->GetActiveView();
-		if(pView)
-		{
-			pView->AddNewFolder(pidlFQ);
-		}
-	}
-	else
-	{
-		// Just add the folder, no need for full reload!
-		g_pViewList->Refresh();
+		pView->AddNewFolder(pidlFQ);
 	}
 
 	g_pPidlMgr->Delete(pidlNew);

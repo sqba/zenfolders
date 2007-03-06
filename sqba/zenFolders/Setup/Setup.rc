@@ -106,8 +106,8 @@ IDB_HEADER              BITMAP  DISCARDABLE     "header.bmp"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,0,38
+ PRODUCTVERSION 1,0,0,38
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -125,14 +125,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "oneFingerZen\0"
             VALUE "FileDescription", "zenFolders Setup\0"
-            VALUE "FileVersion", "1, 0, 0, 1\0"
+            VALUE "FileVersion", "1, 0, 0, 38\0"
             VALUE "InternalName", "Setup\0"
             VALUE "LegalCopyright", "Copyright oneFingerZen © 2007\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "Setup.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "zenFolders Setup\0"
-            VALUE "ProductVersion", "1, 0, 0, 1\0"
+            VALUE "ProductVersion", "1, 0, 0, 38\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -157,6 +157,29 @@ BEGIN
     IDS_EXTRACTFAILED       "Failed to extract file %s: \nProbably previos uninstallation failed.\nPlease restart the computer before installing again.\nThank You"
     IDS_CREATEFOLDERFAILED  "Failed to create folder %s"
     IDS_INSTALLDIALOGTITLE  "zenFolders Installation Wizard"
+    IDS_INSTALL_FAILED      "Previous uninstallation required restart.\nPlease restart the computer before installing again."
+    IDS_UNINSTALL_SUCCESS   "zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!"
+    IDS_UNINSTALL_RESTART   "zenFolders successfully uninstalled.\nPlease restart the computer.\nThank you for using zenFolders.\nBye!"
+    IDS_UNREGISTERACTIVEXFAILED "Failed to unregister ActiveX control."
+    IDS_CAPTION_UNINSTALL   "zenFolders Removal Wizard"
+    IDS_CAPTION_INSTALL     "zenFolders Installation Wizard"
+    IDS_BODY_UNINSTALL      "Remove zenFolders?"
+    IDS_BODY_INSTALL        "zenFolders will be installed in: '%s'"
+    IDS_SETUPCOPYFAILED     "Failed to copy setup file."
+    IDS_CREATEUNINSTALLKEYFAILED "RegCreateKeyEx failed."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SETUNINSTALLKEYFAILED "RegSetValueEx failed."
+    IDS_EXTRACTING          "Extracting %s: "
+    IDS_EXTRACTINGFAILED    "Failed"
+    IDS_EXTRACTINGSKIPPED   "Skipped"
+    IDS_LOCKRESOURCEFAILED  "Failed to lock resource"
+    IDS_LOADRESOURCEFAILED  "Failed to load resource"
+    IDS_RESOURCENOTFOUND    "Resource not found"
+    IDS_EXTRACTINGOK        "OK"
+    IDS_RESTARTBEFOREUPDATE "Previous version has been removed.\nPlease restart the computer and run setup again to install new version."
 END
 
 #endif    // English (U.S.) resources

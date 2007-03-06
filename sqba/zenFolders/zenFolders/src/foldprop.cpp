@@ -95,7 +95,13 @@ BOOL CFolderPropertiesDlg::OnInit(HWND hDlg)
 {
 	g_pDialogList->AddToList(this);
 
-	CenterDialog(hDlg);
+	// Set dialog icon, big and small
+	::SendMessage(hDlg, WM_SETICON, ICON_BIG,
+		(LPARAM)LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_ZENFOLDERS)));
+	::SendMessage(hDlg, WM_SETICON, ICON_SMALL,
+		(LPARAM)LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_ZENFOLDERS)));
+
+//	CenterDialog(hDlg);
 
 	// Treba videti zasto se pidl ne apdejtuje
 	MSXML2::IXMLDOMNodePtr ptrNode = m_pidl.GetNode();
@@ -161,7 +167,7 @@ void CFolderPropertiesDlg::Show()
 
 	::SetFocus( GetDlgItem(m_hDlg, IDC_FOLDER_NAME) );
 }
-
+/*
 void CFolderPropertiesDlg::CenterDialog(HWND hDlg)
 {
 	HWND hwndOwner; 
@@ -192,13 +198,13 @@ void CFolderPropertiesDlg::CenterDialog(HWND hDlg)
 				 0, 0,          // Ignores size arguments. 
 				 SWP_NOSIZE); 
 
-	/*if (GetDlgCtrlID((HWND) wParam) != IDC_FOLDER_NAME) 
-	{ 
-		SetFocus(GetDlgItem(hDlg, IDC_FOLDER_NAME)); 
-		return FALSE; 
-	}*/
+	//if (GetDlgCtrlID((HWND) wParam) != IDC_FOLDER_NAME) 
+	//{ 
+	//	SetFocus(GetDlgItem(hDlg, IDC_FOLDER_NAME)); 
+	//	return FALSE; 
+	//}
 }
-
+*/
 void CFolderPropertiesDlg::InitFolderName(HWND hDlg)
 {
 	LPPIDLDATA pData = m_pidl.GetData();

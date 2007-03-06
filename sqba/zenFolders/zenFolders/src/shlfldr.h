@@ -67,6 +67,8 @@ public:
 	
 	STDMETHOD (MoveCopyItems)(CShellFolder*, LPITEMIDLIST*, UINT, BOOL);
 
+	BOOL IsRoot();
+
 private:
 	void Initialize();
 
@@ -97,7 +99,7 @@ public:
 	BOOL OnClose(HWND);
 
 private:
-	void CenterDialog(HWND);
+//	void CenterDialog(HWND);
 	BOOL ApplyChanges(HWND);
 
 	void InitMaxResults(HWND);
@@ -116,7 +118,7 @@ private:
 
 private:
 	HWND			m_hDlg;
-	HINSTANCE		m_hInst;
+//	HINSTANCE		m_hInst;
 	CPidl			m_pidl;
 	CShellFolder	*m_pParent;
 };

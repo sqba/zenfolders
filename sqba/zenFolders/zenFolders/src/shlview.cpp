@@ -32,40 +32,63 @@
 typedef struct
 {
 	int   idCommand;
+	int   idString;
 	UINT  uImageSet;
 	int   iImage;
-	int   idString;
 	BYTE  bState;
 	BYTE  bStyle;
 } MYTOOLINFO, *LPMYTOOLINFO;
 
 MYTOOLINFO g_Tools[] = 
 {
-	IDM_CREATE_FOLDER,
+	{
+		// New folder
+		IDM_CREATE_FOLDER, IDS_CREATE_FOLDER,
 		IDB_VIEW_SMALL_COLOR, VIEW_NEWFOLDER,
-		IDS_CREATE_FOLDER,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON,
-//	IDM_REMOVE_FOLDER,
-//		IDB_STD_SMALL_COLOR, STD_DELETE,
-//		IDS_REMOVE_FOLDER,
-//		TBSTATE_ENABLED, TBSTYLE_BUTTON, 
-	/*IDM_VIEW_IDW,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON
+	},
+
+	{
+		// Delete folder
+		IDM_REMOVE_FOLDER, IDS_REMOVE_FOLDER,
+		IDB_STD_SMALL_COLOR, STD_DELETE,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON
+	},
+
+	{
+		// File/folder properties
+		IDM_PROPERTIES, IDS_PROPERTIES,
+		IDB_STD_SMALL_COLOR, STD_PROPERTIES,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON
+	},
+
+/*
+	{
+		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
 		IDB_VIEW_SMALL_COLOR, VIEW_LARGEICONS,
-		IDS_MI_VIEW_IDW,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON,
-	IDM_VIEW_IDW,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON
+	},
+	
+	{
+		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
 		IDB_VIEW_SMALL_COLOR, VIEW_SMALLICONS,
-		IDS_MI_VIEW_IDW,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON,
-	IDM_VIEW_IDW,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON
+	},
+
+	{
+		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
 		IDB_VIEW_SMALL_COLOR, VIEW_LIST,
-		IDS_MI_VIEW_IDW,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON,
-	IDM_VIEW_IDW,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON
+	},
+
+	{
+		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
 		IDB_VIEW_SMALL_COLOR, VIEW_DETAILS,
-		IDS_MI_VIEW_IDW,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON,*/
-	-1, 0, 0, 0, 0, 0,
+		TBSTATE_ENABLED, TBSTYLE_BUTTON
+	},
+*/
+
+	{-1, 0, 0, 0, 0, 0},
 };
 
 
@@ -166,6 +189,7 @@ CShellView::CShellView(CShellFolder *pFolder, LPCITEMIDLIST pidl)
 	m_pListView			= NULL;
 	m_pWebBrowser		= NULL;
 	m_bInEdit			= FALSE;
+	m_iLastSelectedItem	= -1;
 	m_hAccels = LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDR_ACCELERATORS));
 
 	m_pSFParent = pFolder;
@@ -1266,6 +1290,8 @@ void CShellView::OnEndLabelEdit(NMLVDISPINFO *pdi)
 		g_pPidlMgr->Delete(pidlFQNew);
 		g_pPidlMgr->Delete(pidlNew);
 		g_pPidlMgr->Delete(pidlFQOld);
+
+//		m_pListView->SelectItem(lvItem.iItem);
 	}
 
 }
@@ -1647,11 +1673,15 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 		break;
 		
 	case IDM_CREATE_FOLDER:
-		m_pSFParent->CreateNewFolder(NULL);
+		OnCreateNewFolder();
 		break;
 
-	case IDM_DELETE:
+	case IDM_REMOVE_FOLDER:
 		OnRemoveFolders();
+		break;
+
+	case IDM_PROPERTIES:
+		OnShowProperties();
 		break;
 
 	default:
@@ -1659,6 +1689,37 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 	}
 	
 	return 0;
+}
+
+void CShellView::OnCreateNewFolder()
+{
+	m_pSFParent->CreateNewFolder(NULL);
+}
+
+void CShellView::OnShowProperties()
+{
+	UINT     i;
+	LVITEM   lvItem;
+	
+	lvItem.mask = LVIF_PARAM;
+	lvItem.iItem = -1;
+	lvItem.iSubItem = 0;
+
+	if(0 == m_pListView->GetSelectedCount())
+	{
+		m_pSFParent->ShowProperties( NULL );
+	}
+	else
+	{
+		for(i = 0; -1 != (lvItem.iItem = m_pListView->GetNextItem(lvItem.iItem, LVNI_SELECTED)); i++)
+		{
+			if(m_pListView->GetItem(&lvItem))
+			{
+				LPITEMIDLIST pidl = (LPITEMIDLIST)lvItem.lParam;
+				m_pSFParent->ShowProperties( pidl );
+			}
+		}
+	}
 }
 
 void CShellView::OnRemoveFolders()
@@ -1674,19 +1735,33 @@ void CShellView::OnRemoveFolders()
 
 	int nCount = m_pListView->GetSelectedCount() + 1;
 
-	pPidls = (LPITEMIDLIST*)m_pMalloc->Alloc(nCount * sizeof(LPITEMIDLIST));
-	if(pPidls)
+	if(nCount > 1)
 	{
-		for(i = 0; -1 != (lvItem.iItem = m_pListView->GetNextItem(lvItem.iItem, LVNI_SELECTED)); i++)
+		pPidls = (LPITEMIDLIST*)m_pMalloc->Alloc(nCount * sizeof(LPITEMIDLIST));
+
+		if(pPidls)
 		{
-			if(m_pListView->GetItem(&lvItem))
+			//set all of the entries to NULL
+			ZeroMemory(pPidls, nCount * sizeof(LPITEMIDLIST));
+
+			for(i = 0; -1 != (lvItem.iItem = m_pListView->GetNextItem(lvItem.iItem, LVNI_SELECTED)); i++)
 			{
-				pPidls[i] = (LPITEMIDLIST)lvItem.lParam;
+				if(m_pListView->GetItem(&lvItem))
+				{
+					pPidls[i] = g_pPidlMgr->Copy((LPITEMIDLIST)lvItem.lParam);
+				}
 			}
+
+			m_pSFParent->RemoveFolders(pPidls);
+
+			for(i = 0; pPidls[i]; i++)
+				g_pPidlMgr->Delete(pPidls[i]);
+			m_pMalloc->Free(pPidls);
 		}
-		pPidls[nCount-1] = NULL;
-		m_pSFParent->RemoveFolders(pPidls);
-		m_pMalloc->Free(pPidls);
+	}
+	else
+	{
+		m_pSFParent->RemoveFolder(NULL);
 	}
 }
 
@@ -1813,6 +1888,12 @@ void CShellView::FillList(void)
 		m_pListView->Invalidate();
 		
 		pEnumIDList->Release();
+
+		if(m_iLastSelectedItem > -1)
+		{
+			m_pListView->SelectItem(m_iLastSelectedItem);
+			m_iLastSelectedItem = -1;
+		}
 	}
 	/*else
 	{
@@ -1930,8 +2011,11 @@ void CShellView::AddNewFolder(LPCITEMIDLIST pidl)
 	LPITEMIDLIST pidlLast = CPidlManager::GetLastItem(pidl);
 	pidlLocal = g_pPidlMgr->Copy(pidlLast);
 	int index = InsertItem(pidlLocal);
-	if(index > 0)
+	if(index >= 0)
+	{
 		m_pListView->EditLabel(index);
+		m_iLastSelectedItem = index;
+	}
 }
 
 int CShellView::InsertItem(LPCITEMIDLIST pidl)
@@ -2022,6 +2106,13 @@ VOID CShellView::MergeToolbar(VOID)
 			(ptbb + i)->fsStyle = g_Tools[i].bStyle;
 			(ptbb + i)->dwData = 0;
 			(ptbb + i)->iString = 0;
+
+			if(((g_Tools[i].idCommand == IDM_PROPERTIES)
+				|| (g_Tools[i].idCommand == IDM_REMOVE_FOLDER))
+				&& m_pSFParent->IsRoot())
+			{
+				(ptbb + i)->fsState = TBSTATE_INDETERMINATE;
+			}
 		}
 		
 		m_pShellBrowser->SetToolbarItems(ptbb, i, FCT_MERGE);

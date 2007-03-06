@@ -252,6 +252,17 @@ __declspec( dllexport ) void DllSetPath(LPCTSTR lpszPath, int len)
 #ifdef __cplusplus
 extern "C" {
 #endif
+__declspec( dllexport ) bool DllIsRegistered()
+{
+	return CShellNSE::IsRegistered(g_hInst, CLSID_ShellFolderProperties);
+}
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 __declspec( dllexport ) int DllDebugTest(void)
 {
 	_RPTF0(_CRT_WARN, "DllDebugTest\n");

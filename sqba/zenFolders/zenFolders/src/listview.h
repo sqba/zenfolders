@@ -28,6 +28,7 @@ public:
 	HWND EditLabel(int);
 	int InsertItem(LPARAM);
 	void SetExtendedListViewStyle(DWORD);
+	void SelectItem(int);
 
 private:
 	HWND	m_hwndList;
