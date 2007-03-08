@@ -73,6 +73,7 @@ private:
 	void OnRemoveFolders();
 	void OnCreateNewFolder();
 	void OnShowProperties();
+	void OnRename();
 
 	int FindItemPidl(LPCITEMIDLIST);
 	int InsertItem(LPCITEMIDLIST);

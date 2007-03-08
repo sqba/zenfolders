@@ -1698,11 +1698,31 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 		OnShowProperties();
 		break;
 
+	case IDM_RENAMEFOLDER:
+		OnRename();
+		break;
+
 	default:
 		break;
 	}
 	
 	return 0;
+}
+
+void CShellView::OnRename()
+{
+	if(m_pListView && (1 == m_pListView->GetSelectedCount()))
+	{
+		LVITEM lvItem;
+		lvItem.mask = LVIF_PARAM;
+		lvItem.iItem = -1;
+		lvItem.iSubItem = 0;
+
+		lvItem.iItem = m_pListView->GetNextItem(lvItem.iItem, LVNI_SELECTED);
+
+		m_pListView->SetFocus();
+		m_pListView->EditLabel( lvItem.iItem );
+	}
 }
 
 void CShellView::OnCreateNewFolder()
