@@ -1270,28 +1270,41 @@ void CShellView::OnEndLabelEdit(NMLVDISPINFO *pdi)
 	if( m_pListView->GetItem(&lvItem) )
 	{
 		LPITEMIDLIST pidl = (LPITEMIDLIST)lvItem.lParam;
+		LPCTSTR pszName = pdi->item.pszText;
+		if( m_pSFParent->Rename(pidl, pszName) )
+		{
+			Refresh();
+		}
+/*
+		LPITEMIDLIST pidl = (LPITEMIDLIST)lvItem.lParam;
 		LPITEMIDLIST pidlNew = g_pPidlMgr->Copy(pidl);
 		LPPIDLDATA pDataNew = CPidlManager::GetDataPointer(pidlNew);
 		lstrcpy(pDataNew->szName, pdi->item.pszText);
-//		if(0 == lstrlen(pDataNew->folderData.szQuery))
-//			lstrcpy(pDataNew->folderData.szQuery, pDataNew->szName);
-		LPITEMIDLIST pidlFQNew = m_pSFParent->CreateFQPidl(pidlNew);
-		LPITEMIDLIST pidlFQOld = m_pSFParent->CreateFQPidl(pidl);
-		if( g_pConfigXML->SaveFolder(pidlFQOld, pidlFQNew) )
+
+		MSXML2::IXMLDOMNodePtr ptrNode = m_pSFParent->m_pidlFQ.GetNode();
+		if(NULL == g_pConfigXML->GetSubfolder(ptrNode, pDataNew->szName))
 		{
+//			if(0 == lstrlen(pDataNew->folderData.szQuery))
+//				lstrcpy(pDataNew->folderData.szQuery, pDataNew->szName);
+			LPITEMIDLIST pidlFQNew = m_pSFParent->CreateFQPidl(pidlNew);
+			LPITEMIDLIST pidlFQOld = m_pSFParent->CreateFQPidl(pidl);
+			if( g_pConfigXML->SaveFolder(pidlFQOld, pidlFQNew) )
+			{
 
-			TRACE_PIDL_PATH("CShellView::OnEndLabelEdit pidlFQOld: %s\n", pidlFQOld);
-			TRACE_PIDL_PATH("CShellView::OnEndLabelEdit pidlFQNew: %s\n", pidlFQNew);
+				TRACE_PIDL_PATH("CShellView::OnEndLabelEdit pidlFQOld: %s\n", pidlFQOld);
+				TRACE_PIDL_PATH("CShellView::OnEndLabelEdit pidlFQNew: %s\n", pidlFQNew);
 
-			::SHChangeNotify(SHCNE_RENAMEFOLDER, SHCNF_IDLIST, pidlFQOld, pidlFQNew);
+				::SHChangeNotify(SHCNE_RENAMEFOLDER, SHCNF_IDLIST, pidlFQOld, pidlFQNew);
 
-			Refresh();
+				Refresh();
+			}
+			g_pPidlMgr->Delete(pidlFQNew);
+			g_pPidlMgr->Delete(pidlFQOld);
 		}
-		g_pPidlMgr->Delete(pidlFQNew);
 		g_pPidlMgr->Delete(pidlNew);
-		g_pPidlMgr->Delete(pidlFQOld);
 
 //		m_pListView->SelectItem(lvItem.iItem);
+*/
 	}
 
 }
