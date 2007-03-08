@@ -214,7 +214,9 @@ STDAPI DllUnregisterServer(void)
 void gAddRef(int cls)
 {
 	if(ENUM_CLASSES_LENGTH <= cls)
+	{
 		_RPTF0(_CRT_ERROR, "gAddRef\n");
+	}
 	g_DllRefCount++;
 	g_references[cls]++;
 }
@@ -222,7 +224,9 @@ void gAddRef(int cls)
 void gRelease(int cls)
 {
 	if(ENUM_CLASSES_LENGTH <= cls)
+	{
 		_RPTF0(_CRT_ERROR, "gRelease\n");
+	}
 	g_DllRefCount--;
 	g_references[cls]--;
 }
@@ -254,7 +258,7 @@ extern "C" {
 #endif
 __declspec( dllexport ) bool DllIsRegistered()
 {
-	return CShellNSE::IsRegistered(g_hInst, CLSID_ShellFolderProperties);
+	return (CShellNSE::IsRegistered(g_hInst, CLSID_ShellFolderProperties) ? TRUE : FALSE);
 }
 #ifdef __cplusplus
 }

@@ -56,6 +56,9 @@ public:
 	LPITEMIDLIST CreateSubfolder(LPCITEMIDLIST, LPCTSTR);
 	void ClearFolderSearch(LPCITEMIDLIST);
 	LPITEMIDLIST CreateNewFolder(LPCITEMIDLIST);
+	void OpenFolder(HWND, LPCITEMIDLIST, BOOL);
+	void Execute(LPCITEMIDLIST);
+	void OpenContainingFolder(LPCITEMIDLIST);
 
 	LPITEMIDLIST CreateFQPidl(LPCITEMIDLIST);
 

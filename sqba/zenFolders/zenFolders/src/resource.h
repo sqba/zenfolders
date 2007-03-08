@@ -33,6 +33,7 @@
 #define IDS_DELETEFOLDERS_CAPTION       29
 #define IDS_DELETEFOLDER                30
 #define IDS_DELETEFOLDER_CAPTION        31
+#define IDS_VERSIONINFO                 32
 #define IDI_ZENFOLDERS                  100
 #define IDI_FOLDEROPEN                  101
 #define IDI_FOLDER                      102

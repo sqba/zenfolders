@@ -1269,13 +1269,89 @@ void CShellFolder::DisplayVersion()
 			TCHAR szMessage[256] = {0};
 			TCHAR szPath[MAX_PATH] = {0};
 			CSettings::GetXmlFilePath(szPath, sizeof(szPath));
-			LPSTR p = strrchr(szPath, '\\');
-			*p = 0;
-			wsprintf(szMessage, "zenFolders\nversion: %s\npath:%s\nweb: http:\\\\zenfolders.googlepages.com\nemail: zenfolders@gmail.com", lpVersion, szPath);
-			::MessageBox( NULL/*hWnd*/, szMessage, TEXT("About zenFolders"), MB_OK | MB_ICONINFORMATION);
+			*strrchr(szPath, '\\') = 0;
+			TCHAR szTemp[200] = {0};
+			::LoadString(g_hInst, IDS_VERSIONINFO, szTemp, ARRAYSIZE(szTemp));
+			wsprintf(szMessage, szTemp, lpVersion, szPath);
+			::MessageBox(
+				NULL/*hWnd*/,
+				szMessage,
+				TEXT("About zenFolders"),
+				MB_OK | MB_ICONINFORMATION);
 		}
 
 		GlobalUnlock(hMem);
 		GlobalFree(hMem);
 	}
+}
+
+void CShellFolder::OpenFolder(HWND hwnd, LPCITEMIDLIST pidl, BOOL bExplore)
+{
+	if(NULL == pidl)
+		return;
+
+	LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
+
+//	TRACE_PIDL_PATH("CContextMenu::OnOpenFolder(%s)\n", pidlFQ);
+
+	SHELLEXECUTEINFO  sei;
+	ZeroMemory(&sei, sizeof(sei));
+	sei.cbSize		= sizeof(sei);
+	sei.fMask		= SEE_MASK_IDLIST | SEE_MASK_CLASSNAME;
+	sei.lpIDList	= pidlFQ;
+	sei.lpClass		= TEXT("folder");
+	sei.hwnd		= hwnd;
+	sei.nShow		= SW_SHOWNORMAL;
+	sei.lpVerb		= bExplore ? TEXT("explore") : TEXT("open");
+	::ShellExecuteEx(&sei);
+
+	g_pPidlMgr->Delete(pidlFQ);
+}
+
+void CShellFolder::Execute(LPCITEMIDLIST pidl)
+{
+	if( (NULL == pidl) || (!CPidlManager::IsFile(pidl)) )
+		return;
+
+	LPPIDLDATA pData = CPidlManager::GetDataPointer( pidl );
+
+	if( NULL == pData )
+		return;
+
+	LPITEMIDLIST pidlFS = pData->fileData.pidlFS;
+
+	if( NULL == pidlFS )
+		return;
+
+	SHELLEXECUTEINFO  sei;
+	ZeroMemory(&sei, sizeof(sei));
+	sei.cbSize		= sizeof(SHELLEXECUTEINFO);
+	sei.fMask		= SEE_MASK_NOCLOSEPROCESS | SEE_MASK_IDLIST; 
+	sei.lpIDList	= pidlFS;
+	sei.nShow		= SW_SHOWNORMAL;
+	::ShellExecuteEx(&sei);
+}
+
+void CShellFolder::OpenContainingFolder(LPCITEMIDLIST pidl)
+{
+//	if(NULL == m_aPidls[0])
+//		return;
+	/*CPidl cpidl(pidl);
+	if( cpidl.IsFile() )
+	{
+		LPPIDLDATA pData = cpidl.GetData();
+		LPFILEDATA pFileData = &pData->fileData;
+
+		ZeroMemory(&sei, sizeof(sei));
+
+		sei.cbSize = sizeof(sei);
+		sei.fMask = SEE_MASK_IDLIST | SEE_MASK_CLASSNAME;
+		sei.lpIDList = pFileData->pidlFS;
+		sei.lpClass = TEXT("folder");
+		sei.hwnd = hwnd;
+		sei.nShow = SW_SHOWNORMAL;
+		sei.lpVerb = TEXT("open");
+
+		ShellExecuteEx(&sei);
+	}*/
 }

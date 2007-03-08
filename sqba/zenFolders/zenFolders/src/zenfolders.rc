@@ -214,6 +214,11 @@ BEGIN
     IDS_DELETEFOLDER_CAPTION "Confirm Folder Delete"
 END
 
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_VERSIONINFO         "zenFolders\nversion: %s\npath :%s\nweb: http:\\\\zenfolders.googlepages.com\nemail: zenfolders@gmail.com"
+END
+
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

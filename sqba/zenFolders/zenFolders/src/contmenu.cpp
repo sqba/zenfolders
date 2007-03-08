@@ -501,8 +501,9 @@ BOOL CContextMenu::CanRenameItems(void)
 {
 	if(m_aPidls && g_pPidlMgr)
 	{
-		//get the number of items assigned to this object
 		UINT  i;
+
+		//get the number of items assigned to this object
 		for(i = 0; m_aPidls[i]; i++){}
 		
 		//you can't rename more than one item at a time
@@ -572,67 +573,21 @@ LPCTSTR CContextMenu::GetFileExtension(LPCITEMIDLIST pidl)
 
 void CContextMenu::OnExecute()
 {
-	LPPIDLDATA pData;
-
 	for(int i=0; m_aPidls[i]; i++)
 	{
-		if( CPidlManager::IsFile(m_aPidls[i]) )
-		{
-			pData = CPidlManager::GetDataPointer( m_aPidls[i] );
-
-			if(pData->fileData.pidlFS)
-			{
-				SHELLEXECUTEINFO  sei;
-				ZeroMemory(&sei, sizeof(sei));
-				sei.cbSize = sizeof(SHELLEXECUTEINFO);
-				sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_IDLIST; 
-				sei.lpIDList  = pData->fileData.pidlFS;
-				sei.nShow = SW_SHOWNORMAL;
-				ShellExecuteEx(&sei);
-			}
-		}
+		m_pSFParent->Execute( m_aPidls[i] );
 	}
 }
 
 void CContextMenu::OnOpenFolder(LPCMINVOKECOMMANDINFO lpcmi)
 {
-	LPITEMIDLIST  pidlFQ;
-	SHELLEXECUTEINFO  sei;
-	LPCITEMIDLIST pidl = NULL;
-
-	// Get first folder from the selection
-	for(int i=0; m_aPidls[i]; i++)
-	{
-		if( !CPidlManager::IsFile(m_aPidls[i]) )
-		{
-			pidl = m_aPidls[i];
-			break;
-		}
-	}
-
-	if(NULL == pidl)
-		return;
-
 	HWND hwnd = lpcmi->hwnd;
 	bool bExplore = (LOWORD(lpcmi->lpVerb) == IDM_EXPLORE);
 
-	pidlFQ = m_pSFParent->CreateFQPidl(pidl);
-
-//	TRACE_PIDL_PATH("CContextMenu::OnOpenFolder(%s)\n", pidlFQ);
-
-	ZeroMemory(&sei, sizeof(sei));
-
-	sei.cbSize = sizeof(sei);
-	sei.fMask = SEE_MASK_IDLIST | SEE_MASK_CLASSNAME;
-	sei.lpIDList = pidlFQ;
-	sei.lpClass = TEXT("folder");
-	sei.hwnd = hwnd;
-	sei.nShow = SW_SHOWNORMAL;
-	sei.lpVerb = bExplore ? TEXT("explore") : TEXT("open");
-
-	ShellExecuteEx(&sei);
-
-	g_pPidlMgr->Delete(pidlFQ);
+	for(int i=0; m_aPidls[i]; i++)
+	{
+		m_pSFParent->OpenFolder(hwnd, m_aPidls[i], bExplore);
+	}
 }
 
 void CContextMenu::OnShowProperties()
@@ -645,7 +600,10 @@ void CContextMenu::OnShowProperties()
 	}
 
 	if(0 == i)
+	{
+		// No folders selected, show current folder's properties
 		m_pSFParent->ShowProperties( NULL );
+	}
 }
 
 void CContextMenu::OnCreateExtensionFolder()
@@ -671,11 +629,8 @@ void CContextMenu::OnHideExtension()
 
 void CContextMenu::OnCreateNewFolder()
 {
-//	if( m_aPidls[0] )
-	{
-		// Using CPidl here because it destroys returned pidl
-		CPidl pidlNew = m_pSFParent->CreateNewFolder( m_aPidls[0] );
-	}
+	// Using CPidl here because it destroys returned pidl
+	CPidl pidlNew = m_pSFParent->CreateNewFolder( m_aPidls[0] );
 }
 
 void CContextMenu::OnShowOnlyExtension()
@@ -690,26 +645,10 @@ void CContextMenu::OnShowOnlyExtension()
 
 void CContextMenu::OnOpenContainingFolder()
 {
-//	if(NULL == m_aPidls[0])
-//		return;
-	/*CPidl cpidl(pidl);
-	if( cpidl.IsFile() )
+	for(int i=0; m_aPidls[i]; i++)
 	{
-		LPPIDLDATA pData = cpidl.GetData();
-		LPFILEDATA pFileData = &pData->fileData;
-
-		ZeroMemory(&sei, sizeof(sei));
-
-		sei.cbSize = sizeof(sei);
-		sei.fMask = SEE_MASK_IDLIST | SEE_MASK_CLASSNAME;
-		sei.lpIDList = pFileData->pidlFS;
-		sei.lpClass = TEXT("folder");
-		sei.hwnd = hwnd;
-		sei.nShow = SW_SHOWNORMAL;
-		sei.lpVerb = TEXT("open");
-
-		ShellExecuteEx(&sei);
-	}*/
+		m_pSFParent->OpenContainingFolder( m_aPidls[i] );
+	}
 }
 
 void CContextMenu::OnClearSearch()
