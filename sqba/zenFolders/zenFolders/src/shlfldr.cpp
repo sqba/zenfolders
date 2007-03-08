@@ -1206,7 +1206,17 @@ LPITEMIDLIST CShellFolder::CreateNewFolder(LPCITEMIDLIST pidlParent)
 
 	::LoadString(g_hInst, IDS_NEWFOLDER, szName, ARRAYSIZE(szName));
 
-	ptrChildNode = g_pConfigXML->CreateFolder( szName, ptrNode );
+
+	TCHAR szTemp[100] = {0};
+	lstrcpy(szTemp, szName);
+	int i = 0;
+	while(NULL != g_pConfigXML->GetSubfolder(ptrNode, szTemp))
+	{
+		wsprintf(szTemp, "%s (%d)", szName, ++i);
+	}
+
+
+	ptrChildNode = g_pConfigXML->CreateFolder( szTemp, ptrNode );
 
 	if(pidlParent)
 	{
