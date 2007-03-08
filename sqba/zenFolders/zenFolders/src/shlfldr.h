@@ -59,6 +59,7 @@ public:
 	void OpenFolder(HWND, LPCITEMIDLIST, BOOL);
 	void Execute(LPCITEMIDLIST);
 	void OpenContainingFolder(LPCITEMIDLIST);
+	bool Rename(LPCITEMIDLIST, LPCTSTR);
 
 	LPITEMIDLIST CreateFQPidl(LPCITEMIDLIST);
 

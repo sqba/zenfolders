@@ -840,6 +840,10 @@ STDMETHODIMP CShellFolder::SetNameOf(HWND hwndOwner,
 	if(0 == lstrlen(szName))
 		return E_FAIL;
 
+	MSXML2::IXMLDOMNodePtr ptrNode = m_pidlFQ.GetNode();
+	if(NULL != g_pConfigXML->GetSubfolder(ptrNode, szName))
+		return E_FAIL;
+
 	CPidl pidlNew(pidl);
 
 	if( pidlNew.IsFolder() )
@@ -1364,4 +1368,36 @@ void CShellFolder::OpenContainingFolder(LPCITEMIDLIST pidl)
 
 		ShellExecuteEx(&sei);
 	}*/
+}
+
+bool CShellFolder::Rename(LPCITEMIDLIST pidl, LPCTSTR pszName)
+{
+	bool bResult = false;
+	LPITEMIDLIST pidlNew = g_pPidlMgr->Copy(pidl);
+	LPPIDLDATA pDataNew = CPidlManager::GetDataPointer(pidlNew);
+	lstrcpy(pDataNew->szName, pszName);
+
+	MSXML2::IXMLDOMNodePtr ptrNode = m_pidlFQ.GetNode();
+	if(NULL == g_pConfigXML->GetSubfolder(ptrNode, pDataNew->szName))
+	{
+		LPITEMIDLIST pidlFQNew = CreateFQPidl(pidlNew);
+		LPITEMIDLIST pidlFQOld = CreateFQPidl(pidl);
+		if( g_pConfigXML->SaveFolder(pidlFQOld, pidlFQNew) )
+		{
+
+			TRACE_PIDL_PATH("CShellView::OnEndLabelEdit pidlFQOld: %s\n", pidlFQOld);
+			TRACE_PIDL_PATH("CShellView::OnEndLabelEdit pidlFQNew: %s\n", pidlFQNew);
+
+			::SHChangeNotify(SHCNE_RENAMEFOLDER, SHCNF_IDLIST, pidlFQOld, pidlFQNew);
+
+			bResult = true;
+		}
+
+		g_pPidlMgr->Delete(pidlFQOld);
+		g_pPidlMgr->Delete(pidlFQNew);
+	}
+
+	g_pPidlMgr->Delete(pidlNew);
+
+	return bResult;
 }

@@ -1676,6 +1676,7 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 		OnCreateNewFolder();
 		break;
 
+	case IDM_DELETE:
 	case IDM_REMOVE_FOLDER:
 		OnRemoveFolders();
 		break;
@@ -2022,6 +2023,7 @@ void CShellView::AddNewFolder(LPCITEMIDLIST pidl)
 	int index = InsertItem(pidlLocal);
 	if(index >= 0)
 	{
+		m_pListView->SetFocus();
 		m_pListView->EditLabel(index);
 		m_iLastSelectedItem = index;
 	}

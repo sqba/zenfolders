@@ -171,3 +171,8 @@ void CListView::SelectItem(int index)
 {
 	ListView_SetItemState(m_hwndList, index, LVIS_SELECTED|LVIS_FOCUSED, LVIS_STATEIMAGEMASK);
 }
+
+void CListView::SetFocus()
+{
+	::SetFocus( m_hwndList );
+}

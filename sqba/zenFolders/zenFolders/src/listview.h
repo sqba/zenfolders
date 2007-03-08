@@ -29,6 +29,7 @@ public:
 	int InsertItem(LPARAM);
 	void SetExtendedListViewStyle(DWORD);
 	void SelectItem(int);
+	void SetFocus();
 
 private:
 	HWND	m_hwndList;
