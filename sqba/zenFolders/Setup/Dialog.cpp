@@ -47,7 +47,7 @@ typedef HRESULT  (__stdcall *SHGETFOLDERPATH)(HWND, int, HANDLE, DWORD, LPTSTR);
 
 typedef HRESULT (*DllRegisterServer)(void);
 typedef HRESULT (*DllUnregisterServer)(void);
-typedef void (*DllSetPath)(LPCTSTR, int);
+//typedef void (*DllSetPath)(LPCTSTR, int);
 typedef bool (*DllIsRegistered)();
 
 
@@ -210,7 +210,7 @@ bool CDialog::RegisterActiveX(LPCTSTR lpszPath)
 		if(func != NULL)
 		{
 			result = SUCCEEDED( func() );
-			if(result)
+			/*if(result)
 			{
 				DllSetPath func2;
 				func2 = (DllSetPath)::GetProcAddress(hLibrary, TEXT("DllSetPath"));
@@ -218,7 +218,7 @@ bool CDialog::RegisterActiveX(LPCTSTR lpszPath)
 				{
 					func2(lpszPath, lstrlen(lpszPath)*sizeof(TCHAR));
 				}
-			}
+			}*/
 		}
 		FreeLibrary( hLibrary );
 	}
@@ -264,6 +264,9 @@ BOOL CDialog::Install()
 
 			lstrcat(szPath, "\\");
 			lstrcat(szPath, FILENAME_DLL);
+
+			HWND hwndCancel = ::GetDlgItem(m_hwnd, IDCANCEL);
+			::ShowWindow(hwndCancel, SW_HIDE) ;
 
 			if( RegisterActiveX(szPath) )
 			{
@@ -573,7 +576,10 @@ void CDialog::Finish()
 {
 	HWND hwndOK = ::GetDlgItem(m_hwnd, IDOK);
 	::ShowWindow(hwndOK, SW_HIDE) ;
+
 	::SetDlgItemText(m_hwnd, IDCANCEL, TEXT("Close"));
+	HWND hwndCancel = ::GetDlgItem(m_hwnd, IDCANCEL);
+	::ShowWindow(hwndCancel, SW_SHOW) ;
 }
 
 bool CDialog::IsAlreadyInstalled()

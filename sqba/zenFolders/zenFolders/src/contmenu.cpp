@@ -572,43 +572,25 @@ LPCTSTR CContextMenu::GetFileExtension(LPCITEMIDLIST pidl)
 
 void CContextMenu::OnExecute()
 {
-	LPCITEMIDLIST pidl = NULL;
+	LPPIDLDATA pData;
 
-	// Get first file from the selection
 	for(int i=0; m_aPidls[i]; i++)
 	{
 		if( CPidlManager::IsFile(m_aPidls[i]) )
 		{
-			pidl = m_aPidls[i];
-			break;
+			pData = CPidlManager::GetDataPointer( m_aPidls[i] );
+
+			if(pData->fileData.pidlFS)
+			{
+				SHELLEXECUTEINFO  sei;
+				ZeroMemory(&sei, sizeof(sei));
+				sei.cbSize = sizeof(SHELLEXECUTEINFO);
+				sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_IDLIST; 
+				sei.lpIDList  = pData->fileData.pidlFS;
+				sei.nShow = SW_SHOWNORMAL;
+				ShellExecuteEx(&sei);
+			}
 		}
-	}
-
-	if(NULL == pidl)
-		return;
-
-/*
-	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-	SHELLEXECUTEINFO  sei;
-	ZeroMemory(&sei, sizeof(sei));
-	sei.cbSize = sizeof(SHELLEXECUTEINFO);
-	sei.fMask = SEE_MASK_NOCLOSEPROCESS;
-	sei.lpFile = pData->fileData.szPath;
-	sei.nShow = SW_SHOWNORMAL;//SW_SHOWDEFAULT;//SW_MAXIMIZE;
-	ShellExecuteEx(&sei);
-*/
-	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-	//CPidl cpidl(pidl);
-	//LPPIDLDATA pData = cpidl.GetData();
-	if(pData->fileData.pidlFS)
-	{
-		SHELLEXECUTEINFO  sei;
-		ZeroMemory(&sei, sizeof(sei));
-		sei.cbSize = sizeof(SHELLEXECUTEINFO);
-		sei.fMask = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_IDLIST; 
-		sei.lpIDList  = pData->fileData.pidlFS;
-		sei.nShow = SW_SHOWNORMAL;
-		ShellExecuteEx(&sei);
 	}
 }
 
@@ -655,10 +637,15 @@ void CContextMenu::OnOpenFolder(LPCMINVOKECOMMANDINFO lpcmi)
 
 void CContextMenu::OnShowProperties()
 {
-	for(int i=0; m_aPidls[i]; i++)
+	int i;
+
+	for(i=0; m_aPidls[i]; i++)
 	{
 		m_pSFParent->ShowProperties( m_aPidls[i] );
 	}
+
+	if(0 == i)
+		m_pSFParent->ShowProperties( NULL );
 }
 
 void CContextMenu::OnCreateExtensionFolder()

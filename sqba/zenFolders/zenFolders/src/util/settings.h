@@ -29,7 +29,7 @@ extern int  g_lCookie;
 class CSettings  
 {
 public:
-	static BOOL SaveCurrentPath();
+//	static BOOL SaveCurrentPath();
 	static BOOL GetXmlFilePath(TCHAR*, DWORD);
 	static BOOL SaveGlobalSettings(void);
 	static BOOL GetGlobalSettings(void);

@@ -71,6 +71,7 @@ public:
 
 private:
 	void Initialize();
+	void DisplayVersion();
 
 private:
 	DWORD					m_ObjRefCount;

@@ -1705,7 +1705,7 @@ void CShellView::OnShowProperties()
 	lvItem.iItem = -1;
 	lvItem.iSubItem = 0;
 
-	if(0 == m_pListView->GetSelectedCount())
+	if(NULL == m_pListView || (0 == m_pListView->GetSelectedCount()))
 	{
 		m_pSFParent->ShowProperties( NULL );
 	}
@@ -1724,6 +1724,12 @@ void CShellView::OnShowProperties()
 
 void CShellView::OnRemoveFolders()
 {
+	if(NULL == m_pListView)
+	{
+		m_pSFParent->RemoveFolder( NULL );
+		return;
+	}
+
 	UINT     i;
 	LVITEM   lvItem;
 	
@@ -1867,6 +1873,9 @@ BOOL CShellView::InitList(void)
 
 void CShellView::FillList(void)
 {
+	if(NULL == m_pListView)
+		return;
+
 	LPENUMIDLIST   pEnumIDList;
 	
 	if(SUCCEEDED(m_pSFParent->EnumObjects(m_hWnd, SHCONTF_NONFOLDERS | SHCONTF_FOLDERS, &pEnumIDList)))
@@ -2030,7 +2039,10 @@ int CShellView::InsertItem(LPCITEMIDLIST pidl)
 		}
 	}
 
-	return m_pListView->InsertItem( (LPARAM)g_pPidlMgr->Copy(pidl) );
+	if(NULL != m_pListView)
+		return m_pListView->InsertItem( (LPARAM)g_pPidlMgr->Copy(pidl) );
+
+	return -1;
 }
 
 void CShellView::OnDefaultAction()
@@ -2107,9 +2119,9 @@ VOID CShellView::MergeToolbar(VOID)
 			(ptbb + i)->dwData = 0;
 			(ptbb + i)->iString = 0;
 
-			if(((g_Tools[i].idCommand == IDM_PROPERTIES)
-				|| (g_Tools[i].idCommand == IDM_REMOVE_FOLDER))
-				&& m_pSFParent->IsRoot())
+			//if(((g_Tools[i].idCommand == IDM_PROPERTIES)
+			//	|| (g_Tools[i].idCommand == IDM_REMOVE_FOLDER))
+			if((g_Tools[i].idCommand == IDM_REMOVE_FOLDER) && m_pSFParent->IsRoot())
 			{
 				(ptbb + i)->fsState = TBSTATE_INDETERMINATE;
 			}

@@ -9,15 +9,19 @@
 
 
 extern LPPIDLMGR		g_pPidlMgr;
+extern HINSTANCE		g_hInst;
 
-
+/*
 BOOL CSettings::SaveCurrentPath()
 {
 	TCHAR szFullPath[MAX_PATH];
 	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, szFullPath);
-//	::GetModuleFileName(NULL, szFullPath, MAX_PATH);
-//	LPSTR p = strrchr(szFullPath, '\\');
-//	*p = 0;
+	
+	::GetModuleFileName(g_hInst, szFullPath, MAX_PATH);
+
+	LPSTR p = strrchr(szFullPath, '\\');
+	*p = 0;
+
 //	_RPTF1(_CRT_WARN, "szFullPath: \n", szFullPath);
 	strcat(szFullPath, "\\");
 	strcat(szFullPath, ZENFOLDERS_XML);
@@ -29,10 +33,44 @@ BOOL CSettings::SaveCurrentPath()
 		szFullPath,
 		sizeof(szFullPath));
 }
-
+*/
 BOOL CSettings::GetXmlFilePath(TCHAR *lpszPath, DWORD dwSize)
 {
-	return CRegistry::GetValue(MAIN_KEY_STRING, TEXT("Path"), (LPBYTE)lpszPath, dwSize);
+	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, lpszPath);
+	if(dwRet > 0)
+	{
+		::GetModuleFileName(g_hInst, lpszPath, MAX_PATH);
+
+		LPSTR p = strrchr(lpszPath, '\\');
+		*p = 0;
+
+		strcat(lpszPath, "\\");
+		strcat(lpszPath, ZENFOLDERS_XML);
+
+		return TRUE;
+	}
+	else
+		return FALSE;
+
+/*
+	BOOL bResult = CRegistry::GetValue(
+		MAIN_KEY_STRING,
+		TEXT("Path"),
+		(LPBYTE)lpszPath,
+		dwSize);
+
+	if(!bResult)
+	{
+		if( SaveCurrentPath() )
+			return CRegistry::GetValue(
+				MAIN_KEY_STRING,
+				TEXT("Path"),
+				(LPBYTE)lpszPath,
+				dwSize);
+	}
+	else
+		return TRUE;
+*/
 }
 
 BOOL CSettings::SaveGlobalSettings(void)

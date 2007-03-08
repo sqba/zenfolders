@@ -154,11 +154,11 @@ STDAPI DllRegisterServer(void)
 {
 	HRESULT hr;
 
-	if( !CSettings::SaveCurrentPath() )
+	/*if( !CSettings::SaveCurrentPath() )
 	{
 		_RPTF0(_CRT_WARN, "SaveCurrentPath failed\n");
 		return E_FAIL;
-	}
+	}*/
 
 	if( !CGoogleDS::RegisterPlugin() )
 	{
@@ -226,7 +226,7 @@ void gRelease(int cls)
 	g_DllRefCount--;
 	g_references[cls]--;
 }
-
+/*
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -248,7 +248,7 @@ __declspec( dllexport ) void DllSetPath(LPCTSTR lpszPath, int len)
 #ifdef __cplusplus
 }
 #endif
-
+*/
 #ifdef __cplusplus
 extern "C" {
 #endif

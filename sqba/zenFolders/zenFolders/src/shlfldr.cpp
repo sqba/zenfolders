@@ -15,6 +15,7 @@
 #include "viewlist.h"
 #include "droptrgt.h"
 #include "cfgxml.h"
+#include "resource.h"
 
 #include "util/string.h"
 #include "util/settings.h"
@@ -898,6 +899,10 @@ LPENUMIDLIST CShellFolder::CreateList(DWORD dwFlags, HRESULT *hr)
 BOOL CShellFolder::IsRoot()
 {
 	return (NULL == m_pSFParent);
+	/*BOOL bResult;
+	bResult = (NULL == m_pSFParent ? TRUE : FALSE);
+	_RPTF1(_CRT_WARN, "IsRoot() = %d\n", bResult);
+	return bResult;*/
 }
 
 void CShellFolder::ShowProperties(LPCITEMIDLIST pidl)
@@ -909,19 +914,26 @@ void CShellFolder::ShowProperties(LPCITEMIDLIST pidl)
 //	CPidl pidlFQ = CreateFQPidl(pidlRel.GetRelative());
 
 //	TRACE_PIDL_PATH("CShellFolder::ShowProperties(%s)\n", pidl);
-
+	
 	if( (NULL == pidl) || !CPidlManager::IsFile(pidl) )
 	{
-		if(IsRoot())
-			return;
+		if((NULL == pidl) && IsRoot())
+		{
+			DisplayVersion();
+		}
+		else
+		{
+			if(NULL != pidl)
+				pidl = CreateFQPidl( pidl );
 
-		LPCITEMIDLIST tmpPidl = pidl ? pidl : m_pidlFQ.GetFull();
-		CShellFolder *pParent = pidl ? this : m_pSFParent;
+			LPCITEMIDLIST tmpPidl = pidl ? pidl : m_pidlFQ.GetFull();
+			CShellFolder *pParent = pidl ? this : m_pSFParent;
 
-		CFolderPropertiesDlg *pDlg;
-		pDlg = new CFolderPropertiesDlg(pParent, tmpPidl);
-		if(pDlg)
-			pDlg->Show();
+			CFolderPropertiesDlg *pDlg;
+			pDlg = new CFolderPropertiesDlg(pParent, tmpPidl);
+			if(pDlg)
+				pDlg->Show();
+		}
 	}
 	else
 	{
@@ -1221,4 +1233,49 @@ LPITEMIDLIST CShellFolder::CreateNewFolder(LPCITEMIDLIST pidlParent)
 	g_pPidlMgr->Delete(pidlNew);
 
 	return pidlFQ;
+}
+
+void CShellFolder::DisplayVersion()
+{
+	::MessageBeep(MB_OK);
+
+	TCHAR szFullPath[MAX_PATH] = {0};
+	::GetModuleFileName(g_hInst, szFullPath, MAX_PATH);
+
+	DWORD dwVerInfoSize;
+	DWORD dwVerHnd=0;
+	dwVerInfoSize = ::GetFileVersionInfoSize(szFullPath, &dwVerHnd);
+	if(dwVerInfoSize)
+	{
+		LPSTR   lpstrVffInfo;
+		HANDLE  hMem;
+		hMem = GlobalAlloc(GMEM_MOVEABLE, dwVerInfoSize);
+		lpstrVffInfo = (LPSTR)GlobalLock(hMem);
+		::GetFileVersionInfo(szFullPath, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
+
+		UINT uVersionLen = 0;
+		LPSTR lpVersion = NULL;
+		TCHAR szGetName[256];
+		lstrcpy(szGetName, "\\StringFileInfo\\040904b0\\");	 
+		lstrcat(szGetName, TEXT("ProductVersion"));
+		BOOL bRetCode = ::VerQueryValue(
+			(LPVOID)lpstrVffInfo,
+			(LPSTR)szGetName,
+			(LPVOID*)&lpVersion,
+			(UINT *)&uVersionLen);
+
+		if(bRetCode)
+		{
+			TCHAR szMessage[256] = {0};
+			TCHAR szPath[MAX_PATH] = {0};
+			CSettings::GetXmlFilePath(szPath, sizeof(szPath));
+			LPSTR p = strrchr(szPath, '\\');
+			*p = 0;
+			wsprintf(szMessage, "zenFolders\nversion: %s\npath:%s\nweb: http:\\\\zenfolders.googlepages.com\nemail: zenfolders@gmail.com", lpVersion, szPath);
+			::MessageBox( NULL/*hWnd*/, szMessage, TEXT("About zenFolders"), MB_OK | MB_ICONINFORMATION);
+		}
+
+		GlobalUnlock(hMem);
+		GlobalFree(hMem);
+	}
 }
