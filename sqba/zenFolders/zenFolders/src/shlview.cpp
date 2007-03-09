@@ -1799,7 +1799,7 @@ void CShellView::OnRemoveFolders()
 			m_pMalloc->Free(pPidls);
 		}
 	}
-	else
+	else if( !m_pSFParent->IsRoot() )
 	{
 		m_pSFParent->RemoveFolder(NULL);
 	}
@@ -2156,10 +2156,10 @@ VOID CShellView::MergeToolbar(VOID)
 
 			//if(((g_Tools[i].idCommand == IDM_PROPERTIES)
 			//	|| (g_Tools[i].idCommand == IDM_REMOVE_FOLDER))
-			if((g_Tools[i].idCommand == IDM_REMOVE_FOLDER) && m_pSFParent->IsRoot())
+			/*if((g_Tools[i].idCommand == IDM_REMOVE_FOLDER) && m_pSFParent->IsRoot())
 			{
 				(ptbb + i)->fsState = TBSTATE_INDETERMINATE;
-			}
+			}*/
 		}
 		
 		m_pShellBrowser->SetToolbarItems(ptbb, i, FCT_MERGE);

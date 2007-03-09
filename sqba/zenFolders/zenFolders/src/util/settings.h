@@ -24,18 +24,20 @@
 extern int  g_nColumn1;
 extern int  g_nColumn2;
 //extern BOOL g_bViewKeys;
-extern int  g_lCookie;
+extern long  g_lCookie;
 
 class CSettings  
 {
 public:
-//	static BOOL SaveCurrentPath();
 	static BOOL GetXmlFilePath(TCHAR*, DWORD);
 	static BOOL SaveGlobalSettings(void);
 	static BOOL GetGlobalSettings(void);
 	static UINT GetRootName(LPCITEMIDLIST, LPTSTR, UINT);
-	static int GetGoogleCookie();
-	static void SetGoogleCookie(int);
+	static long GetGoogleCookie();
+	static void SetGoogleCookie(long);
+
+private:
+	static BOOL GetPath(TCHAR*, DWORD);
 };
 
 #endif // SETTINGS_H

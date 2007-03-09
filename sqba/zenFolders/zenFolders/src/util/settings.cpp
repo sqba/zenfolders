@@ -1,4 +1,6 @@
 //#include <windows.h>
+#include <crtdbg.h>
+#include <stdio.h>
 #include "settings.h"
 //#include <Shlwapi.h> // Shlwapi.lib
 #include "registry.h"
@@ -11,148 +13,63 @@
 extern LPPIDLMGR		g_pPidlMgr;
 extern HINSTANCE		g_hInst;
 
-/*
-BOOL CSettings::SaveCurrentPath()
-{
-	TCHAR szFullPath[MAX_PATH];
-	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, szFullPath);
-	
-	::GetModuleFileName(g_hInst, szFullPath, MAX_PATH);
 
-	LPSTR p = strrchr(szFullPath, '\\');
-	*p = 0;
-
-//	_RPTF1(_CRT_WARN, "szFullPath: \n", szFullPath);
-	strcat(szFullPath, "\\");
-	strcat(szFullPath, ZENFOLDERS_XML);
-//	_RPTF1(_CRT_WARN, "szFullPath = %s\n", szFullPath);
-
-	return CRegistry::SaveString(
-		MAIN_KEY_STRING,
-		TEXT("Path"),
-		szFullPath,
-		sizeof(szFullPath));
-}
-*/
-BOOL CSettings::GetXmlFilePath(TCHAR *lpszPath, DWORD dwSize)
+BOOL CSettings::GetPath(TCHAR *lpszPath, DWORD dwSize)
 {
 	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, lpszPath);
 	if(dwRet > 0)
 	{
 		::GetModuleFileName(g_hInst, lpszPath, MAX_PATH);
-
 		LPSTR p = strrchr(lpszPath, '\\');
-		*p = 0;
-
-		strcat(lpszPath, "\\");
-		strcat(lpszPath, ZENFOLDERS_XML);
-
-		return TRUE;
+		if(p)
+		{
+			*(++p) = 0;
+			return TRUE;
+		}
 	}
-	else
-		return FALSE;
+	return FALSE;
+}
 
-/*
-	BOOL bResult = CRegistry::GetValue(
-		MAIN_KEY_STRING,
-		TEXT("Path"),
-		(LPBYTE)lpszPath,
-		dwSize);
-
-	if(!bResult)
+BOOL CSettings::GetXmlFilePath(TCHAR *lpszPath, DWORD dwSize)
+{
+	if( GetPath(lpszPath, dwSize) )
 	{
-		if( SaveCurrentPath() )
-			return CRegistry::GetValue(
-				MAIN_KEY_STRING,
-				TEXT("Path"),
-				(LPBYTE)lpszPath,
-				dwSize);
-	}
-	else
+		strcat(lpszPath, ZENFOLDERS_XML);
 		return TRUE;
-*/
+	}
+	return FALSE;
 }
 
 BOOL CSettings::SaveGlobalSettings(void)
 {
-	DWORD dwArray[4];
+	DWORD dwArray[2] = {0};
 	dwArray[0] = g_nColumn1;
 	dwArray[1] = g_nColumn2;
-	dwArray[2] = 0;//g_bViewKeys;
-//	dwArray[3] = g_lCookie;
-
-//	CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, g_lCookie);
 
 	return CRegistry::SaveValue(
 		MAIN_KEY_STRING,
 		VALUE_STRING,
 		(LPBYTE)dwArray,
 		sizeof(dwArray));
-/*
-	HKEY  hKey;
-	LONG  lResult;
-	DWORD dwDisp;
-	
-	lResult = RegCreateKeyEx(
-		HKEY_CURRENT_USER,
-		MAIN_KEY_STRING,
-		0,
-		NULL,
-		REG_OPTION_NON_VOLATILE, 
-		KEY_ALL_ACCESS,
-		NULL, 
-		&hKey,
-		&dwDisp);
-	
-	if(lResult != ERROR_SUCCESS)
-		return FALSE;
-	
-	//create an array to put our data in
-	DWORD dwArray[4];
-	dwArray[0] = g_nColumn1;
-	dwArray[1] = g_nColumn2;
-	dwArray[2] = g_bViewKeys;
-//	dwArray[3] = g_bShowIDW;
-	
-	//save the last printer selected
-	lResult = RegSetValueEx(
-		hKey,
-		VALUE_STRING,
-		0,
-		REG_BINARY,
-		(LPBYTE)dwArray,
-		sizeof(dwArray));
-	
-	RegCloseKey(hKey);
-	
-	if(lResult != ERROR_SUCCESS)
-		return FALSE;
-	
-	return TRUE;
-*/
 }
 
 BOOL CSettings::GetGlobalSettings(void)
 {
-	DWORD dwArray[4];
-	DWORD dwSize = sizeof(dwArray);
+	DWORD dwArray[2] = {0};
 
 	//set up the default data
 	g_nColumn1 = INITIAL_COLUMN_SIZE;
 	g_nColumn2 = INITIAL_COLUMN_SIZE;
-//	g_bViewKeys = TRUE;
-//	g_bShowIDW = FALSE;
 	
-	if(!CRegistry::GetValue(MAIN_KEY_STRING,
+	if(!CRegistry::GetValue(
+		MAIN_KEY_STRING,
 		VALUE_STRING,
 		(LPBYTE)dwArray,
-		dwSize))
+		sizeof(dwArray)))
 		return FALSE;
 
 	g_nColumn1	= dwArray[0];
 	g_nColumn2	= dwArray[1];
-//	g_bViewKeys	= dwArray[2];
-//	g_lCookie	= dwArray[3];
 
 	g_lCookie = GetGoogleCookie();
 
@@ -162,53 +79,57 @@ BOOL CSettings::GetGlobalSettings(void)
 		g_nColumn2 = INITIAL_COLUMN_SIZE;
 
 	return TRUE;
+}
 
+long CSettings::GetGoogleCookie()
+{
+	long cookie = 0;
+	TCHAR szPath[MAX_PATH] = {0};
+	if( GetPath(szPath, MAX_PATH) )
+	{
+		strcat(szPath, TEXT("cookie"));
+		FILE *fp = fopen(szPath, "r");
+		if(fp)
+		{
+			fscanf(fp, "%d", &cookie);
+			fclose(fp);
+		}
+		else
+		{
+			_RPTF0(_CRT_WARN, "GetGoogleCookie failed\n");
+		}
+	}
+	return cookie;
 /*
-	HKEY  hKey;
-	LONG  lResult;
-	
-	//set up the default data
-	g_nColumn1 = INITIAL_COLUMN_SIZE;
-	g_nColumn2 = INITIAL_COLUMN_SIZE;
-	g_bViewKeys = TRUE;
-//	g_bShowIDW = FALSE;
-	
-	lResult = RegOpenKeyEx(
-		HKEY_CURRENT_USER,
+	int cookie = 0;
+	CRegistry::GetValueGlobal(
 		MAIN_KEY_STRING,
-		0,
-		KEY_ALL_ACCESS,
-		&hKey);
-	
-	if(lResult != ERROR_SUCCESS)
-		return FALSE;
-	
-	//create an array to put our data in
-	DWORD dwArray[4];
-	DWORD dwType;
-	DWORD dwSize = sizeof(dwArray);
-	
-	//save the last printer selected
-	lResult = RegQueryValueEx(
-		hKey,
-		VALUE_STRING,
-		NULL,
-		&dwType,
-		(LPBYTE)dwArray,
-		&dwSize);
-	
-	RegCloseKey(hKey);
-	
-	if(lResult != ERROR_SUCCESS)
-		return FALSE;
-	
-	g_nColumn1 = dwArray[0];
-	g_nColumn2 = dwArray[1];
-	g_bViewKeys = dwArray[2];
-//	g_bShowIDW = dwArray[3];
-	
-	return TRUE;
+		COOKIE_STRING,
+		(LPBYTE)&cookie,
+		sizeof(int));
+	return cookie;
 */
+}
+
+void CSettings::SetGoogleCookie(long cookie)
+{
+	TCHAR szPath[MAX_PATH] = {0};
+	if( GetPath(szPath, MAX_PATH) )
+	{
+		strcat(szPath, TEXT("cookie"));
+		FILE *fp = fopen(szPath, "w");
+		if(fp)
+		{
+			fprintf(fp, "%d", cookie);
+			fclose(fp);
+		}
+		else
+		{
+			_RPTF0(_CRT_WARN, "SetGoogleCookie failed\n");
+		}
+	}
+
+//	CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, cookie);
 }
 
 UINT CSettings::GetRootName(LPCITEMIDLIST pidl, LPTSTR lpszName, UINT len)
@@ -267,20 +188,4 @@ UINT CSettings::GetRootName(LPCITEMIDLIST pidl, LPTSTR lpszName, UINT len)
 	//lstrcpy(lpszName, TEXT("Searches"));
 
 	return lstrlen(lpszName);
-}
-
-int CSettings::GetGoogleCookie()
-{
-	int cookie = 0;
-	CRegistry::GetValueGlobal(
-		MAIN_KEY_STRING,
-		COOKIE_STRING,
-		(LPBYTE)&cookie,
-		sizeof(int));
-	return cookie;
-}
-
-void CSettings::SetGoogleCookie(int cookie)
-{
-	CRegistry::SaveIntGlobal(MAIN_KEY_STRING, COOKIE_STRING, cookie);
 }

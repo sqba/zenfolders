@@ -87,7 +87,7 @@
 
 
 
-int  g_lCookie;
+long  g_lCookie;
 
 
 IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData,

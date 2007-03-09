@@ -955,7 +955,7 @@ void CShellFolder::ShowProperties(LPCITEMIDLIST pidl)
 
 BOOL CShellFolder::RemoveFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 {
-	if(NULL == pidl)
+	if((NULL == pidl) && (!IsRoot()))
 	{
 		m_pSFParent->RemoveFolder(m_pidlRel.GetRelative(), bVerify);
 	}
@@ -1251,7 +1251,7 @@ LPITEMIDLIST CShellFolder::CreateNewFolder(LPCITEMIDLIST pidlParent)
 
 void CShellFolder::DisplayVersion()
 {
-	::MessageBeep(MB_OK);
+//	::MessageBeep(MB_OK);
 
 	TCHAR szFullPath[MAX_PATH] = {0};
 	::GetModuleFileName(g_hInst, szFullPath, MAX_PATH);
@@ -1348,26 +1348,31 @@ void CShellFolder::Execute(LPCITEMIDLIST pidl)
 
 void CShellFolder::OpenContainingFolder(LPCITEMIDLIST pidl)
 {
-//	if(NULL == m_aPidls[0])
-//		return;
-	/*CPidl cpidl(pidl);
-	if( cpidl.IsFile() )
+	if(NULL == pidl)
+		return;
+
+	if( !CPidlManager::IsFile(pidl) )
+		return;
+
+	LPPIDLDATA pData = CPidlManager::GetDataPointer( pidl );
+	LPFILEDATA pFileData = &pData->fileData;
+	TCHAR szPath[MAX_PATH] = {0};
+	lstrcpy(szPath, pFileData->szPath);
+	LPSTR p = strrchr(szPath, '\\');
+	if(p)
 	{
-		LPPIDLDATA pData = cpidl.GetData();
-		LPFILEDATA pFileData = &pData->fileData;
+		*(++p) = 0;
 
+		SHELLEXECUTEINFO  sei;
 		ZeroMemory(&sei, sizeof(sei));
-
-		sei.cbSize = sizeof(sei);
-		sei.fMask = SEE_MASK_IDLIST | SEE_MASK_CLASSNAME;
-		sei.lpIDList = pFileData->pidlFS;
-		sei.lpClass = TEXT("folder");
-		sei.hwnd = hwnd;
-		sei.nShow = SW_SHOWNORMAL;
-		sei.lpVerb = TEXT("open");
-
-		ShellExecuteEx(&sei);
-	}*/
+		sei.cbSize		= sizeof(sei);
+		sei.fMask		= SEE_MASK_IDLIST | SEE_MASK_CLASSNAME;
+		sei.lpFile		= szPath;
+		sei.lpClass		= TEXT("folder");
+		sei.nShow		= SW_SHOWNORMAL;
+		sei.lpVerb		= TEXT("open");
+		::ShellExecuteEx(&sei);
+	}
 }
 
 bool CShellFolder::Rename(LPCITEMIDLIST pidl, LPCTSTR pszName)
