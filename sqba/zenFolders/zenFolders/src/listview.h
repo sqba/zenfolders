@@ -31,10 +31,12 @@ public:
 	void SelectItem(int);
 	void SetFocus();
 	void SetStyle(LONG);
+	LONG GetStyle();
 
 private:
 	HWND	m_hwndList;
 	int		m_iColumns;
+	LONG	m_lStyle;
 };
 
 #endif   //LISTVIEW_H

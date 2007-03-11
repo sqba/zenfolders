@@ -110,6 +110,7 @@ extern LPPIDLMGR	g_pPidlMgr;
 int					g_nColumn1;
 int					g_nColumn2;
 //HWND				g_hwndList;
+LONG				g_lViewStyle = LVS_REPORT;
 
 
 int CALLBACK SortFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
@@ -1676,8 +1677,8 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 
 LRESULT CShellView::OnInitMenuPopup(HMENU hMenu)
 {
-	EnableMenuItem(hMenu, IDM_VIEW_IDW, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
-	CheckMenuItem(hMenu, IDM_VIEW_IDW, MF_BYCOMMAND | MF_UNCHECKED);
+	::EnableMenuItem(hMenu, IDM_VIEW_IDW, MF_BYCOMMAND | MF_DISABLED | MF_GRAYED);
+	::CheckMenuItem(hMenu, IDM_VIEW_IDW, MF_BYCOMMAND | MF_UNCHECKED);
 	
 	return 0;
 }
@@ -2220,6 +2221,29 @@ void CShellView::OnToolbarDropdown()
 	tpm.rcExclude = rc;
 	hMenuLoaded = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP)); 
 	hPopupMenu = ::GetSubMenu(hMenuLoaded, 0);
+
+	if(m_pListView)
+	{
+		LONG style = m_pListView->GetStyle();
+		int item = 0;
+		switch(style)
+		{
+		case LVS_ICON:
+			item = IDC_LARGE_ICONS;
+			break;
+		case LVS_SMALLICON:
+			item = IDC_SMALL_ICONS;
+			break;
+		case LVS_LIST:
+			item = IDC_LIST;
+			break;
+		case LVS_REPORT:
+			item = IDC_DETAILS;
+			break;
+		}
+		::CheckMenuItem(hPopupMenu, item, MF_BYCOMMAND | MF_CHECKED);
+	}
+
 	::TrackPopupMenuEx(
 		hPopupMenu,
 		TPM_LEFTALIGN|TPM_LEFTBUTTON|TPM_VERTICAL,
@@ -2227,6 +2251,7 @@ void CShellView::OnToolbarDropdown()
 		rc.bottom + (rc.bottom - rc.top),
 		m_hWnd,
 		&tpm); 
+
 	::DestroyMenu(hMenuLoaded);
 }
 

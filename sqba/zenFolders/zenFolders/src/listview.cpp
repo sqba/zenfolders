@@ -3,17 +3,16 @@
 CListView::CListView(HINSTANCE hInst, HWND hWnd)
 {
 	m_iColumns = 0;
+	m_lStyle = LVS_REPORT;
 
 	DWORD dwStyle;
 	
-	dwStyle = WS_TABSTOP | 
-		WS_VISIBLE |
-		WS_CHILD | 
-		WS_BORDER | 
-		LVS_REPORT | 
-		LVS_NOSORTHEADER |
-		LVS_SHAREIMAGELISTS |
-		LVS_EDITLABELS;
+	dwStyle = WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | LVS_SHAREIMAGELISTS | LVS_EDITLABELS | LVS_AUTOARRANGE;
+
+	dwStyle |= m_lStyle;
+
+	if(m_lStyle == LVS_REPORT)
+		dwStyle |= LVS_NOSORTHEADER;
 	
 	m_hwndList = ::CreateWindowEx(
 		WS_EX_CLIENTEDGE,
@@ -181,6 +180,21 @@ void CListView::SetFocus()
 	::SetFocus( m_hwndList );
 }
 
+LONG CListView::GetStyle()
+{
+	return m_lStyle;
+/*
+	LONG style = ::GetWindowLong(m_hwndList, GWL_STYLE);
+
+	if(style & LVS_ICON)		return LVS_ICON;
+	if(style & LVS_SMALLICON)	return LVS_SMALLICON;
+	if(style & LVS_LIST)		return LVS_LIST;
+	if(style & LVS_REPORT)		return LVS_REPORT;
+
+	return 0;
+*/
+}
+
 void CListView::SetStyle(LONG newStyle)
 {
 /*
@@ -193,14 +207,16 @@ void CListView::SetStyle(LONG newStyle)
 
 	style |= newStyle;
 */
-	LONG style = WS_TABSTOP | 
-		WS_VISIBLE |
-		WS_CHILD | 
-		WS_BORDER | 
-		newStyle | 
-		LVS_NOSORTHEADER |
-		LVS_SHAREIMAGELISTS |
-		LVS_EDITLABELS;
+	m_lStyle = newStyle;
 
-	::SetWindowLong(m_hwndList, GWL_STYLE, style);
+	DWORD dwStyle;
+	
+	dwStyle = WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | LVS_SHAREIMAGELISTS | LVS_EDITLABELS | LVS_AUTOARRANGE;
+
+	dwStyle |= m_lStyle;
+
+	if(m_lStyle == LVS_REPORT)
+		dwStyle |= LVS_NOSORTHEADER;
+
+	::SetWindowLong(m_hwndList, GWL_STYLE, dwStyle);
 }
