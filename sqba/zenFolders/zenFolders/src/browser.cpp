@@ -38,22 +38,22 @@ CWebBrowser::CWebBrowser(HINSTANCE hInstance, HWND hWnd): m_ObjRefCount(1)
 	WNDCLASSEX wc = 
 	{
 		sizeof(wc),
-			0, //style,
-			WindowProc,
-			0,0,
-			hInstance,
-			LoadIcon(NULL,IDI_APPLICATION),
-			LoadCursor(NULL,IDC_ARROW),
-			(HBRUSH)(COLOR_WINDOW+1),
-			NULL,
-			szClassName,
-			LoadIcon(NULL,IDI_APPLICATION)
+		0, //style,
+		WindowProc,
+		0,0,
+		hInstance,
+		LoadIcon(NULL,IDI_APPLICATION),
+		LoadCursor(NULL,IDC_ARROW),
+		(HBRUSH)(COLOR_WINDOW+1),
+		NULL,
+		szClassName,
+		LoadIcon(NULL,IDI_APPLICATION)
 	};
 	RegisterClassEx(&wc);
 
-	DWORD dwStyle = WS_TABSTOP | WS_VISIBLE | WS_CHILD;// | WS_BORDER;
+	DWORD dwStyle = WS_TABSTOP | WS_VISIBLE | WS_CHILD;
 	m_hWnd = CreateWindowEx(
-		WS_EX_CLIENTEDGE, //0,
+		0,
 		szClassName,
 		NULL,
 		dwStyle,

@@ -281,6 +281,9 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(const OLECHAR *query,
 		return NULL;
 	}
 
+	if(NULL == spQuery)
+		return NULL;
+
 	_bstr_t bstrQuery(::SysAllocString(query));
 	_variant_t vtCategory = vtMissing;
 	_variant_t vtRanking((BYTE)ranking);

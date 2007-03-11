@@ -62,6 +62,12 @@ MYTOOLINFO g_Tools[] =
 		TBSTATE_ENABLED, TBSTYLE_BUTTON
 	},
 
+	{
+		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
+		IDB_VIEW_SMALL_COLOR, VIEW_LIST,
+		TBSTATE_ENABLED, TBSTYLE_DROPDOWN
+	},
+
 /*
 	{
 		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
@@ -986,7 +992,7 @@ LRESULT CALLBACK CShellView::WndProc(HWND hWnd,
 		return pThis->OnInitMenuPopup((HMENU)wParam);
 		
 	case WM_NOTIFY:
-		return pThis->OnNotify((UINT)wParam, (LPNMHDR)lParam);
+		return pThis->OnNotify(wParam, lParam);
 		
 	case WM_SETTINGCHANGE:
 		return pThis->OnSettingChange((LPCTSTR)lParam);
@@ -1132,8 +1138,11 @@ void CShellView::OnDeleteItem(LPNMHDR lpnmh)
 	g_pPidlMgr->Delete((LPITEMIDLIST)lpnmlv->lParam);
 }
 
-LRESULT CShellView::OnNotify(UINT CtlID, LPNMHDR lpnmh)
+LRESULT CShellView::OnNotify(WPARAM wParam, LPARAM lParam)
 {
+	UINT CtlID = (UINT)wParam;
+	LPNMHDR lpnmh = (LPNMHDR)lParam;
+
 	switch(lpnmh->code)
 	{
 	case TTN_NEEDTEXTA:
@@ -1678,11 +1687,8 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 //	_RPTF1(_CRT_WARN, "OnCommand (%d)\n", dwCmdID);
 	switch(dwCmdID)
 	{
-	case IDM_VIEW_IDW:
-		break;
-		
 	case IDM_MYFILEITEM:
-		MessageBeep(MB_OK);
+		::MessageBeep(MB_OK);
 		break;
 		
 	case IDM_CREATE_FOLDER:
@@ -1700,6 +1706,26 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 
 	case IDM_RENAMEFOLDER:
 		OnRename();
+		break;
+
+	case IDM_VIEW_IDW:
+		OnToolbarDropdown();
+		break;
+
+	case IDC_LARGE_ICONS:
+		OnSetViewStyle( LVS_ICON );
+		break;
+	case IDC_SMALL_ICONS:
+		OnSetViewStyle( LVS_SMALLICON );
+		break;
+	case IDC_LIST:
+		OnSetViewStyle( LVS_LIST );
+		break;
+	case IDC_DETAILS:
+		OnSetViewStyle( LVS_REPORT );
+		break;
+	case IDC_THUMBNAILS:
+		::MessageBeep( MB_OK );
 		break;
 
 	default:
@@ -1901,6 +1927,7 @@ BOOL CShellView::InitList(void)
 	m_pListView->InsertColumn(szString, g_nColumn2);
 
 	m_pListView->SetImageList(g_pIcons->GetListSmall(), LVSIL_SMALL);
+	m_pListView->SetImageList(g_pIcons->GetListLarge(), LVSIL_NORMAL);
 
 	return TRUE;
 }
@@ -2166,8 +2193,41 @@ VOID CShellView::MergeToolbar(VOID)
 		
 		GlobalFree((HGLOBAL)ptbb);
 	}
+
+	//::SendMessage(?, TB_SETEXTENDEDSTYLE, 0, (LPARAM)TBSTYLE_EX_DRAWDDARROWS);
 	
 	UpdateToolbar();
+}
+
+void CShellView::OnToolbarDropdown()
+{
+	RECT      rc;
+	TPMPARAMS tpm;
+	HMENU     hPopupMenu = NULL;
+	HMENU     hMenuLoaded;
+	BOOL      bRet = FALSE;
+	HRESULT hr1;
+	HRESULT hr = m_pShellBrowser->SendControlMsg(
+		FCW_TOOLBAR,
+		TB_GETRECT,
+		IDM_VIEW_IDW,
+		(LPARAM)&rc,
+		&hr1);
+
+	::MapWindowPoints(m_hwndParent, HWND_DESKTOP, (LPPOINT)&rc, 2); 
+	
+	tpm.cbSize = sizeof(TPMPARAMS);
+	tpm.rcExclude = rc;
+	hMenuLoaded = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP)); 
+	hPopupMenu = ::GetSubMenu(hMenuLoaded, 0);
+	::TrackPopupMenuEx(
+		hPopupMenu,
+		TPM_LEFTALIGN|TPM_LEFTBUTTON|TPM_VERTICAL,
+		rc.left,
+		rc.bottom + (rc.bottom - rc.top),
+		m_hWnd,
+		&tpm); 
+	::DestroyMenu(hMenuLoaded);
 }
 
 LRESULT CShellView::UpdateToolbar(VOID)
@@ -2205,4 +2265,12 @@ LRESULT CShellView::UpdateToolbar(VOID)
 		&lResult);
 */
 	return 0;
+}
+
+void CShellView::OnSetViewStyle(LONG style)
+{
+	if(NULL == m_pListView)
+		return;
+
+	m_pListView->SetStyle(style);
 }

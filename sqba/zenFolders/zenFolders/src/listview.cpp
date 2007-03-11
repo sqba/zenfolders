@@ -15,7 +15,7 @@ CListView::CListView(HINSTANCE hInst, HWND hWnd)
 		LVS_SHAREIMAGELISTS |
 		LVS_EDITLABELS;
 	
-	m_hwndList = CreateWindowEx(
+	m_hwndList = ::CreateWindowEx(
 		WS_EX_CLIENTEDGE,
 		WC_LISTVIEW,
 		NULL,
@@ -36,9 +36,9 @@ CListView::CListView(HINSTANCE hInst, HWND hWnd)
 	}
 
 	HWND hwndHeader = ListView_GetHeader(m_hwndList);
-	LONG style = GetWindowLong(hwndHeader, GWL_STYLE);
+	LONG style = ::GetWindowLong(hwndHeader, GWL_STYLE);
 	style |= HDS_BUTTONS;
-	SetWindowLong(hwndHeader, GWL_STYLE, style);
+	::SetWindowLong(hwndHeader, GWL_STYLE, style);
 
 	//dwStyle = ListView_GetExtendedListViewStyle(m_hwndList);
 	//dwStyle |= LVS_EX_FULLROWSELECT;
@@ -169,10 +169,38 @@ void CListView::SetExtendedListViewStyle(DWORD dwExStyles)
 
 void CListView::SelectItem(int index)
 {
-	ListView_SetItemState(m_hwndList, index, LVIS_SELECTED|LVIS_FOCUSED, LVIS_STATEIMAGEMASK);
+	ListView_SetItemState(
+		m_hwndList,
+		index,
+		LVIS_SELECTED | LVIS_FOCUSED,
+		LVIS_STATEIMAGEMASK);
 }
 
 void CListView::SetFocus()
 {
 	::SetFocus( m_hwndList );
+}
+
+void CListView::SetStyle(LONG newStyle)
+{
+/*
+	LONG style = ::GetWindowLong(m_hwndList, GWL_STYLE);
+
+	if(style & LVS_ICON)		style ^= LVS_ICON;
+	if(style & LVS_SMALLICON)	style ^= LVS_SMALLICON;
+	if(style & LVS_LIST)		style ^= LVS_LIST;
+	if(style & LVS_REPORT)		style ^= LVS_REPORT;
+
+	style |= newStyle;
+*/
+	LONG style = WS_TABSTOP | 
+		WS_VISIBLE |
+		WS_CHILD | 
+		WS_BORDER | 
+		newStyle | 
+		LVS_NOSORTHEADER |
+		LVS_SHAREIMAGELISTS |
+		LVS_EDITLABELS;
+
+	::SetWindowLong(m_hwndList, GWL_STYLE, style);
 }

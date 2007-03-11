@@ -68,12 +68,15 @@ private:
 	LRESULT OnKillFocus(void);
 	LRESULT OnSetFocus(void);
 	LRESULT OnSettingChange(LPCTSTR);
-	LRESULT OnNotify(UINT, LPNMHDR);
+	LRESULT OnNotify(WPARAM, LPARAM);
 
 	void OnRemoveFolders();
 	void OnCreateNewFolder();
 	void OnShowProperties();
 	void OnRename();
+
+	void OnToolbarDropdown();
+	void OnSetViewStyle(LONG);
 
 	int FindItemPidl(LPCITEMIDLIST);
 	int InsertItem(LPCITEMIDLIST);

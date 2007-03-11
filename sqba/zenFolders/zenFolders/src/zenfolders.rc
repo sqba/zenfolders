@@ -174,6 +174,24 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
+// Menu
+//
+
+IDR_POPUP MENU DISCARDABLE 
+BEGIN
+    POPUP "View"
+    BEGIN
+        MENUITEM "Large Icons",                 IDC_LARGE_ICONS
+        MENUITEM "Small Icons",                 IDC_SMALL_ICONS
+        MENUITEM "List",                        IDC_LIST
+        MENUITEM "Details",                     IDC_DETAILS
+        MENUITEM "Thumbnails",                  IDC_THUMBNAILS
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
 // String Table
 //
 

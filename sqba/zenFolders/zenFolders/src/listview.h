@@ -30,6 +30,7 @@ public:
 	void SetExtendedListViewStyle(DWORD);
 	void SelectItem(int);
 	void SetFocus();
+	void SetStyle(LONG);
 
 private:
 	HWND	m_hwndList;

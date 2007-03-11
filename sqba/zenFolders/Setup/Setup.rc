@@ -155,7 +155,7 @@ BEGIN
     IDS_INSTALL_SUCCESS     "zenFolders succesfully installed."
     IDS_REGISTERACTIVEXFAILED "Failed to register ActiveX control."
     IDS_EXTRACTFAILED       "Failed to extract file %s: \nProbably previos uninstallation failed.\nPlease restart the computer before installing again.\nThank You"
-    IDS_CREATEFOLDERFAILED  "Failed to create folder %s"
+    IDS_CREATEFOLDERFAILED  "Failed to create folder %s. \nDo you have permissions to install software on this machine?"
     IDS_INSTALLDIALOGTITLE  "zenFolders Installation Wizard"
     IDS_INSTALL_FAILED      "Previous uninstallation required restart.\nPlease restart the computer before installing again."
     IDS_UNINSTALL_SUCCESS   "zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!"
