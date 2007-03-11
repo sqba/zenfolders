@@ -980,12 +980,14 @@ BOOL CShellFolder::RemoveFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 		}
 
 		LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
-		g_pConfigXML->RemoveFolder(pidlFQ);
-		//TRACE_PIDL_PATH("CShellFolder::RemoveFolder(%s)\n", pidlFQ);
-		_RPTF1(_CRT_WARN, "CShellFolder::RemoveFolder(%s)\n", pData->szName);
-		::SHChangeNotify(SHCNE_RMDIR, SHCNF_IDLIST, pidlFQ, NULL);
+		if( g_pConfigXML->RemoveFolder(pidlFQ) )
+		{
+			//TRACE_PIDL_PATH("CShellFolder::RemoveFolder(%s)\n", pidlFQ);
+			_RPTF1(_CRT_WARN, "CShellFolder::RemoveFolder(%s)\n", pData->szName);
+			::SHChangeNotify(SHCNE_RMDIR, SHCNF_IDLIST, pidlFQ, NULL);
+			g_pViewList->Refresh();
+		}
 		g_pPidlMgr->Delete(pidlFQ);
-		g_pViewList->Refresh();
 	}
 
 	return FALSE;

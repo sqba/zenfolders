@@ -1828,7 +1828,7 @@ void CShellView::OnRemoveFolders()
 	}
 	else if( !m_pSFParent->IsRoot() )
 	{
-		m_pSFParent->RemoveFolder(NULL);
+		m_pSFParent->RemoveFolder( NULL );
 	}
 }
 

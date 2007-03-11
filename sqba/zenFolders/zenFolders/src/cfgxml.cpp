@@ -224,6 +224,10 @@ BOOL CConfigXML::SetFolderInfo(MSXML2::IXMLDOMNodePtr node, LPPIDLDATA pData)
 BOOL CConfigXML::RemoveFolder(LPCITEMIDLIST pidl)
 {
 	MSXML2::IXMLDOMNodePtr ptrNode = GetNode(pidl);
+	if(NULL == ptrNode)
+		return FALSE;
+	if(NULL == ptrNode->parentNode)
+		return FALSE;
 	ptrNode->parentNode->removeChild(ptrNode);
 	return Save();
 }
@@ -418,6 +422,10 @@ MSXML2::IXMLDOMNodePtr CConfigXML::GetNode(LPCITEMIDLIST pidl)
 	{
 		MSXML2::IXMLDOMNodePtr ptrNode;
 		ptrNode = m_pXmlDoc->selectSingleNode(szXPath);
+		if(NULL == ptrNode)
+		{
+			_RPTF1(_CRT_WARN, _T("%s not found\n"), szXPath);
+		}
 		return ptrNode;
 	}
 	//catch(HRESULT hr)
