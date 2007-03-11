@@ -73,6 +73,9 @@ public:
 
 	BOOL IsRoot();
 
+	void SaveListViewStyle(LONG);
+	LONG GetListViewStyle();
+
 private:
 	void Initialize();
 	void DisplayVersion();

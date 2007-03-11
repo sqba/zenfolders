@@ -1406,3 +1406,35 @@ bool CShellFolder::Rename(LPCITEMIDLIST pidl, LPCTSTR pszName)
 
 	return bResult;
 }
+
+void CShellFolder::SaveListViewStyle(LONG style)
+{
+	if( !IsRoot() )
+	{
+		LPPIDLDATA pData = m_pidlFQ.GetData();
+		if(pData)
+		{
+//			if( IsRoot() )
+//				memset(pData, 0, sizeof(PIDLDATA));
+			LPFOLDERDATA pFolderData = &pData->folderData;
+			pFolderData->viewStyle = style;
+			g_pConfigXML->SaveFolder( m_pidlFQ.GetFull() );
+		}
+	}
+}
+
+LONG CShellFolder::GetListViewStyle()
+{
+	if( !IsRoot() )
+	{
+		MSXML2::IXMLDOMNodePtr ptrNode = m_pidlFQ.GetNode();
+		LPPIDLDATA pData = m_pidlFQ.GetData();
+		if(pData)
+		{
+			g_pConfigXML->GetFolderInfo(pData, ptrNode);
+			LPFOLDERDATA pFolderData = &pData->folderData;
+			return pFolderData->viewStyle;
+		}
+	}
+	return LVS_REPORT;
+}

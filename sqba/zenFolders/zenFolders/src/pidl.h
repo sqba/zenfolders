@@ -18,6 +18,7 @@ typedef struct tagFOLDERDATA
 	TCHAR	szCategory[20];
 	UINT	ranking;
 	UINT	maxResults;
+	LONG	viewStyle;
 } FOLDERDATA, FAR *LPFOLDERDATA;
 
 typedef struct tagFILEDATA

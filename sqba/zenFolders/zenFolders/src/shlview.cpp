@@ -21,7 +21,7 @@
 #define IDM_VIEW_KEYS	(FCIDM_SHVIEWFIRST + 0x500)
 #define IDM_VIEW_IDW	(FCIDM_SHVIEWFIRST + 0x501)
 #define IDM_MYFILEITEM	(FCIDM_SHVIEWFIRST + 0x502)
-#define NS_CLASS_NAME	(TEXT("MyNSClass"))
+#define NS_CLASS_NAME	(TEXT("zenFoldersNSClass"))
 #define ID_LISTVIEW		2000
 #define MENU_OFFSET		1
 #define MENU_MAX		100
@@ -1976,6 +1976,9 @@ void CShellView::FillList(void)
 		}
 	}*/
 
+	SetListViewStyle();
+
+
 #ifdef USE_ADSENSE
 	HRESULT hr = m_pWebBrowser->Navigate("http://www.google.com");
 	/*switch(hr)
@@ -2298,4 +2301,14 @@ void CShellView::OnSetViewStyle(LONG style)
 		return;
 
 	m_pListView->SetStyle(style);
+
+	m_pSFParent->SaveListViewStyle(style);
+}
+
+void CShellView::SetListViewStyle()
+{
+	if(NULL == m_pListView)
+		return;
+			
+	m_pListView->SetStyle( m_pSFParent->GetListViewStyle() );
 }

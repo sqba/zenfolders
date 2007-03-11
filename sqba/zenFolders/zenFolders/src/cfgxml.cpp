@@ -155,6 +155,8 @@ BOOL CConfigXML::GetFolderInfo(LPPIDLDATA pData, MSXML2::IXMLDOMNodePtr node)
 	memset(pFolderData->szQuery, 0, size);
 	dwLen = GetNodeAttribute(node, _T("query"), pFolderData->szQuery, size);
 
+	pFolderData->viewStyle = (LONG)GetNodeAttribute(node, _T("style"), (INT)LVS_REPORT);
+
 	return TRUE;
 }
 
@@ -210,6 +212,11 @@ BOOL CConfigXML::SetFolderInfo(MSXML2::IXMLDOMNodePtr node, LPPIDLDATA pData)
 		_T("maxResults"),
 		pData->folderData.maxResults);
 //	_RPTF1(_CRT_WARN, "pData->folderData.maxResults: %d\n", pData->folderData.maxResults);
+
+	SetNodeAttribute(
+		node,
+		_T("style"),
+		(INT)pData->folderData.viewStyle);
 
 	return TRUE;
 }

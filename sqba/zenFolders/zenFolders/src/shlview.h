@@ -94,6 +94,7 @@ private:
 
 	VOID MergeToolbar(VOID);
 	LRESULT UpdateToolbar(VOID);
+	void SetListViewStyle();
 
 private:
 	static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
