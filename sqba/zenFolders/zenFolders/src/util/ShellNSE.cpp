@@ -328,7 +328,7 @@ int CShellNSE::GetName(GUID guid, LPCTSTR lpszName, int size)
 
 BOOL CShellNSE::IsRegistered(HINSTANCE hInst, GUID guid)
 {
-	int		i;
+//	int		i;
 	TCHAR	szSubKey[MAX_PATH];
 	TCHAR	szCLSID[MAX_PATH];
 	TCHAR	szModule[MAX_PATH];

@@ -31,10 +31,10 @@
 
 typedef struct
 {
-	int   idCommand;
-	int   idString;
+	UINT  idCommand;
+	UINT  idString;
 	UINT  uImageSet;
-	int   iImage;
+	UINT  iImage;
 	BYTE  bState;
 	BYTE  bStyle;
 } MYTOOLINFO, *LPMYTOOLINFO;
