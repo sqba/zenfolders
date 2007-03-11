@@ -152,11 +152,13 @@ BOOL CDialog::OnInit(HWND hwnd)
 	::LoadString(m_hInstance, caption, szCaption, sizeof(szCaption));
 	::SetWindowText(hwnd, szCaption);
 
+	DisplayVersion();
+
 	// Set dialog message
 	if(m_bUnInstall)
 		SetMessage( IDS_BODY_UNINSTALL );
 	else
-		SetMessage(IDS_BODY_INSTALL, m_szDestinationPath);
+		SetMessage( IDS_BODY_INSTALL, m_szDestinationPath );
 
 	return TRUE;
 }
@@ -728,21 +730,55 @@ void CDialog::AppendMessage(int msg, LPCTSTR pszParam, bool bNewLine)
 	SetMessage( szBody );
 }
 
+#define roundoffs(a,b,r) (((BYTE *) (b) - (BYTE *) (a) + ((r) - 1)) & ~((r) - 1))
+#define roundpos(a,b,r) (((BYTE *) (a)) + roundoffs(a,b,r))
 
-/*
-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\zenFolders
- DisplayName
- UninstallString
+void CDialog::DisplayVersion()
+{
+	HANDLE	hMem;
+	LPSTR	lpstrVffInfo;
+	DWORD	dwVerHnd=0;
+	DWORD	dwVerInfoSize;
+	TCHAR	szFullPath[MAX_PATH] = {0};
 
-DisplayName REG_SZ ProductName Display name of application 
-UninstallPath REG_EXPAND_SZ N/A Full path to the application's uninstall program 
-InstallLocation REG_EXPAND_SZ ARPINSTALLLOCATION Full path where application is located (folder or .exe) 
-Publisher REG_SZ Manufacturer Publisher/Developer of application 
-VersionMajor DWORD ProductVersion Major version number of application 
-VersionMinor DWORD ProductVersion Minor version of application 
+	if(m_bUnInstall)
+	{
+		lstrcpy(szFullPath, m_szDestinationPath);
+		lstrcat(szFullPath, "\\");
+		lstrcat(szFullPath, FILENAME_DLL);
+	}
+	else
+	{
+		::GetModuleFileName(m_hInstance, szFullPath, MAX_PATH);
+	}
 
-*/
+	dwVerInfoSize = ::GetFileVersionInfoSize(szFullPath, &dwVerHnd);
+	
+	if(dwVerInfoSize)
+	{
+		hMem = ::GlobalAlloc(GMEM_MOVEABLE, dwVerInfoSize);
+		lpstrVffInfo = (LPSTR)::GlobalLock(hMem);
+		::GetFileVersionInfo(szFullPath, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
 
+		VS_VERSIONINFO *pVerInfo = (VS_VERSIONINFO*)lpstrVffInfo;
+		LPBYTE pOffsetBytes = (BYTE*)&pVerInfo->szKey[wcslen(pVerInfo->szKey) + 1];
+		VS_FIXEDFILEINFO *pFixedInfo = (VS_FIXEDFILEINFO*) roundpos(pFixedInfo, pOffsetBytes, 4);
+		//DWORD a = pFixedInfo->dwFileVersionMS;
+		//DWORD b = pFixedInfo->dwFileVersionLS;
+		DWORD a = pFixedInfo->dwProductVersionMS;
+		DWORD b = pFixedInfo->dwProductVersionLS;
+		TCHAR	szVersion[MAX_PATH] = {0};
+		wsprintf(szVersion, "%d,%d,%d,%d", HIWORD(a), LOWORD(a), HIWORD(b), LOWORD(b));
 
+		//SetMessage(IDS_VERSION, szVersion);
 
+		TCHAR szFormat[MAX_PATH] = {0};
+		TCHAR szMessage[MAX_PATH] = {0};
+		::LoadString(m_hInstance, IDS_VERSION, szFormat, sizeof(szFormat));
+		wsprintf(szMessage, szFormat, szVersion);
+		::SetDlgItemText(m_hwnd, IDC_VERSION, szMessage);
 
+		GlobalUnlock(hMem);
+		GlobalFree(hMem);
+	}
+}

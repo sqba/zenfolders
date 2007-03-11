@@ -35,6 +35,7 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,214,137,50,14
     LTEXT           "zenFolders",IDC_MESSAGE,7,56,257,70
     CONTROL         103,IDC_STATIC,"Static",SS_BITMAP,0,0,274,45
+    RTEXT           "Version",IDC_VERSION,167,45,97,9
 END
 
 
@@ -106,8 +107,8 @@ IDB_HEADER              BITMAP  DISCARDABLE     "header.bmp"
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,38
- PRODUCTVERSION 1,0,0,38
+ FILEVERSION 1,0,0,9
+ PRODUCTVERSION 1,0,0,9
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -125,14 +126,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "oneFingerZen\0"
             VALUE "FileDescription", "zenFolders Setup\0"
-            VALUE "FileVersion", "1, 0, 0, 38\0"
+            VALUE "FileVersion", "1, 0, 0, 9\0"
             VALUE "InternalName", "Setup\0"
             VALUE "LegalCopyright", "Copyright oneFingerZen © 2007\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "Setup.exe\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "zenFolders Setup\0"
-            VALUE "ProductVersion", "1, 0, 0, 38\0"
+            VALUE "ProductVersion", "1, 0, 0, 9\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -180,6 +181,7 @@ BEGIN
     IDS_RESOURCENOTFOUND    "Resource not found"
     IDS_EXTRACTINGOK        "OK"
     IDS_RESTARTBEFOREUPDATE "Previous version has been removed.\nPlease restart the computer and run setup again to install new version."
+    IDS_VERSION             "Version: %s"
 END
 
 #endif    // English (U.S.) resources

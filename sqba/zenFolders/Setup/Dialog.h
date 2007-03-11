@@ -40,6 +40,7 @@ private:
 	void SetMessage(int);
 	void SetMessage(int, LPCTSTR);
 	void AppendMessage(int, LPCTSTR, bool);
+	void DisplayVersion();
 
 public:
 	HWND m_hwnd;
