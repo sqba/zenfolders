@@ -957,7 +957,8 @@ BOOL CShellFolder::RemoveFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 {
 	if((NULL == pidl) && (!IsRoot()))
 	{
-		m_pSFParent->RemoveFolder(m_pidlRel.GetRelative(), bVerify);
+		TRACE_PIDL_PATH("CShellFolder::RemoveFolder(%s)\n", &m_pidlRel);
+		m_pSFParent->RemoveFolder(m_pidlRel.GetFull(), bVerify);
 	}
 	else
 	{
@@ -980,9 +981,9 @@ BOOL CShellFolder::RemoveFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 		}
 
 		LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
+		TRACE_PIDL_PATH("CShellFolder::RemoveFolder(%s)\n", pidlFQ);
 		if( g_pConfigXML->RemoveFolder(pidlFQ) )
 		{
-			//TRACE_PIDL_PATH("CShellFolder::RemoveFolder(%s)\n", pidlFQ);
 			_RPTF1(_CRT_WARN, "CShellFolder::RemoveFolder(%s)\n", pData->szName);
 			::SHChangeNotify(SHCNE_RMDIR, SHCNF_IDLIST, pidlFQ, NULL);
 			g_pViewList->Refresh();
