@@ -60,6 +60,12 @@ private:
 	void OnEndLabelEdit(NMLVDISPINFO*);
 	void OnDefaultAction();
 	void OnItemChanged(LPNMLISTVIEW);
+	void OnDelete();
+	void OnCreateNewFolder();
+	void OnShowProperties();
+	void OnRename();
+	void OnSetViewStyle(LONG);
+
 	LRESULT OnInitMenuPopup(HMENU hMenu);
 	LRESULT OnCommand(DWORD, DWORD, HWND);
 	LRESULT OnActivate(UINT);
@@ -70,31 +76,17 @@ private:
 	LRESULT OnSettingChange(LPCTSTR);
 	LRESULT OnNotify(WPARAM, LPARAM);
 
-	void OnRemoveFolders();
-	void OnCreateNewFolder();
-	void OnShowProperties();
-	void OnRename();
-
-	void OnToolbarDropdown();
-	void OnSetViewStyle(LONG);
 
 	int FindItemPidl(LPCITEMIDLIST);
 	int InsertItem(LPCITEMIDLIST);
 	BOOL InitList(void);
 	BOOL CreateList(void);
-	HMENU BuildMenu(void);
 	VOID UpdateData(LPCITEMIDLIST);
 	void FillList(void);
 	void InitMenu(UINT);
-	void MergeViewMenu(HMENU);
-	void MergeFileMenu(HMENU);
 	void UpdateShellSettings(void);
 	void DoContextMenu(WORD, WORD, BOOL);
 	HRESULT StateChange(ULONG uChange);
-
-	VOID MergeToolbar(VOID);
-	LRESULT UpdateToolbar(VOID);
-	void SetListViewStyle();
 
 private:
 	static LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);

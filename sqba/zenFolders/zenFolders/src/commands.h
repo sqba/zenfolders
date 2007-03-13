@@ -3,7 +3,7 @@
 #define IDM_RENAME					2
 #define IDM_EXECUTE					3
 #define IDM_CREATE_FOLDER			4
-#define IDM_REMOVE_FOLDER			5
+#define IDM_DELETE_FOLDER			5
 #define IDM_PROPERTIES				6
 #define IDM_ADDEXTFOLDER			7
 #define IDM_HIDEEXTENSION			8

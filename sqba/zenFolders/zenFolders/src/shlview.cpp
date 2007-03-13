@@ -3,9 +3,9 @@
 //#include <windows.h>
 //#include <commctrl.h>
 
+#include "shlview.h"
 #include "commands.h"
 #include "zenfolders.h"
-#include "shlview.h"
 #include "guid.h"
 #include "resource.h"
 #include "dataobj.h"
@@ -13,92 +13,23 @@
 #include "icons.h"
 #include "viewlist.h"
 #include "cfgxml.h"
+#include "statusbar.h"
+#include "toolbar.h"
 #include "util/string.h"
 #include "util/string.h"
 #include "util/settings.h"
 
 
-#define IDM_VIEW_KEYS	(FCIDM_SHVIEWFIRST + 0x500)
-#define IDM_VIEW_IDW	(FCIDM_SHVIEWFIRST + 0x501)
-#define IDM_MYFILEITEM	(FCIDM_SHVIEWFIRST + 0x502)
+//#define USE_ADSENSE
+
+
+//#define IDM_VIEW_KEYS	(FCIDM_SHVIEWFIRST + 0x500)
+//#define IDM_VIEW_IDW	(FCIDM_SHVIEWFIRST + 0x501)
+//#define IDM_MYFILEITEM	(FCIDM_SHVIEWFIRST + 0x502)
 #define NS_CLASS_NAME	(TEXT("zenFoldersNSClass"))
-#define ID_LISTVIEW		2000
+//#define ID_LISTVIEW		2000
 #define MENU_OFFSET		1
 #define MENU_MAX		100
-
-//#define USE_ADSENSE
-#define USE_TOOLBAR
-
-typedef struct
-{
-	UINT  idCommand;
-	UINT  idString;
-	UINT  uImageSet;
-	UINT  iImage;
-	BYTE  bState;
-	BYTE  bStyle;
-} MYTOOLINFO, *LPMYTOOLINFO;
-
-MYTOOLINFO g_Tools[] = 
-{
-	{
-		// New folder
-		IDM_CREATE_FOLDER, IDS_CREATE_FOLDER,
-		IDB_VIEW_SMALL_COLOR, VIEW_NEWFOLDER,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON
-	},
-
-	{
-		// Delete folder
-		IDM_REMOVE_FOLDER, IDS_REMOVE_FOLDER,
-		IDB_STD_SMALL_COLOR, STD_DELETE,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON
-	},
-
-	{
-		// File/folder properties
-		IDM_PROPERTIES, IDS_PROPERTIES,
-		IDB_STD_SMALL_COLOR, STD_PROPERTIES,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON
-	},
-
-	{
-		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
-		IDB_VIEW_SMALL_COLOR, VIEW_LIST,
-		TBSTATE_ENABLED, TBSTYLE_DROPDOWN
-	},
-
-/*
-	{
-		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
-		IDB_VIEW_SMALL_COLOR, VIEW_LARGEICONS,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON
-	},
-	
-	{
-		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
-		IDB_VIEW_SMALL_COLOR, VIEW_SMALLICONS,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON
-	},
-
-	{
-		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
-		IDB_VIEW_SMALL_COLOR, VIEW_LIST,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON
-	},
-
-	{
-		IDM_VIEW_IDW, IDS_MI_VIEW_IDW,
-		IDB_VIEW_SMALL_COLOR, VIEW_DETAILS,
-		TBSTATE_ENABLED, TBSTYLE_BUTTON
-	},
-*/
-
-	{-1, 0, 0, 0, 0, 0},
-};
-
-
-bool g_columnOrders[] = { true, true };
 
 
 extern LPICONS		g_pIcons;
@@ -107,10 +38,10 @@ extern LPVIEWSLIST	g_pViewList;
 extern LPCONFIGXML	g_pConfigXML;
 extern LPPIDLMGR	g_pPidlMgr;
 
-int					g_nColumn1;
-int					g_nColumn2;
-//HWND				g_hwndList;
-LONG				g_lViewStyle = LVS_REPORT;
+int		g_nColumn1;
+int		g_nColumn2;
+LONG	g_lViewStyle = LVS_REPORT;
+bool	g_columnOrders[] = { true, true };
 
 
 int CALLBACK SortFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
@@ -169,7 +100,7 @@ int CALLBACK SortFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 	}
 	else
 	{
-		if(!CPidlManager::IsFile(pidl1))
+		if( !CPidlManager::IsFile(pidl1) )
 			result = -1;	// Folders go before files
 		else
 			result = 1;		// and files go after folders
@@ -185,9 +116,9 @@ CShellView::CShellView(CShellFolder *pFolder, LPCITEMIDLIST pidl)
 	INITCOMMONCONTROLSEX iccex;
 	iccex.dwSize = sizeof(INITCOMMONCONTROLSEX);
 	iccex.dwICC = ICC_LISTVIEW_CLASSES;
-	InitCommonControlsEx(&iccex);
+	::InitCommonControlsEx(&iccex);
 #else
-	InitCommonControls();
+	::InitCommonControls();
 #endif   //INITCOMMONCONTROLSEX
 	
 	m_hMenu				= NULL;
@@ -197,14 +128,13 @@ CShellView::CShellView(CShellFolder *pFolder, LPCITEMIDLIST pidl)
 	m_pWebBrowser		= NULL;
 	m_bInEdit			= FALSE;
 	m_iLastSelectedItem	= -1;
-	m_hAccels = LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDR_ACCELERATORS));
+
+	m_hAccels = ::LoadAccelerators(g_hInst, MAKEINTRESOURCE(IDR_ACCELERATORS));
 
 	m_pSFParent = pFolder;
 	if(m_pSFParent)
 		m_pSFParent->AddRef();
 	
-	//get the shell's IMalloc pointer
-	//we'll keep this until we get destroyed
 	if(FAILED(::SHGetMalloc(&m_pMalloc)))
 	{
 		_RPTF0(_CRT_ERROR, "SHGetMalloc failed\n");
@@ -454,7 +384,6 @@ STDMETHODIMP CShellView::Exec(const GUID *pguidCmdGroup,
 			return S_OK;
         }
     }
-			
 
 //	_RPTF0(_CRT_WARN, "CShellView::Exec\n");
 	//only process the commands for our command group
@@ -526,24 +455,25 @@ STDMETHODIMP CShellView::CreateViewWindow(LPSHELLVIEW pPrevView,
 										  LPRECT prcView, 
 										  HWND *phWnd)
 {
-	WNDCLASS wc;
+	WNDCLASS wc = {0};
 
 	*phWnd = NULL;
 
 	//if our window class has not been registered, then do so
-	if(!GetClassInfo(g_hInst, NS_CLASS_NAME, &wc))
+	if( !GetClassInfo(g_hInst, NS_CLASS_NAME, &wc) )
 	{
 		ZeroMemory(&wc, sizeof(wc));
-		wc.style          = CS_HREDRAW | CS_VREDRAW;
-		wc.lpfnWndProc    = (WNDPROC)WndProc;
-		wc.cbClsExtra     = 0;
-		wc.cbWndExtra     = 0;
-		wc.hInstance      = g_hInst;
-		wc.hIcon          = NULL;
-		wc.hCursor        = LoadCursor(NULL, IDC_ARROW);
-		wc.hbrBackground  = (HBRUSH)(COLOR_WINDOW + 1);
-		wc.lpszMenuName   = NULL;
-		wc.lpszClassName  = NS_CLASS_NAME;
+
+		wc.style			= CS_HREDRAW | CS_VREDRAW;
+		wc.lpfnWndProc		= (WNDPROC)WndProc;
+		wc.cbClsExtra		= 0;
+		wc.cbWndExtra		= 0;
+		wc.hInstance		= g_hInst;
+		wc.hIcon			= NULL;
+		wc.hCursor			= LoadCursor(NULL, IDC_ARROW);
+		wc.hbrBackground	= (HBRUSH)(COLOR_WINDOW + 1);
+		wc.lpszMenuName		= NULL;
+		wc.lpszClassName	= NS_CLASS_NAME;
 
 		if(!RegisterClass(&wc))
 			return E_FAIL;
@@ -556,7 +486,9 @@ STDMETHODIMP CShellView::CreateViewWindow(LPSHELLVIEW pPrevView,
 	//get our parent window
 	m_pShellBrowser->GetWindow(&m_hwndParent);
 	
-	m_pShellBrowser->QueryInterface(IID_ICommDlgBrowser, (LPVOID*)&m_pCommDlgBrowser);
+	m_pShellBrowser->QueryInterface(
+		IID_ICommDlgBrowser,
+		(LPVOID*)&m_pCommDlgBrowser);
 	
 	*phWnd = CreateWindowEx(
 		0,
@@ -575,9 +507,7 @@ STDMETHODIMP CShellView::CreateViewWindow(LPSHELLVIEW pPrevView,
 	if(!*phWnd)
 		return E_FAIL;
 
-#ifdef USE_TOOLBAR
-	MergeToolbar();
-#endif
+	CToolBar::MergeToolbar( m_pShellBrowser );
 	
 	m_pShellBrowser->AddRef();
 
@@ -820,7 +750,6 @@ Return Value
 **************************************************************************/
 STDMETHODIMP CShellView::TranslateAccelerator(LPMSG pMsg)
 {
-
 	if(m_bInEdit)
 	{
 		if((pMsg->message >= WM_KEYFIRST) && (pMsg->message <= WM_KEYLAST))
@@ -834,8 +763,6 @@ STDMETHODIMP CShellView::TranslateAccelerator(LPMSG pMsg)
 		return S_OK;
 	
 	return S_FALSE;
-
-//	return E_NOTIMPL;
 }
 
 /**************************************************************************
@@ -884,60 +811,7 @@ STDMETHODIMP CShellView::UIActivate(UINT uState)
 	//only do this if we are active
 	if(uState != SVUIA_DEACTIVATE)
 	{
-		LRESULT  lResult;
-		int      nPartArray[] = {200, 400, -1};
-
-		LPITEMIDLIST pidlRel = m_pSFParent->GetPidlRel();
-
-		if(NULL == pidlRel)
-			return S_OK;
-
-		if( CPidlManager::IsFile(pidlRel) )
-			return S_OK;
-
-		LPPIDLDATA pData = CPidlManager::GetDataPointer(pidlRel);
-
-		TCHAR szInfo[MAX_PATH] = {0};
-		int files = m_pSFParent->GetFileCount();
-		int folders = m_pSFParent->GetFolderCount();
-		if(files > 0 && folders > 0)
-			wsprintf(szInfo, TEXT("%d file(s) %d folder(s)"), files, folders);
-		else if(files > 0)
-			wsprintf(szInfo, TEXT("%d file(s)"), files);
-		else if(folders > 0)
-			wsprintf(szInfo, TEXT("%d folder(s)"), folders);
-		else
-			wsprintf(szInfo, TEXT("Empty"));
-		
-		//set the number of parts
-		m_pShellBrowser->SendControlMsg(
-			FCW_STATUS,
-			SB_SETPARTS,
-			3,
-			(LPARAM)nPartArray,
-			&lResult);
-		
-		//set the text for the parts
-		m_pShellBrowser->SendControlMsg(
-			FCW_STATUS,
-			SB_SETTEXT,
-			0,
-			(LPARAM)pData->szName,
-			&lResult);
-
-		m_pShellBrowser->SendControlMsg(
-			FCW_STATUS,
-			SB_SETTEXT,
-			1,
-			(LPARAM)szInfo,
-			&lResult);
-
-		m_pShellBrowser->SendControlMsg(
-			FCW_STATUS,
-			SB_SETTEXT,
-			2,
-			(LPARAM)pData->folderData.szQuery,
-			&lResult);
+		CStatusBar::Init(m_pShellBrowser);
 	}
 	
 	return S_OK;
@@ -1002,37 +876,6 @@ LRESULT CALLBACK CShellView::WndProc(HWND hWnd,
 	return DefWindowProc(hWnd, uMessage, wParam, lParam);
 }
 
-void CShellView::MergeFileMenu(HMENU hSubMenu)
-{
-	if(hSubMenu)
-	{
-		MENUITEMINFO   mii;
-		TCHAR          szText[MAX_PATH];
-		
-		ZeroMemory(&mii, sizeof(mii));
-		
-		//add a separator
-		mii.fMask = MIIM_TYPE | MIIM_ID | MIIM_STATE;
-		mii.fType = MFT_SEPARATOR;
-		mii.fState = MFS_ENABLED;
-		
-		//insert this item at the beginning of the menu
-		InsertMenuItem(hSubMenu, 0, TRUE, &mii);
-		
-		//add the file menu items
-		LoadString(g_hInst, IDS_MI_FILEITEM, szText, sizeof(szText));
-		mii.cbSize = sizeof(mii);
-		mii.fMask = MIIM_TYPE | MIIM_ID | MIIM_STATE;
-		mii.fType = MFT_STRING;
-		mii.fState = MFS_ENABLED;
-		mii.dwTypeData = szText;
-		mii.wID = IDM_MYFILEITEM;
-		
-		//insert this item at the beginning of the menu
-		InsertMenuItem(hSubMenu, 0, TRUE, &mii);
-	}
-}
-
 //#if (_WIN32_IE >= 0x0400)
 typedef void (WINAPI *PFNSHGETSETTINGSPROC)(LPSHELLFLAGSTATE lpsfs, DWORD dwMask);
 //#endif   //(_WIN32_IE >= 0x0400)
@@ -1040,14 +883,14 @@ typedef void (WINAPI *PFNSHGETSETTINGSPROC)(LPSHELLFLAGSTATE lpsfs, DWORD dwMask
 void CShellView::UpdateShellSettings(void)
 {
 //#if (_WIN32_IE >= 0x0400)
-	SHELLFLAGSTATE       sfs;
+	SHELLFLAGSTATE       sfs = {0};
 	HINSTANCE            hinstShell32;
 	
 	//Since SHGetSettings is not implemented in all versions of the shell, get the 
 	//function address manually at run time. This allows the extension to run on all 
 	//platforms.
 	
-	ZeroMemory(&sfs, sizeof(sfs));
+	//ZeroMemory(&sfs, sizeof(sfs));
 	
 	//The default, in case any of the following steps fails, is classic Windows 95 
 	//style.
@@ -1081,37 +924,11 @@ void CShellView::UpdateShellSettings(void)
 //#endif   //(_WIN32_IE >= 0x0400)
 }
 
-void CShellView::MergeViewMenu(HMENU hSubMenu)
-{
-	if(hSubMenu)
-	{
-		MENUITEMINFO   mii;
-		TCHAR          szText[MAX_PATH];
-		
-		ZeroMemory(&mii, sizeof(mii));
-		
-		//add a separator at the correct position in the menu
-		mii.fMask = MIIM_TYPE | MIIM_ID | MIIM_STATE;
-		mii.fType = MFT_SEPARATOR;
-		mii.fState = MFS_ENABLED;
-		InsertMenuItem(hSubMenu, FCIDM_MENU_VIEW_SEP_OPTIONS, FALSE, &mii);
-		
-		//add the view menu items at the correct position in the menu
-		LoadString(g_hInst, IDS_MI_VIEW_KEYS, szText, sizeof(szText));
-		mii.cbSize = sizeof(mii);
-		mii.fMask = MIIM_TYPE | MIIM_ID | MIIM_STATE;
-		mii.fType = MFT_STRING;
-		mii.fState = MFS_ENABLED;
-		mii.dwTypeData = szText;
-		mii.wID = IDM_VIEW_KEYS;
-		InsertMenuItem(hSubMenu, FCIDM_MENU_VIEW_SEP_OPTIONS, FALSE, &mii);
-	}
-}
-
 LRESULT CShellView::OnSetFocus(void)
 {
-	//Tell the browser one of our windows has received the focus. This should always 
-	//be done before merging menus (OnActivate merges the menus) if one of our 
+	//Tell the browser one of our windows has received the focus.
+	//This should always be done before merging menus
+	//(OnActivate merges the menus) if one of our 
 	//windows has the focus.
 	m_pShellBrowser->OnViewWindowActive(this);
 	
@@ -1147,35 +964,13 @@ LRESULT CShellView::OnNotify(WPARAM wParam, LPARAM lParam)
 	switch(lpnmh->code)
 	{
 	case TTN_NEEDTEXTA:
-		{
-			LPNMTTDISPINFOA pttt = (LPNMTTDISPINFOA)lpnmh;
-			int            i;
-			
-			for(i = 0; -1 != g_Tools[i].idCommand; i++)
-			{
-				if(g_Tools[i].idCommand == pttt->hdr.idFrom)
-				{
-					LoadStringA(g_hInst, g_Tools[i].idString, pttt->szText, sizeof(pttt->szText));
-					return TRUE;
-				}
-			}
-		}
+		if( CToolBar::OnTtnNeedTextA(lpnmh) )
+			return TRUE;
 		break;
 		
 	case TTN_NEEDTEXTW:
-		{
-			LPNMTTDISPINFOW pttt = (LPNMTTDISPINFOW)lpnmh;
-			int            i;
-			
-			for(i = 0; -1 != g_Tools[i].idCommand; i++)
-			{
-				if(g_Tools[i].idCommand == pttt->hdr.idFrom)
-				{
-					LoadStringW(g_hInst, g_Tools[i].idString, pttt->szText, sizeof(pttt->szText));
-					return TRUE;
-				}
-			}
-		}
+		if( CToolBar::OnTtnNeedTextW(lpnmh) )
+			return TRUE;
 		break;
 
 	case NM_SETFOCUS:
@@ -1201,12 +996,9 @@ LRESULT CShellView::OnNotify(WPARAM wParam, LPARAM lParam)
 	case NM_RETURN:
 #endif   //LVN_ITEMACTIVATE
 		OnDefaultAction();
-return 0;
+		return 0;
 
 	case LVN_ITEMCHANGED:
-#ifdef USE_TOOLBAR
-		UpdateToolbar();
-#endif
 		OnItemChanged( (LPNMLISTVIEW)lpnmh );
 		break;
 
@@ -1233,17 +1025,6 @@ return 0;
 		m_bInEdit = FALSE;
 		OnEndLabelEdit( (NMLVDISPINFO*)lpnmh );
 		break;
-
-	/*case NM_DBLCLK:
-		{
-			LVHITTESTINFO lvh;
-			::GetCursorPos(&lvh.pt);
-			::ScreenToClient(g_hwndList, &lvh.pt);
-			int index = ListView_HitTest(g_hwndList, &lvh);
-			//StartApp(IDM_PROGRAM + index, 0);
-			_RPTF1(_CRT_WARN, "NM_DBLCLK %d\n", index);
-		}
-		return 0;*/
 	}
 
    return 0;
@@ -1251,6 +1032,8 @@ return 0;
 
 BOOL CShellView::OnBeginLabelEdit(NMLVDISPINFO *pdi)
 {
+	return FALSE;
+/*
 	LVITEM lvItem;
 	lvItem.mask = LVIF_PARAM;
 	lvItem.iItem = pdi->item.iItem;
@@ -1261,6 +1044,7 @@ BOOL CShellView::OnBeginLabelEdit(NMLVDISPINFO *pdi)
 		return CPidlManager::IsFile(pidl);
 	}
 	return TRUE;
+*/
 }
 
 void CShellView::OnEndLabelEdit(NMLVDISPINFO *pdi)
@@ -1283,40 +1067,10 @@ void CShellView::OnEndLabelEdit(NMLVDISPINFO *pdi)
 		LPCTSTR pszName = pdi->item.pszText;
 		if( m_pSFParent->Rename(pidl, pszName) )
 		{
+			int refresh_only_item;
 			Refresh();
 		}
-/*
-		LPITEMIDLIST pidl = (LPITEMIDLIST)lvItem.lParam;
-		LPITEMIDLIST pidlNew = g_pPidlMgr->Copy(pidl);
-		LPPIDLDATA pDataNew = CPidlManager::GetDataPointer(pidlNew);
-		lstrcpy(pDataNew->szName, pdi->item.pszText);
-
-		MSXML2::IXMLDOMNodePtr ptrNode = m_pSFParent->m_pidlFQ.GetNode();
-		if(NULL == g_pConfigXML->GetSubfolder(ptrNode, pDataNew->szName))
-		{
-//			if(0 == lstrlen(pDataNew->folderData.szQuery))
-//				lstrcpy(pDataNew->folderData.szQuery, pDataNew->szName);
-			LPITEMIDLIST pidlFQNew = m_pSFParent->CreateFQPidl(pidlNew);
-			LPITEMIDLIST pidlFQOld = m_pSFParent->CreateFQPidl(pidl);
-			if( g_pConfigXML->SaveFolder(pidlFQOld, pidlFQNew) )
-			{
-
-				TRACE_PIDL_PATH("CShellView::OnEndLabelEdit pidlFQOld: %s\n", pidlFQOld);
-				TRACE_PIDL_PATH("CShellView::OnEndLabelEdit pidlFQNew: %s\n", pidlFQNew);
-
-				::SHChangeNotify(SHCNE_RENAMEFOLDER, SHCNF_IDLIST, pidlFQOld, pidlFQNew);
-
-				Refresh();
-			}
-			g_pPidlMgr->Delete(pidlFQNew);
-			g_pPidlMgr->Delete(pidlFQOld);
-		}
-		g_pPidlMgr->Delete(pidlNew);
-
-//		m_pListView->SelectItem(lvItem.iItem);
-*/
 	}
-
 }
 
 void CShellView::OnHeaderClick(LPNMHEADER lpnmh)
@@ -1342,60 +1096,59 @@ int CShellView::OnBeginDrag()
 	
 	aPidls = (LPITEMIDLIST*)m_pMalloc->Alloc(uItemCount * sizeof(LPITEMIDLIST));
 	
-	if(aPidls)
+	if(!aPidls)
+		return 0;
+
+	UINT i, x;
+	
+	for(i=0, x=0; x<uItemCount && i<m_pListView->GetItemCount(); i++)
 	{
-		UINT i;
-		UINT x;
-		
-		for(i = 0, x = 0; x < uItemCount && i < m_pListView->GetItemCount(); i++)
+		if(m_pListView->GetItemState(i, LVIS_SELECTED))
 		{
-			if(m_pListView->GetItemState(i, LVIS_SELECTED))
-			{
-				LVITEM   lvItem;
-				
-				lvItem.mask = LVIF_PARAM;
-				lvItem.iItem = i;
-				
-				m_pListView->GetItem(&lvItem);
-				aPidls[x] = (LPITEMIDLIST)lvItem.lParam;
-				x++;
-			}
-		}
-		
-		hr = m_pSFParent->GetUIObjectOf( m_hWnd, 
-			uItemCount, 
-			(LPCITEMIDLIST*)aPidls, 
-			IID_IDataObject, 
-			NULL, 
-			(LPVOID*)&pDataObject);
-		
-		if(SUCCEEDED(hr) && pDataObject)
-		{
-            IDropSource *pDropSource = new CDropSource;
-            DWORD       dwEffect = DROPEFFECT_COPY | DROPEFFECT_LINK | DROPEFFECT_MOVE;
-            DWORD       dwAttributes = SFGAO_CANLINK;
-			/*
-            hr = m_pSFParent->GetAttributesOf(  uItemCount, 
-			(LPCITEMIDLIST*)aPidls, 
-			&dwAttributes);
-            
-			  if(SUCCEEDED(hr) && (dwAttributes & SFGAO_CANLINK))
-			  {
-			  dwEffect |= DROPEFFECT_LINK;
-			  }
-			*/
-            
-            DoDragDrop( pDataObject, 
-				pDropSource, 
-				dwEffect, 
-				&dwEffect);
+			LVITEM lvItem;
 			
-            pDataObject->Release();
-            pDropSource->Release();
+			lvItem.mask = LVIF_PARAM;
+			lvItem.iItem = i;
+			
+			m_pListView->GetItem(&lvItem);
+			aPidls[x] = (LPITEMIDLIST)lvItem.lParam;
+
+			x++;
 		}
-		
-		m_pMalloc->Free(aPidls);
 	}
+	
+	hr = m_pSFParent->GetUIObjectOf(
+		m_hWnd, 
+		uItemCount, 
+		(LPCITEMIDLIST*)aPidls, 
+		IID_IDataObject, 
+		NULL, 
+		(LPVOID*)&pDataObject);
+	
+	if(SUCCEEDED(hr) && pDataObject)
+	{
+        IDropSource *pDropSource = new CDropSource;
+        DWORD dwEffect = DROPEFFECT_COPY | DROPEFFECT_LINK | DROPEFFECT_MOVE;
+        DWORD dwAttributes = SFGAO_CANLINK;
+		/*
+        hr = m_pSFParent->GetAttributesOf(  uItemCount, 
+		(LPCITEMIDLIST*)aPidls, 
+		&dwAttributes);
+        
+		  if(SUCCEEDED(hr) && (dwAttributes & SFGAO_CANLINK))
+		  {
+		  dwEffect |= DROPEFFECT_LINK;
+		  }
+		*/
+        
+        DoDragDrop(pDataObject, pDropSource, dwEffect, &dwEffect);
+		
+        pDataObject->Release();
+        pDropSource->Release();
+	}
+	
+	m_pMalloc->Free(aPidls);
+
 	return 0;
 }
 
@@ -1424,18 +1177,17 @@ LRESULT CShellView::OnSize(WORD wWidth, WORD wHeight)
 
 LRESULT CShellView::OnCreate(void)
 {
-	if(CreateList())
+	if( CreateList() )
 	{
-		if(InitList())
+		if( InitList() )
 		{
 			FillList();
 		}
 		else
 		{
-			if(m_pWebBrowser)
+			if( m_pWebBrowser )
 			{
-				// Create a browser and point it to the download page
-				HRESULT hr = m_pWebBrowser->Navigate(DOWNLOAD_PAGE);
+				m_pWebBrowser->Navigate( DOWNLOAD_PAGE );
 			}
 		}
 	}
@@ -1483,10 +1235,6 @@ LRESULT CShellView::OnActivate(UINT uState)
 	}
 	
 	m_uState = uState;
-
-#ifdef USE_TOOLBAR
-	UpdateToolbar();
-#endif
 	
 	return 0;
 }
@@ -1528,9 +1276,9 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 	{
 		UINT           i;
 		LPCONTEXTMENU  pContextMenu = NULL;
-		LVITEM         lvItem;
+		LVITEM         lvItem = {0};
 		
-		ZeroMemory(&lvItem, sizeof(lvItem));
+		//ZeroMemory(&lvItem, sizeof(lvItem));
 		lvItem.mask = LVIF_STATE | LVIF_PARAM;
 		lvItem.stateMask = LVIS_SELECTED;
 		lvItem.iItem = 0;
@@ -1578,12 +1326,12 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 				
 				if(fDefault)
 				{
-					MENUITEMINFO   mii;
+					MENUITEMINFO   mii = {0};
 					int            nMenuIndex;
 					
 					uCommand = 0;
 					
-					ZeroMemory(&mii, sizeof(mii));
+					//ZeroMemory(&mii, sizeof(mii));
 					mii.cbSize = sizeof(mii);
 					mii.fMask = MIIM_STATE | MIIM_ID;
 					
@@ -1647,9 +1395,9 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 						
 					default:
 						{
-							CMINVOKECOMMANDINFO  cmi;
+							CMINVOKECOMMANDINFO  cmi = {0};
 							
-							ZeroMemory(&cmi, sizeof(cmi));
+							//ZeroMemory(&cmi, sizeof(cmi));
 							cmi.cbSize = sizeof(cmi);
 							cmi.hwnd = m_hwndParent;
 							cmi.lpVerb = (LPCSTR)MAKEINTRESOURCE(uCommand - MENU_OFFSET);
@@ -1669,10 +1417,6 @@ void CShellView::DoContextMenu(WORD x, WORD y, BOOL fDefault)
 		
 		m_pMalloc->Free(aSelectedItems);
 	}
-
-#ifdef USE_TOOLBAR
-	UpdateToolbar();
-#endif
 }
 
 LRESULT CShellView::OnInitMenuPopup(HMENU hMenu)
@@ -1688,17 +1432,13 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 //	_RPTF1(_CRT_WARN, "OnCommand (%d)\n", dwCmdID);
 	switch(dwCmdID)
 	{
-	case IDM_MYFILEITEM:
-		::MessageBeep(MB_OK);
-		break;
-		
 	case IDM_CREATE_FOLDER:
 		OnCreateNewFolder();
 		break;
 
 	case IDM_DELETE:
-	case IDM_REMOVE_FOLDER:
-		OnRemoveFolders();
+	case IDM_DELETE_FOLDER:
+		OnDelete();
 		break;
 
 	case IDM_PROPERTIES:
@@ -1709,10 +1449,17 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 		OnRename();
 		break;
 
-	case IDM_VIEW_IDW:
-		OnToolbarDropdown();
+	case IDM_REFRESH:
+		Refresh();
 		break;
 
+	case IDM_VIEW_IDW:
+		CToolBar::OnToolbarDropdown(
+			m_pListView,
+			m_pShellBrowser,
+			m_hwndParent,
+			m_hWnd );
+		break;
 	case IDC_LARGE_ICONS:
 		OnSetViewStyle( LVS_ICON );
 		break;
@@ -1783,11 +1530,11 @@ void CShellView::OnShowProperties()
 	}
 }
 
-void CShellView::OnRemoveFolders()
+void CShellView::OnDelete()
 {
 	if(NULL == m_pListView)
 	{
-		m_pSFParent->RemoveFolder( NULL );
+		m_pSFParent->DeleteFolder( NULL );
 		return;
 	}
 
@@ -1819,7 +1566,7 @@ void CShellView::OnRemoveFolders()
 				}
 			}
 
-			m_pSFParent->RemoveFolders(pPidls);
+			m_pSFParent->Delete( pPidls );
 
 			for(i = 0; pPidls[i]; i++)
 				g_pPidlMgr->Delete(pPidls[i]);
@@ -1828,7 +1575,7 @@ void CShellView::OnRemoveFolders()
 	}
 	else if( !m_pSFParent->IsRoot() )
 	{
-		m_pSFParent->RemoveFolder( NULL );
+		m_pSFParent->DeleteFolder( NULL );
 	}
 }
 
@@ -1966,80 +1713,18 @@ void CShellView::FillList(void)
 			m_iLastSelectedItem = -1;
 		}
 	}
-	/*else
+
+	if(m_pListView)
 	{
-		if( !CGoogleDS::IsInstalled() )
-		{
-			// Create a browser and point it to the download page
-			HRESULT hr = m_pWebBrowser->Navigate("http://zenFolders.googlepages.com/download");
-			return;
-		}
-	}*/
+		LONG style = m_pSFParent->GetListViewStyle();
+		m_pListView->SetStyle( style );
+	}
 
-	SetListViewStyle();
-
+	CStatusBar::Fill(m_pShellBrowser, m_pSFParent);
 
 #ifdef USE_ADSENSE
-	HRESULT hr = m_pWebBrowser->Navigate("http://www.google.com");
-	/*switch(hr)
-	{
-	case S_OK:
-		_RPTF0(_CRT_WARN, "S_OK\n");
-		break;
-	case E_INVALIDARG:
-		_RPTF0(_CRT_ERROR, "E_INVALIDARG\n");
-		break;
-	case E_OUTOFMEMORY:
-		_RPTF0(_CRT_ERROR, "E_OUTOFMEMORY\n");
-		break;
-	};*/
+	m_pWebBrowser->Navigate("http://www.google.com");
 #endif
-}
-
-HMENU CShellView::BuildMenu(void)
-{
-	HMENU hSubMenu = CreatePopupMenu();
-	
-	if(hSubMenu)
-	{
-		TCHAR          szText[MAX_PATH];
-		MENUITEMINFO   mii;
-		int            nTools,
-			i;
-		//get the number of items in our global array
-		for(nTools = 0; g_Tools[nTools].idCommand != -1; nTools++) {}
-		
-		//add the menu items
-		for(i = 0; i < nTools; i++)
-		{
-			LoadString(
-				g_hInst,
-				g_Tools[i].idString,
-				szText,
-				sizeof(szText));
-			
-			ZeroMemory(&mii, sizeof(mii));
-			mii.cbSize = sizeof(mii);
-			mii.fMask = MIIM_TYPE | MIIM_ID | MIIM_STATE;
-			
-			if(TBSTYLE_SEP != g_Tools[i].bStyle)
-			{
-				mii.fType = MFT_STRING;
-				mii.fState = MFS_ENABLED;
-				mii.dwTypeData = szText;
-				mii.wID = g_Tools[i].idCommand;
-			}
-			else
-			{
-				mii.fType = MFT_SEPARATOR;
-			}
-			
-			//tack this item onto the end of the menu
-			InsertMenuItem(hSubMenu, (UINT)-1, TRUE, &mii);
-		}
-	}
-	
-	return hSubMenu;
 }
 
 void CShellView::InitMenu(UINT uState)
@@ -2049,9 +1734,9 @@ void CShellView::InitMenu(UINT uState)
 
 int CShellView::FindItemPidl(LPCITEMIDLIST pidl)
 {
-	LVITEM   lvItem;
+	LVITEM lvItem = {0};
 	
-	ZeroMemory(&lvItem, sizeof(lvItem));
+	//ZeroMemory(&lvItem, sizeof(lvItem));
 	lvItem.mask = LVIF_PARAM;
 	
 	for(lvItem.iItem = 0; m_pListView->GetItem(&lvItem); lvItem.iItem++)
@@ -2069,9 +1754,7 @@ int CShellView::FindItemPidl(LPCITEMIDLIST pidl)
 
 VOID CShellView::UpdateData(LPCITEMIDLIST pidl)
 {
-	int   i;
-	
-	i = FindItemPidl(pidl);
+	int i = FindItemPidl(pidl);
 	
 	if(-1 != i)
 	{
@@ -2141,174 +1824,11 @@ HRESULT CShellView::StateChange(ULONG uChange)
 	return E_NOTIMPL;
 }
 
-VOID CShellView::MergeToolbar(VOID)
-{
-	int         i;
-	TBADDBITMAP tbab;
-	LRESULT     lStdOffset;
-	LRESULT     lViewOffset;
-	
-	m_pShellBrowser->SetToolbarItems(NULL, 0, FCT_MERGE);
-	
-	tbab.hInst = HINST_COMMCTRL;
-	tbab.nID = (int)IDB_STD_SMALL_COLOR;
-	m_pShellBrowser->SendControlMsg(FCW_TOOLBAR, TB_ADDBITMAP, 0, (LPARAM)&tbab, &lStdOffset);
-	
-	tbab.hInst = HINST_COMMCTRL;
-	tbab.nID = (int)IDB_VIEW_SMALL_COLOR;
-	m_pShellBrowser->SendControlMsg(FCW_TOOLBAR, TB_ADDBITMAP, 0, (LPARAM)&tbab, &lViewOffset);
-	
-	//get the number of items in tool array
-	for(i = 0; -1 != g_Tools[i].idCommand; i++) {}
-	
-	LPTBBUTTON  ptbb = (LPTBBUTTON)GlobalAlloc(GPTR, sizeof(TBBUTTON) * i);
-	
-	if(ptbb)
-	{
-		for(i = 0; -1 != g_Tools[i].idCommand; i++)
-		{
-			(ptbb + i)->iBitmap = 0;
-			switch(g_Tools[i].uImageSet)
-			{
-			case IDB_STD_SMALL_COLOR:
-				(ptbb + i)->iBitmap = lStdOffset + g_Tools[i].iImage;
-				break;
-				
-			case IDB_VIEW_SMALL_COLOR:
-				(ptbb + i)->iBitmap = lViewOffset + g_Tools[i].iImage;
-				break;
-			}
-			
-			(ptbb + i)->idCommand = g_Tools[i].idCommand;
-			(ptbb + i)->fsState = g_Tools[i].bState;
-			(ptbb + i)->fsStyle = g_Tools[i].bStyle;
-			(ptbb + i)->dwData = 0;
-			(ptbb + i)->iString = 0;
-
-			//if(((g_Tools[i].idCommand == IDM_PROPERTIES)
-			//	|| (g_Tools[i].idCommand == IDM_REMOVE_FOLDER))
-			/*if((g_Tools[i].idCommand == IDM_REMOVE_FOLDER) && m_pSFParent->IsRoot())
-			{
-				(ptbb + i)->fsState = TBSTATE_INDETERMINATE;
-			}*/
-		}
-		
-		m_pShellBrowser->SetToolbarItems(ptbb, i, FCT_MERGE);
-		
-		GlobalFree((HGLOBAL)ptbb);
-	}
-
-	//::SendMessage(?, TB_SETEXTENDEDSTYLE, 0, (LPARAM)TBSTYLE_EX_DRAWDDARROWS);
-	
-	UpdateToolbar();
-}
-
-void CShellView::OnToolbarDropdown()
-{
-	RECT      rc;
-	TPMPARAMS tpm;
-	HMENU     hPopupMenu = NULL;
-	HMENU     hMenuLoaded;
-	BOOL      bRet = FALSE;
-	HRESULT hr1;
-	HRESULT hr = m_pShellBrowser->SendControlMsg(
-		FCW_TOOLBAR,
-		TB_GETRECT,
-		IDM_VIEW_IDW,
-		(LPARAM)&rc,
-		&hr1);
-
-	::MapWindowPoints(m_hwndParent, HWND_DESKTOP, (LPPOINT)&rc, 2); 
-	
-	tpm.cbSize = sizeof(TPMPARAMS);
-	tpm.rcExclude = rc;
-	hMenuLoaded = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP)); 
-	hPopupMenu = ::GetSubMenu(hMenuLoaded, 0);
-
-	if(m_pListView)
-	{
-		LONG style = m_pListView->GetStyle();
-		int item = 0;
-		switch(style)
-		{
-		case LVS_ICON:
-			item = IDC_LARGE_ICONS;
-			break;
-		case LVS_SMALLICON:
-			item = IDC_SMALL_ICONS;
-			break;
-		case LVS_LIST:
-			item = IDC_LIST;
-			break;
-		case LVS_REPORT:
-			item = IDC_DETAILS;
-			break;
-		}
-		::CheckMenuItem(hPopupMenu, item, MF_BYCOMMAND | MF_CHECKED);
-	}
-
-	::TrackPopupMenuEx(
-		hPopupMenu,
-		TPM_LEFTALIGN|TPM_LEFTBUTTON|TPM_VERTICAL,
-		rc.left,
-		rc.bottom + (rc.bottom - rc.top),
-		m_hWnd,
-		&tpm); 
-
-	::DestroyMenu(hMenuLoaded);
-}
-
-LRESULT CShellView::UpdateToolbar(VOID)
-{
-/*
-	LRESULT  lResult;
-	UINT     uCommand;
-
-	//enable/disable/check the toolbar items here
-	switch(m_FolderSettings.ViewMode)
-	{
-	case FVM_ICON:
-		uCommand = IDM_VIEW_LARGE;
-		break;
-		
-	case FVM_SMALLICON:
-		uCommand = IDM_VIEW_SMALL;
-		break;
-		
-	case FVM_LIST:
-		uCommand = IDM_VIEW_LIST;
-		break;
-		
-	case FVM_DETAILS:
-	default:
-		uCommand = IDM_VIEW_DETAILS;
-		break;
-	}
-
-	m_pShellBrowser->SendControlMsg(
-		FCW_TOOLBAR, 
-		TB_CHECKBUTTON,
-		uCommand, 
-		MAKELPARAM(TRUE, 0), 
-		&lResult);
-*/
-	return 0;
-}
-
 void CShellView::OnSetViewStyle(LONG style)
 {
-	if(NULL == m_pListView)
-		return;
-
-	m_pListView->SetStyle(style);
-
-	m_pSFParent->SaveListViewStyle(style);
-}
-
-void CShellView::SetListViewStyle()
-{
-	if(NULL == m_pListView)
-		return;
-			
-	m_pListView->SetStyle( m_pSFParent->GetListViewStyle() );
+	if(m_pListView)
+	{
+		m_pListView->SetStyle(style);
+		m_pSFParent->SaveListViewStyle(style);
+	}
 }

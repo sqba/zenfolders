@@ -240,8 +240,8 @@ STDMETHODIMP CContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 		OnCreateNewFolder();
 		break;
 	
-	case IDM_REMOVE_FOLDER:
-		OnRemoveFolders();
+	case IDM_DELETE_FOLDER:
+		OnDelete();
 		break;
 
 	case IDM_PROPERTIES:
@@ -374,8 +374,8 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 			
 			AddMenuItem(hMenu, NULL, indexMenu++); // Separator
 
-			LoadString(g_hInst, IDS_REMOVE_FOLDER, szText, nTextSize);
-			AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_REMOVE_FOLDER, TRUE, FALSE);
+			LoadString(g_hInst, IDS_DELETE_FOLDER, szText, nTextSize);
+			AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_DELETE_FOLDER, TRUE, FALSE);
 
 			if(uFlags & CMF_CANRENAME)
 			{
@@ -659,7 +659,7 @@ void CContextMenu::OnClearSearch()
 	}
 }
 
-void CContextMenu::OnRemoveFolders()
+void CContextMenu::OnDelete()
 {
-	m_pSFParent->RemoveFolders( m_aPidls );
+	m_pSFParent->Delete( m_aPidls );
 }

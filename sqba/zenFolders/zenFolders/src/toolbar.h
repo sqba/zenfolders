@@ -1,20 +1,23 @@
-// toolbar.h: interface for the CToolBar class.
-//
-//////////////////////////////////////////////////////////////////////
+#ifndef TOOLBAR_H
+#define TOOLBAR_H
 
-#if !defined(AFX_TOOLBAR_H__C89A717F_0DE6_436C_91BB_68C982D6F882__INCLUDED_)
-#define AFX_TOOLBAR_H__C89A717F_0DE6_436C_91BB_68C982D6F882__INCLUDED_
+#include <windows.h>
+#include <shlobj.h>
+#include "listview.h"
 
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
+#define IDM_VIEW_IDW	(FCIDM_SHVIEWFIRST + 0x501)
 
 class CToolBar  
 {
 public:
-	CToolBar();
-	virtual ~CToolBar();
+	static BOOL OnTtnNeedTextA(LPNMHDR);
+	static BOOL OnTtnNeedTextW(LPNMHDR);
+	static VOID MergeToolbar(LPSHELLBROWSER);
+	static VOID OnToolbarDropdown(CListView*, LPSHELLBROWSER, HWND, HWND);
 
+//	static void MergeFileMenu(HMENU);
+//	static void MergeViewMenu(HMENU);
+//	BOOL OnCommand(DWORD);
 };
 
-#endif // !defined(AFX_TOOLBAR_H__C89A717F_0DE6_436C_91BB_68C982D6F882__INCLUDED_)
+#endif   //TOOLBAR_H

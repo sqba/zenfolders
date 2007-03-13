@@ -169,6 +169,7 @@ IDR_ACCELERATORS ACCELERATORS DISCARDABLE
 BEGIN
     VK_DELETE,      IDM_DELETE,             VIRTKEY, NOINVERT
     VK_F2,          IDM_RENAMEFOLDER,       VIRTKEY, NOINVERT
+    VK_F5,          IDM_REFRESH,            VIRTKEY, NOINVERT
 END
 
 
@@ -218,7 +219,7 @@ BEGIN
     IDS_ADDEXTFOLDER        "Move all .%s files to '%s files' folder"
     IDS_EXPLORE             "&Explore"
     IDS_OPEN                "&Open"
-    IDS_REMOVE_FOLDER       "&Delete"
+    IDS_DELETE_FOLDER       "&Delete"
     IDS_RENAME              "&Rename"
     IDS_CREATE_FOLDER       "&New Folder"
     IDS_PROPERTIES          "&Properties"
@@ -236,6 +237,10 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     IDS_VERSIONINFO         "zenFolders\nversion: %s\npath :%s\nweb: http:\\\\zenfolders.googlepages.com\nemail: zenfolders@gmail.com"
+    IDS_DELETEITEMS         "Are you sure you want to remove these %d folders and %d files?"
+    IDS_DELETEITEMS_CAPTION "Confirm Delete"
+    IDS_DELETEFILES         "Are you sure you want to remove these %d files?"
+    IDS_DELETEFILES_CAPTION "Confirm File Delete"
 END
 
 #endif    // English (U.S.) resources

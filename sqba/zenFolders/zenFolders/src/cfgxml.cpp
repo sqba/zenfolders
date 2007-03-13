@@ -221,7 +221,7 @@ BOOL CConfigXML::SetFolderInfo(MSXML2::IXMLDOMNodePtr node, LPPIDLDATA pData)
 	return TRUE;
 }
 
-BOOL CConfigXML::RemoveFolder(LPCITEMIDLIST pidl)
+BOOL CConfigXML::DeleteFolder(LPCITEMIDLIST pidl)
 {
 	MSXML2::IXMLDOMNodePtr ptrNode = GetNode(pidl);
 	if(NULL == ptrNode)

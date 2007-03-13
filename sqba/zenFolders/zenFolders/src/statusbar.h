@@ -1,20 +1,17 @@
-// statusbar.h: interface for the CStatusBar class.
-//
-//////////////////////////////////////////////////////////////////////
+#ifndef STATUSBAR_H
+#define STATUSBAR_H
 
-#if !defined(AFX_STATUSBAR_H__0FEBE872_07CE_49BE_877B_49D48A0DD451__INCLUDED_)
-#define AFX_STATUSBAR_H__0FEBE872_07CE_49BE_877B_49D48A0DD451__INCLUDED_
-
-#if _MSC_VER > 1000
-#pragma once
-#endif // _MSC_VER > 1000
+#include <shlobj.h>
+#include "shlfldr.h"
 
 class CStatusBar  
 {
 public:
-	CStatusBar();
-	virtual ~CStatusBar();
+	static void Init(LPSHELLBROWSER);
+	static void Fill(LPSHELLBROWSER, CShellFolder*);
 
+private:
+	static void SetText(int, LPCTSTR, LPSHELLBROWSER);
 };
 
-#endif // !defined(AFX_STATUSBAR_H__0FEBE872_07CE_49BE_877B_49D48A0DD451__INCLUDED_)
+#endif   //STATUSBAR_H

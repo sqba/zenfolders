@@ -208,7 +208,15 @@ SOURCE=.\src\shpropsh.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\statusbar.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\util\string.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\toolbar.cpp
 # End Source File
 # Begin Source File
 
@@ -376,7 +384,15 @@ SOURCE=.\src\shpropsh.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\statusbar.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\util\string.h
+# End Source File
+# Begin Source File
+
+SOURCE=.\src\toolbar.h
 # End Source File
 # Begin Source File
 

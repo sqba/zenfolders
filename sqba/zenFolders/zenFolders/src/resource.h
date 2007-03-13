@@ -20,7 +20,7 @@
 #define IDS_ADDEXTFOLDER                16
 #define IDS_EXPLORE                     17
 #define IDS_OPEN                        18
-#define IDS_REMOVE_FOLDER               19
+#define IDS_DELETE_FOLDER               19
 #define IDS_RENAME                      20
 #define IDS_CREATE_FOLDER               21
 #define IDS_PROPERTIES                  22
@@ -34,6 +34,10 @@
 #define IDS_DELETEFOLDER                30
 #define IDS_DELETEFOLDER_CAPTION        31
 #define IDS_VERSIONINFO                 32
+#define IDS_DELETEITEMS                 33
+#define IDS_DELETEITEMS_CAPTION         34
+#define IDS_DELETEFILES                 35
+#define IDS_DELETEFILES_CAPTION         36
 #define IDI_ZENFOLDERS                  100
 #define IDI_FOLDEROPEN                  101
 #define IDI_FOLDER                      102
@@ -54,13 +58,14 @@
 #define IDC_LIST                        40005
 #define IDC_DETAILS                     40006
 #define IDC_THUMBNAILS                  40007
+#define IDM_REFRESH                     40008
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        113
-#define _APS_NEXT_COMMAND_VALUE         40008
+#define _APS_NEXT_COMMAND_VALUE         40009
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

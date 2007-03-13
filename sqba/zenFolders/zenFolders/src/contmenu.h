@@ -39,7 +39,7 @@ private:
 	void OnShowOnlyExtension();
 	void OnOpenContainingFolder();
 	void OnClearSearch();
-	void OnRemoveFolders();
+	void OnDelete();
 
 private:
 	DWORD			m_ObjRefCount;

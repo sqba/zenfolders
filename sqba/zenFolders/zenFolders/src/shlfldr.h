@@ -46,8 +46,6 @@ public:
 	
 public:
 	BOOL GetFolderPath(LPTSTR, DWORD);
-	BOOL RemoveFolder(LPCITEMIDLIST, BOOL bVerify = TRUE);
-	void RemoveFolders(LPITEMIDLIST*);
 	void ShowProperties(LPCITEMIDLIST);
 	void RemoveFiletype(LPCTSTR);
 	void ShowOnlyExtension(LPCTSTR);
@@ -59,7 +57,15 @@ public:
 	void OpenFolder(HWND, LPCITEMIDLIST, BOOL);
 	void Execute(LPCITEMIDLIST);
 	void OpenContainingFolder(LPCITEMIDLIST);
-	bool Rename(LPCITEMIDLIST, LPCTSTR);
+
+	BOOL Rename(LPCITEMIDLIST, LPCTSTR);
+	BOOL RenameFile(LPCITEMIDLIST, LPCTSTR);
+	BOOL RenameFolder(LPCITEMIDLIST, LPCTSTR);
+
+	BOOL DeletePidl(LPCITEMIDLIST, BOOL);
+	void Delete(LPITEMIDLIST*);
+	BOOL DeleteFile(LPCITEMIDLIST, BOOL);
+	BOOL DeleteFolder(LPCITEMIDLIST, BOOL bVerify = TRUE);
 
 	LPITEMIDLIST CreateFQPidl(LPCITEMIDLIST);
 
