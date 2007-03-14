@@ -32,11 +32,15 @@ public:
 	void SetFocus();
 	void SetStyle(LONG);
 	LONG GetStyle();
+	LRESULT OnCustomDraw(LPARAM);
+	
+//	static LRESULT TableDraw(LPARAM);
+//	HWND GetHwnd() { return m_hwndList; }
 
 private:
-	HWND	m_hwndList;
 	int		m_iColumns;
 	LONG	m_lStyle;
+	HWND	m_hwndList;
 };
 
 #endif   //LISTVIEW_H

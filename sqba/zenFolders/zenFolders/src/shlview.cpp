@@ -1027,6 +1027,37 @@ LRESULT CShellView::OnNotify(WPARAM wParam, LPARAM lParam)
 		m_bInEdit = FALSE;
 		OnEndLabelEdit( (NMLVDISPINFO*)lpnmh );
 		break;
+
+	case NM_CUSTOMDRAW:
+		return m_pListView->OnCustomDraw(lParam);
+		/*{
+			LPNMLVCUSTOMDRAW lplvcd = (LPNMLVCUSTOMDRAW)lParam;
+			switch(lplvcd->nmcd.dwDrawStage)
+			{
+			case CDDS_PREPAINT:
+				//::SetWindowLongPtr(hWnd, DWLP_MSGRESULT, (LONG_PTR)CDRF_NOTIFYITEMDRAW);
+				return CDRF_NOTIFYITEMDRAW;
+			case CDDS_ITEMPREPAINT:
+				{
+					int iRow = (int)lplvcd->nmcd.dwItemSpec;
+					if(iRow%2 == 0)
+					{
+						// pListDraw->clrText   = RGB(252, 177, 0);
+						lplvcd->clrTextBk = RGB(202, 221,250);
+						return CDRF_NEWFONT;
+					}
+				}
+			}
+
+			//int w = LOWORD(wParam);
+			//LPNMLISTVIEW pnm = (LPNMLISTVIEW)lParam;
+			//if(pnm->hdr.hwndFrom == m_pListView->GetHwnd() && pnm->hdr.code == NM_CUSTOMDRAW)
+			//{
+			//	::SetWindowLong(hWnd, DWL_MSGRESULT, (LONG)CListView::TableDraw(lParam));
+			//	return TRUE;
+			//}
+		}*/
+		break;
 	}
 
    return 0;

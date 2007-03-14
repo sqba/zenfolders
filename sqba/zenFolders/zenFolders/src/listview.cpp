@@ -220,3 +220,55 @@ void CListView::SetStyle(LONG newStyle)
 
 	::SetWindowLong(m_hwndList, GWL_STYLE, dwStyle);
 }
+
+LRESULT CListView::OnCustomDraw(LPARAM lParam)
+{
+	int iRow;
+	LPNMLVCUSTOMDRAW lplvcd = (LPNMLVCUSTOMDRAW)lParam;
+	switch(lplvcd->nmcd.dwDrawStage)
+	{
+	case CDDS_PREPAINT:
+		if(m_lStyle == LVS_REPORT)
+			return CDRF_NOTIFYITEMDRAW;
+		else
+			return CDRF_DODEFAULT;
+
+	case CDDS_ITEMPREPAINT:
+		iRow = (int)lplvcd->nmcd.dwItemSpec;
+		if(iRow%2 == 0)
+		{
+			// pListDraw->clrText   = RGB(252, 177, 0);
+			lplvcd->clrTextBk = RGB(202, 221,250);
+			return CDRF_NEWFONT;
+		}
+
+	default:
+		return CDRF_DODEFAULT;
+	}
+}
+/*
+LRESULT CListView::TableDraw(LPARAM lParam)
+{
+	int iRow;
+	LPNMLVCUSTOMDRAW pListDraw = (LPNMLVCUSTOMDRAW)lParam;
+	switch(pListDraw->nmcd.dwDrawStage)
+	{
+	case CDDS_PREPAINT:
+//		return (CDRF_NOTIFYPOSTPAINT | CDRF_NOTIFYITEMDRAW);
+		//::SetWindowLongPtr(hWnd, DWLP_MSGRESULT, (LONG_PTR)CDRF_NOTIFYITEMDRAW);
+		//return TRUE; 
+		return CDRF_NOTIFYITEMDRAW;
+	case CDDS_ITEMPREPAINT:
+		iRow = (int)pListDraw->nmcd.dwItemSpec;
+		if(iRow%2 == 0)
+		{
+			// pListDraw->clrText   = RGB(252, 177, 0);
+			pListDraw->clrTextBk = RGB(202, 221,250);
+			return CDRF_NEWFONT;
+		}
+	default:
+		break;
+	}
+	return CDRF_DODEFAULT;
+}
+*/
