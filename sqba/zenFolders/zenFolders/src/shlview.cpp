@@ -916,7 +916,9 @@ void CShellView::UpdateShellSettings(void)
 		if(!sfs.fWin95Classic && !sfs.fDoubleClickInWebView)
 			dwExStyles |= LVS_EX_ONECLICKACTIVATE | 
 			LVS_EX_TRACKSELECT | 
-			LVS_EX_UNDERLINEHOT; // LVS_EX_FULLROWSELECT
+			LVS_EX_UNDERLINEHOT;
+
+		dwExStyles |= LVS_EX_FULLROWSELECT;
 		
 		m_pListView->SetExtendedListViewStyle( dwExStyles );
 	}
