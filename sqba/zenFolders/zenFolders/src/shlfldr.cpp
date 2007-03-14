@@ -1023,9 +1023,9 @@ BOOL CShellFolder::DeleteFile(LPCITEMIDLIST pidl, BOOL bVerify)
 BOOL CShellFolder::DeletePidl(LPCITEMIDLIST pidl, BOOL bVerify)
 {
 	if( CPidlManager::IsFile(pidl) )
-		return DeleteFile( pidl, FALSE );
+		return DeleteFile( pidl, bVerify );
 	else
-		return DeleteFolder( pidl, FALSE );
+		return DeleteFolder( pidl, bVerify );
 }
 
 void CShellFolder::Delete(LPITEMIDLIST *aPidls)
@@ -1073,15 +1073,13 @@ void CShellFolder::Delete(LPITEMIDLIST *aPidls)
 			wsprintf(msg, szQuestion, iFiles);
 		}
 
-
-
 		int nResult = ::MessageBox( NULL/*hWnd*/,msg, szCaption,MB_YESNO);
 
 		if(IDYES == nResult)
 		{
 			for(i=0; aPidls[i]; i++)
 			{
-				DeletePidl( aPidls[i], TRUE );
+				DeletePidl( aPidls[i], FALSE );
 			}
 		}
 	}
