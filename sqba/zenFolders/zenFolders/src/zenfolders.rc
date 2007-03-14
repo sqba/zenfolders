@@ -29,9 +29,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_ZENFOLDERS          ICON    DISCARDABLE     "../icons/zenFolders.ico"
-IDI_FOLDEROPEN          ICON    DISCARDABLE     "../icons/folderop.ico"
-IDI_FOLDER              ICON    DISCARDABLE     "../icons/folder.ico"
-IDI_FILE                ICON    DISCARDABLE     "../icons/file.ico"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////

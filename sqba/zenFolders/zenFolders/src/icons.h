@@ -32,18 +32,21 @@ public:
 	int GetIconIndex(LPCTSTR);
 
 private:
-	void AddDefaultIcons(HIMAGELIST, int);
+	void AddDefaultIcons(HIMAGELIST, bool);
 	HIMAGELIST CreateImageList(int);
-	void AddIcon(HIMAGELIST, int, int);
 	int AddIcon(LPCTSTR);
-	HICON GetIcon(LPCTSTR, bool);
+	void AddIcon(HIMAGELIST, int, int);
+	void AddShellIcon(HIMAGELIST, int, bool);
+	HICON GetAsociatedIcon(LPCTSTR, bool);
 	tagExtension *CreateNewExtension(LPCTSTR);
+	HICON ExtractShellIcon(int, bool);
 
 private:
 	HINSTANCE	m_hInst;
 	HIMAGELIST	m_himlLarge;
 	HIMAGELIST	m_himlSmall;
 	tagExtension	*m_pExtensions;
+	HICON		m_SystemIcons[6];
 };
 
 typedef CIcons FAR *LPICONS;
