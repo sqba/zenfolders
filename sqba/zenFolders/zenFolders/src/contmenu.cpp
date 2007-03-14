@@ -10,6 +10,10 @@
 #include "resource.h"
 
 
+#define MIN_ID 1
+#define MAX_ID 10000
+
+
 #define ARRAYSIZE(a)    (sizeof(a)/sizeof(a[0]))
 
 
@@ -17,6 +21,10 @@ extern LPCONFIGXML	g_pConfigXML;
 extern LPVIEWSLIST	g_pViewList;
 extern LPPIDLMGR	g_pPidlMgr;
 extern HINSTANCE	g_hInst;
+
+
+//IContextMenu2 * g_IContext2 = NULL;
+//IContextMenu3 * g_IContext3 = NULL;
 
 
 CContextMenu::CContextMenu(CShellFolder *pSFParent,
@@ -31,6 +39,7 @@ CContextMenu::CContextMenu(CShellFolder *pSFParent,
 	gAddRef(CCONTEXTMENU);
 	
 	m_aPidls = NULL;
+	m_pContextMenu = NULL;
 
 	SHGetMalloc(&m_pMalloc);
 	if(!m_pMalloc)
@@ -68,6 +77,8 @@ CContextMenu::~CContextMenu()
 	if(m_pMalloc)
 		m_pMalloc->Release();
 
+	if(m_pContextMenu)
+		m_pContextMenu->Release();
 
 //	_RPTF1(_CRT_WARN, "~CContextMenu(%d)\n", g_DllRefCount);
 }
@@ -220,7 +231,8 @@ STDMETHODIMP CContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	}
 	
 	if(LOWORD(lpcmi->lpVerb) > IDM_LAST)
-		return ResultFromScode(E_INVALIDARG);
+		return m_pContextMenu->InvokeCommand(lpcmi);
+		//return ResultFromScode(E_INVALIDARG);
 
 	switch(LOWORD(lpcmi->lpVerb))
 	{
@@ -267,6 +279,9 @@ STDMETHODIMP CContextMenu::InvokeCommand(LPCMINVOKECOMMANDINFO lpcmi)
 	case IDM_CLEARSEARCH:
 		OnClearSearch();
 		break;
+
+//	default:
+//		return m_pContextMenu->InvokeCommand(lpcmi);
 	}
 	
 	return NOERROR;
@@ -436,10 +451,17 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 			AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_CLEARSEARCH, TRUE, FALSE);
 		}
 
-		AddMenuItem(hMenu, NULL, indexMenu++); // Separator
+		if(m_fAllFiles && (NULL != m_aPidls[0]))
+		{
+			LoadShellMenu(hMenu, indexMenu);
+		}
+		else
+		{
+			AddMenuItem(hMenu, NULL, indexMenu++); // Separator
 
-		LoadString(g_hInst, IDS_PROPERTIES, szText, nTextSize);
-		AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_PROPERTIES, TRUE, FALSE);
+			LoadString(g_hInst, IDS_PROPERTIES, szText, nTextSize);
+			AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_PROPERTIES, TRUE, FALSE);
+		}
 
 		return MAKE_HRESULT(SEVERITY_SUCCESS, 0, USHORT(IDM_LAST + 1));
 	}
@@ -662,4 +684,96 @@ void CContextMenu::OnClearSearch()
 void CContextMenu::OnDelete()
 {
 	m_pSFParent->Delete( m_aPidls );
+}
+
+void CContextMenu::LoadShellMenu(HMENU hMenu, UINT indexMenu)
+{
+	if(m_pContextMenu)
+	{
+		m_pContextMenu->Release();
+		m_pContextMenu = NULL;
+	}
+
+	CPidl cpidl( m_aPidls[0] );
+	LPPIDLDATA pData = cpidl.GetData();
+
+	IShellFolder *psfParent; //A pointer to the parent folder object's IShellFolder interface
+	LPITEMIDLIST pidlItem = pData->fileData.pidlFS; //the item's PIDL
+	LPITEMIDLIST pidlRelative; //the item's PIDL relative to the parent folder
+	HRESULT hr;
+
+	hr = ::SHBindToParent
+	(
+		(LPCITEMIDLIST)pidlItem,
+		IID_IShellFolder,
+		(void **)&psfParent,
+		(LPCITEMIDLIST*)&pidlRelative
+	);
+
+	if(S_OK == hr)
+	{
+		int nCount;
+		for(nCount=0; m_aPidls[nCount]; nCount++) {}
+		LPITEMIDLIST *pPidls;
+		pPidls = (LPITEMIDLIST*)m_pMalloc->Alloc((nCount+1) * sizeof(LPITEMIDLIST));
+		ZeroMemory(pPidls, (nCount+1) * sizeof(LPITEMIDLIST));
+		for(int i=0; m_aPidls[i]; i++)
+		{
+			CPidl cpidl( m_aPidls[i] );
+			LPPIDLDATA pData = cpidl.GetData();
+			if(i == 0)
+				pPidls[i] = pidlRelative;
+			else
+				pPidls[i] = pData->fileData.pidlFS;
+		}
+		
+		LPCONTEXTMENU icm1 = NULL;
+
+		psfParent->GetUIObjectOf
+		(
+			NULL,
+			nCount,
+			(LPCITEMIDLIST*)pPidls,
+			IID_IContextMenu,
+			NULL,
+			(void**)&icm1
+		);
+
+		m_pMalloc->Free(pPidls);
+
+		int iMenuType = 0;
+		
+		if(icm1)
+		{
+			if(icm1->QueryInterface(IID_IContextMenu3, (void**)&m_pContextMenu) == NOERROR)
+			{
+				iMenuType = 3;
+			}
+			else if(icm1->QueryInterface(IID_IContextMenu2, (void**)&m_pContextMenu) == NOERROR)
+			{
+				iMenuType = 2;
+			}
+			
+			if(m_pContextMenu)
+			{
+				icm1->Release();
+			}
+			else 
+			{	
+				iMenuType = 1;
+				m_pContextMenu = icm1;
+			}
+
+			AddMenuItem(hMenu, NULL, indexMenu++); // Separator
+
+			m_pContextMenu->QueryContextMenu(
+				hMenu,
+				indexMenu,
+				MIN_ID,
+				MAX_ID,
+				CMF_NORMAL | CMF_EXPLORE);
+		}
+
+		psfParent->Release();
+	}
 }

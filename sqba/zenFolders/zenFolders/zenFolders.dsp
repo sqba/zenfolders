@@ -184,10 +184,6 @@ SOURCE=.\src\util\settings.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=.\src\util\shctxmnu.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=.\src\util\ShellNSE.cpp
 # End Source File
 # Begin Source File
@@ -357,10 +353,6 @@ SOURCE=.\src\resource.h
 # Begin Source File
 
 SOURCE=.\src\util\settings.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\src\util\shctxmnu.h
 # End Source File
 # Begin Source File
 

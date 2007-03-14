@@ -29,6 +29,7 @@ private:
 	BOOL CanRenameItems(void);
 	LPCTSTR GetFileExtension(LPCITEMIDLIST);
 	void AddMenuItem(HMENU, LPTSTR, UINT, UINT=0, BOOL=TRUE, BOOL=FALSE);
+	void LoadShellMenu(HMENU, UINT);
 
 	void OnExecute();
 	void OnOpenFolder(LPCMINVOKECOMMANDINFO);
@@ -47,6 +48,7 @@ private:
 	IMalloc			*m_pMalloc;
 	CShellFolder	*m_pSFParent;
 	BOOL			m_fAllFiles;
+	LPCONTEXTMENU	m_pContextMenu;
 };
 
 #endif// CONTMENU_H
