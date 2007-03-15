@@ -67,6 +67,7 @@ private:
 	void OnSetViewStyle(LONG);
 
 	LRESULT OnInitMenuPopup(HMENU hMenu);
+	LRESULT OnCommand(WPARAM, LPARAM);
 	LRESULT OnCommand(DWORD, DWORD, HWND);
 	LRESULT OnActivate(UINT);
 	LRESULT OnSize(WORD, WORD);

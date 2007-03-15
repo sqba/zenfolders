@@ -14,6 +14,14 @@ extern HINSTANCE	g_hInst;
 
 typedef struct
 {
+    HWND        hwndFrom;
+    VARIANTARG  *pva;
+    DWORD       dwUnused;
+} TBDDDATA, *LPTBDDDATA;
+
+
+typedef struct
+{
 	UINT  idCommand;
 	UINT  idString;
 	UINT  uImageSet;
@@ -159,60 +167,51 @@ VOID CToolBar::MergeToolbar(LPSHELLBROWSER pShellBrowser)
 VOID CToolBar::OnToolbarDropdown(CListView *pListView,
 								 LPSHELLBROWSER pShellBrowser,
 								 HWND hwndParent,
-								 HWND hWnd)
+								 HWND hWndView,
+								 LPARAM lParam)
 {
-	RECT      rc;
-	TPMPARAMS tpm;
-	HMENU     hPopupMenu = NULL;
-	HMENU     hMenuLoaded;
-	BOOL      bRet = FALSE;
-	HRESULT hr1;
-
-	HRESULT hr = pShellBrowser->SendControlMsg(
-		FCW_TOOLBAR,
-		TB_GETRECT,
-		IDM_VIEW_IDW,
-		(LPARAM)&rc,
-		&hr1);
-
-	::MapWindowPoints(hwndParent, HWND_DESKTOP, (LPPOINT)&rc, 2); 
-	
-	tpm.cbSize = sizeof(TPMPARAMS);
-	tpm.rcExclude = rc;
-	hMenuLoaded = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP)); 
-	hPopupMenu = ::GetSubMenu(hMenuLoaded, 0);
-
-	if(pListView)
+	LPTBDDDATA ptbd = (LPTBDDDATA)lParam;
+	if(VT_INT_PTR == ptbd->pva->vt)
 	{
-		LONG style = pListView->GetStyle();
-		int item = 0;
-		switch(style)
+		HMENU hMenu  = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP)); 
+		HMENU hPopupMenu = ::GetSubMenu(hMenu, 0);
+		if(hMenu)
 		{
-		case LVS_ICON:
-			item = IDC_LARGE_ICONS;
-			break;
-		case LVS_SMALLICON:
-			item = IDC_SMALL_ICONS;
-			break;
-		case LVS_LIST:
-			item = IDC_LIST;
-			break;
-		case LVS_REPORT:
-			item = IDC_DETAILS;
-			break;
+			LPRECT prc = (LPRECT)ptbd->pva->byref;
+
+			if(pListView)
+			{
+				LONG style = pListView->GetStyle();
+				int item = 0;
+				switch(style)
+				{
+				case LVS_ICON:
+					item = IDC_LARGE_ICONS;
+					break;
+				case LVS_SMALLICON:
+					item = IDC_SMALL_ICONS;
+					break;
+				case LVS_LIST:
+					item = IDC_LIST;
+					break;
+				case LVS_REPORT:
+					item = IDC_DETAILS;
+					break;
+				}
+				::CheckMenuItem(hPopupMenu, item, MF_BYCOMMAND | MF_CHECKED);
+			}
+
+			::TrackPopupMenu(
+				hPopupMenu,
+				TPM_LEFTALIGN,
+				prc->left,
+				prc->bottom,
+				0,
+				hWndView,
+				NULL);
+			::DestroyMenu(hMenu);
 		}
-		::CheckMenuItem(hPopupMenu, item, MF_BYCOMMAND | MF_CHECKED);
-	}
-
-	::TrackPopupMenuEx(
-		hPopupMenu,
-		TPM_LEFTALIGN|TPM_LEFTBUTTON|TPM_VERTICAL,
-		rc.left,
-		rc.bottom + (rc.bottom - rc.top),
-		hWnd,
-		&tpm); 
-
-	::DestroyMenu(hMenuLoaded);
+	} 
 }
 
 /*

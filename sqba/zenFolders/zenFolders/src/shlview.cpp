@@ -858,10 +858,7 @@ LRESULT CALLBACK CShellView::WndProc(HWND hWnd,
 		return pThis->OnActivate(SVUIA_ACTIVATE_FOCUS);
 		
 	case WM_COMMAND:
-		return pThis->OnCommand(
-			GET_WM_COMMAND_ID(wParam, lParam), 
-			GET_WM_COMMAND_CMD(wParam, lParam), 
-			GET_WM_COMMAND_HWND(wParam, lParam));
+		return pThis->OnCommand(wParam, lParam);
 		
 	case WM_INITMENUPOPUP:
 		return pThis->OnInitMenuPopup((HMENU)wParam);
@@ -1462,7 +1459,6 @@ LRESULT CShellView::OnInitMenuPopup(HMENU hMenu)
 
 LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 {
-//	_RPTF1(_CRT_WARN, "OnCommand (%d)\n", dwCmdID);
 	switch(dwCmdID)
 	{
 	case IDM_CREATE_FOLDER:
@@ -1486,13 +1482,6 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 		Refresh();
 		break;
 
-	case IDM_VIEW_IDW:
-		CToolBar::OnToolbarDropdown(
-			m_pListView,
-			m_pShellBrowser,
-			m_hwndParent,
-			m_hWnd );
-		break;
 	case IDC_LARGE_ICONS:
 		OnSetViewStyle( LVS_ICON );
 		break;
@@ -1511,6 +1500,32 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 
 	default:
 		break;
+	}
+	
+	return 0;
+}
+
+LRESULT CShellView::OnCommand(WPARAM wParam, LPARAM lParam)
+{
+	DWORD dwCmdID	= GET_WM_COMMAND_ID(wParam, lParam);
+	DWORD dwCmd		= GET_WM_COMMAND_CMD(wParam, lParam);
+	HWND hwndCmd	= GET_WM_COMMAND_HWND(wParam, lParam);
+
+//	_RPTF1(_CRT_WARN, "OnCommand (%d)\n", dwCmdID);
+	switch(dwCmdID)
+	{
+	case IDM_VIEW_IDW:
+		{
+			CToolBar::OnToolbarDropdown(
+				m_pListView,
+				m_pShellBrowser,
+				m_hwndParent,
+				m_hWnd,
+				lParam);
+		}
+		break;
+	default:
+		return OnCommand(dwCmdID, dwCmd, hwndCmd);
 	}
 	
 	return 0;
