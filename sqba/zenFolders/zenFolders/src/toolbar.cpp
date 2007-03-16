@@ -171,7 +171,7 @@ VOID CToolBar::OnToolbarDropdown(CListView *pListView,
 								 LPARAM lParam)
 {
 	LPTBDDDATA ptbd = (LPTBDDDATA)lParam;
-	if(VT_INT_PTR == ptbd->pva->vt)
+	if(ptbd->pva && (VT_INT_PTR == ptbd->pva->vt))
 	{
 		HMENU hMenu  = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP)); 
 		HMENU hPopupMenu = ::GetSubMenu(hMenu, 0);
