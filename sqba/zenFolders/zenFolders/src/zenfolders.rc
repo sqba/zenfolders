@@ -183,6 +183,7 @@ BEGIN
         MENUITEM "Small Icons",                 IDC_SMALL_ICONS
         MENUITEM "List",                        IDC_LIST
         MENUITEM "Details",                     IDC_DETAILS
+        MENUITEM "Report",                      IDC_DETAILS2
         MENUITEM "Thumbnails",                  IDC_THUMBNAILS, GRAYED
     END
 END

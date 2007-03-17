@@ -59,13 +59,14 @@
 #define IDC_DETAILS                     40006
 #define IDC_THUMBNAILS                  40007
 #define IDM_REFRESH                     40008
+#define IDC_DETAILS2                    40009
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        113
-#define _APS_NEXT_COMMAND_VALUE         40009
+#define _APS_NEXT_COMMAND_VALUE         40010
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

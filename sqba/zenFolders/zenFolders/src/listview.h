@@ -4,6 +4,8 @@
 #include <windows.h>
 #include <commctrl.h>
 
+#define LVS_REPORT2		0x8000
+
 class CListView  
 {
 public:
@@ -33,7 +35,9 @@ public:
 	void SetStyle(LONG);
 	LONG GetStyle();
 	LRESULT OnCustomDraw(LPARAM);
-	
+	DWORD GetExtendedListViewStyle();
+	BOOL Refresh();
+
 //	static LRESULT TableDraw(LPARAM);
 //	HWND GetHwnd() { return m_hwndList; }
 

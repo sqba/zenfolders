@@ -3,13 +3,13 @@
 CListView::CListView(HINSTANCE hInst, HWND hWnd)
 {
 	m_iColumns = 0;
-	m_lStyle = LVS_REPORT;
+	m_lStyle = LVS_REPORT2;
 
 	DWORD dwStyle;
 	
 	dwStyle = WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | LVS_SHAREIMAGELISTS | LVS_EDITLABELS | LVS_AUTOARRANGE;
 
-	dwStyle |= m_lStyle;
+	dwStyle |= LVS_REPORT;
 
 	if(m_lStyle == LVS_REPORT)
 		dwStyle |= LVS_NOSORTHEADER;
@@ -166,6 +166,11 @@ void CListView::SetExtendedListViewStyle(DWORD dwExStyles)
 	ListView_SetExtendedListViewStyle(m_hwndList, dwExStyles);
 }
 
+DWORD CListView::GetExtendedListViewStyle()
+{
+	return ListView_GetExtendedListViewStyle(m_hwndList);
+}
+
 void CListView::SelectItem(int index)
 {
 	ListView_SetItemState(
@@ -178,6 +183,11 @@ void CListView::SelectItem(int index)
 void CListView::SetFocus()
 {
 	::SetFocus( m_hwndList );
+}
+
+BOOL CListView::Refresh()
+{
+	return ListView_RedrawItems(m_hwndList, 0, GetItemCount()-1);
 }
 
 LONG CListView::GetStyle()
@@ -213,12 +223,39 @@ void CListView::SetStyle(LONG newStyle)
 	
 	dwStyle = WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | LVS_SHAREIMAGELISTS | LVS_EDITLABELS | LVS_AUTOARRANGE;
 
-	dwStyle |= m_lStyle;
+	if(LVS_REPORT2 == m_lStyle)
+	{
+		dwStyle |= LVS_REPORT;
 
-	if(m_lStyle == LVS_REPORT)
+		DWORD dwExStyles = GetExtendedListViewStyle();
+		if(!(dwExStyles & LVS_EX_FULLROWSELECT))
+		{
+			dwExStyles |= LVS_EX_FULLROWSELECT;
+			SetExtendedListViewStyle( dwExStyles );
+		}
+	}
+	else
+	{
+		dwStyle |= m_lStyle;
+
+		if(LVS_REPORT == m_lStyle)
+		{
+			DWORD dwExStyles = GetExtendedListViewStyle();
+			if(dwExStyles & LVS_EX_FULLROWSELECT)
+			{
+				dwExStyles ^= LVS_EX_FULLROWSELECT;
+				SetExtendedListViewStyle( dwExStyles );
+			}
+		}
+	}
+
+	if((m_lStyle == LVS_REPORT) || (m_lStyle == LVS_REPORT2))
 		dwStyle |= LVS_NOSORTHEADER;
 
 	::SetWindowLong(m_hwndList, GWL_STYLE, dwStyle);
+
+	if((m_lStyle == LVS_REPORT) || (m_lStyle == LVS_REPORT2))
+		Refresh();
 }
 
 LRESULT CListView::OnCustomDraw(LPARAM lParam)
@@ -228,7 +265,7 @@ LRESULT CListView::OnCustomDraw(LPARAM lParam)
 	switch(lplvcd->nmcd.dwDrawStage)
 	{
 	case CDDS_PREPAINT:
-		if(m_lStyle == LVS_REPORT)
+		if(m_lStyle == LVS_REPORT2)
 			return CDRF_NOTIFYITEMDRAW;
 		else
 			return CDRF_DODEFAULT;
@@ -238,7 +275,7 @@ LRESULT CListView::OnCustomDraw(LPARAM lParam)
 		if(iRow%2 == 0)
 		{
 			// pListDraw->clrText   = RGB(252, 177, 0);
-			lplvcd->clrTextBk = RGB(202, 221,250);
+			lplvcd->clrTextBk = RGB(202, 221, 250);
 			return CDRF_NEWFONT;
 		}
 

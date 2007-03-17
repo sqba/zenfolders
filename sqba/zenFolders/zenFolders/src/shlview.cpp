@@ -905,7 +905,7 @@ void CShellView::UpdateShellSettings(void)
 		}
 		FreeLibrary(hinstShell32);
 	}
-	
+/*
 	if(m_pListView)
 	{
 		DWORD dwExStyles = 0;
@@ -917,9 +917,10 @@ void CShellView::UpdateShellSettings(void)
 
 		dwExStyles |= LVS_EX_FULLROWSELECT;
 		
-		m_pListView->SetExtendedListViewStyle( dwExStyles );
+		if(LVS_REPORT2 == m_pListView->GetStyle())
+			m_pListView->SetExtendedListViewStyle( dwExStyles );
 	}
-
+*/
 //#endif   //(_WIN32_IE >= 0x0400)
 }
 
@@ -1493,6 +1494,9 @@ LRESULT CShellView::OnCommand(DWORD dwCmdID, DWORD dwCmd, HWND hwndCmd)
 		break;
 	case IDC_DETAILS:
 		OnSetViewStyle( LVS_REPORT );
+		break;
+	case IDC_DETAILS2:
+		OnSetViewStyle( LVS_REPORT2 );
 		break;
 	case IDC_THUMBNAILS:
 		::MessageBeep( MB_OK );
