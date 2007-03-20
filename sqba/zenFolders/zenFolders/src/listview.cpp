@@ -275,7 +275,9 @@ LRESULT CListView::OnCustomDraw(LPARAM lParam)
 		if(iRow%2 == 0)
 		{
 			// pListDraw->clrText   = RGB(252, 177, 0);
-			lplvcd->clrTextBk = RGB(202, 221, 250);
+			//lplvcd->clrTextBk = RGB(202, 221, 250);
+			//lplvcd->clrTextBk = RGB(239, 239, 239);
+			lplvcd->clrTextBk = RGB(222, 222, 222);
 			return CDRF_NEWFONT;
 		}
 
