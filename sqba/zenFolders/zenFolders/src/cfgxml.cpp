@@ -8,6 +8,7 @@
 #include "util/string.h"
 #include "util/settings.h"
 #include "google/googleds.h"
+#include "listview.h"
 
 #define TESTHR( hr )	{ if FAILED(hr) throw(hr); }
 #define ARRAYSIZE(a)    (sizeof(a)/sizeof(a[0]))
@@ -118,6 +119,7 @@ MSXML2::IXMLDOMNodePtr CConfigXML::CreateFolder(LPCTSTR pszName,
 	MSXML2::IXMLDOMElementPtr child; 
 	child = m_pXmlDoc->createElement(_T("folder"));
 	child->setAttribute(_T("name"), pszName);
+	child->setAttribute(_T("category"), _T("file"));
 	parent->appendChild(child);
 	Save();
 	return child;
@@ -155,7 +157,7 @@ BOOL CConfigXML::GetFolderInfo(LPPIDLDATA pData, MSXML2::IXMLDOMNodePtr node)
 	memset(pFolderData->szQuery, 0, size);
 	dwLen = GetNodeAttribute(node, _T("query"), pFolderData->szQuery, size);
 
-	pFolderData->viewStyle = (LONG)GetNodeAttribute(node, _T("style"), (INT)LVS_REPORT);
+	pFolderData->viewStyle = (LONG)GetNodeAttribute(node, _T("style"), (INT)LVS_REPORT2);
 
 	return TRUE;
 }

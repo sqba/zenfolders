@@ -253,7 +253,7 @@ void CFolderPropertiesDlg::InitCategory(HWND hDlg)
 
 	LPCTSTR categories[] = 
 	{
-		"email", "web", "im", "file", "contact",
+		"all", "email", "web", "im", "file", "contact",
 		"calendar", "task", "note", "journal"
 	};
 	int n = sizeof(categories) / sizeof(LPCTSTR);
@@ -262,7 +262,8 @@ void CFolderPropertiesDlg::InitCategory(HWND hDlg)
 		SendMessage(hCombo, CB_ADDSTRING, 0, (LPARAM)categories[i]);
 	}
 
-	int selIndex = 3; // file
+	int selIndex = 0;
+//	int selIndex = 3; // file
 
 	LPPIDLDATA pData = m_pidl.GetData();
 
@@ -447,8 +448,18 @@ BOOL CFolderPropertiesDlg::SetCategory(HWND hDlg, LPPIDLDATA pDataNew)
 	LPPIDLDATA pData = m_pidl.GetData();
 	if(0 != lstrcmp(pData->folderData.szCategory, szCategory))
 	{
-		int len = sizeof(pData->folderData.szCategory)/sizeof(TCHAR);
-		lstrcpyn(pDataNew->folderData.szCategory, szCategory, len);
+		int size = sizeof(pData->folderData.szCategory);
+
+		if(0 == lstrcmpi(szCategory, "all"))
+		{
+			memset(pDataNew->folderData.szCategory, 0, size);
+		}
+		else
+		{
+			int len = size / sizeof(TCHAR);
+			lstrcpyn(pDataNew->folderData.szCategory, szCategory, len);
+		}
+
 		bSave = TRUE;
 	}
 

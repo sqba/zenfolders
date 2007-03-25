@@ -198,7 +198,7 @@ VOID CToolBar::OnToolbarDropdown(CListView *pListView,
 					item = IDC_DETAILS;
 					break;
 				case LVS_REPORT2:
-					item = IDC_REPORT;
+					item = IDC_DETAILS2;
 					break;
 				}
 				::CheckMenuItem(hPopupMenu, item, MF_BYCOMMAND | MF_CHECKED);

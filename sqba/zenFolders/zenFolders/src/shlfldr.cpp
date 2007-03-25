@@ -1540,5 +1540,5 @@ LONG CShellFolder::GetListViewStyle()
 			return pFolderData->viewStyle;
 		}
 	}
-	return LVS_REPORT;
+	return LVS_REPORT2;
 }
