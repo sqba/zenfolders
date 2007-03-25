@@ -272,7 +272,7 @@ LPITEMIDLIST CPidlManager::Create(PIDLTYPE type, LPVOID pIn, USHORT uInSize)
 		
 		pData = GetDataPointer(pidlTemp);
 
-		memset(pData->szName, 0, sizeof(pData->szName)/sizeof(TCHAR));
+		memset(pData->szName, 0, sizeof(pData->szName));
 
 		pData->type = type;
 		switch(type)
