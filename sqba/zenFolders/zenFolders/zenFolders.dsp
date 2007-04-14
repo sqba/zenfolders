@@ -384,6 +384,10 @@ SOURCE=.\src\util\string.h
 # End Source File
 # Begin Source File
 
+SOURCE=.\src\sysicons.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\src\toolbar.h
 # End Source File
 # Begin Source File
