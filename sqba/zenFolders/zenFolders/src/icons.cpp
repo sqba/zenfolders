@@ -8,7 +8,10 @@
 #include "sysicons.h"
 
 
-#define ARRAYSIZE(a)    (sizeof(a)/sizeof(a[0]))
+#define ARRAYSIZE(a)		(sizeof(a)/sizeof(a[0]))
+
+#define IMAGELIST_SIZE		20
+#define IMAGELIST_GROWTH	5
 
 
 //////////////////////////////////////////////////////////////////////
@@ -53,7 +56,9 @@ CIcons::~CIcons()
 	for(int i=0; i<ARRAYSIZE(m_SystemIcons); i++)
 	{
 		if(m_SystemIcons[i])
+		{
 			::DestroyIcon( m_SystemIcons[i] );
+		}
 	}
 
 	tagExtension *tmp = m_pExtensions;
@@ -96,7 +101,9 @@ int CIcons::GetIconIndex(LPCTSTR pszPath)
 	while(tmp->next)
 	{
 		if(0 == lstrcmpi(tmp->szExtension, pszExtension))
+		{
 			return tmp->index;
+		}
 		tmp = tmp->next;
 	}
 	// not found
@@ -127,13 +134,9 @@ tagExtension *CIcons::CreateNewExtension(LPCTSTR pszExtension)
 
 void CIcons::AddDefaultIcons(HIMAGELIST himl, bool bSmall)
 {
-	// This seems to fix the icon problem
-	AddShellIcon(himl, SI_FOLDER_CLOSED, bSmall);
-
-	AddShellIcon(himl, SI_FOLDER_CLOSED, bSmall);
-	AddShellIcon(himl, SI_FOLDER_OPEN, bSmall);
-	AddShellIcon(himl, SI_DEF_DOCUMENT, bSmall);
-	//AddShellIcon(himl, SI_DEF_APPLICATION, bSmall);
+	AddShellIcon(himl, SI_FOLDER_CLOSED, bSmall);	// ICON_INDEX_FOLDER
+	AddShellIcon(himl, SI_FOLDER_OPEN, bSmall);		// ICON_INDEX_FOLDEROPEN
+	AddShellIcon(himl, SI_DEF_DOCUMENT, bSmall);	// ICON_INDEX_FILE
 }
 
 void CIcons::AddShellIcon(HIMAGELIST himl, int nIndex, bool bSmall)
@@ -225,15 +228,20 @@ HICON CIcons::GetAsociatedIcon(LPCTSTR pszPath, bool bSmall)
 		sizeof(shfi),			// cbFileInfo
 		dwAttributes);			// uFlags
 
-	return shfi.hIcon;
+	return result ? shfi.hIcon : NULL;
 }
 
 HIMAGELIST CIcons::CreateImageList(int size)
 {
 	int cx, cy;
 	cx = cy = size;
-	UINT flags = ILC_COLORDDB | ILC_MASK;
-	return ImageList_Create(cx, cy, flags, 4, 0);
+	UINT flags = ILC_MASK;
+	return ImageList_Create(
+		cx,
+		cy,
+		ILC_MASK | ILC_COLOR32,
+		IMAGELIST_SIZE,
+		IMAGELIST_GROWTH);
 }
 
 HICON CIcons::ExtractShellIcon(int nIndex, bool bSmall)
@@ -248,5 +256,5 @@ HICON CIcons::ExtractShellIcon(int nIndex, bool bSmall)
         bSmall ? &hIcon : NULL,	// phiconSmall
         1);						// nIcons
 
-    return hIcon;
+    return nIcons ? hIcon : NULL;
 }
