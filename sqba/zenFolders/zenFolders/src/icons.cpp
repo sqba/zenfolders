@@ -139,6 +139,10 @@ int CIcons::GetIconIndex(LPCTSTR pszPath)
 
 bool CIcons::LoadShellIcons(HIMAGELIST himl, bool bSmall)
 {
+	// 'Ghost' icon, somehow resolves the problem with psd files
+	if(!AddShellIcon(himl, bSmall, SI_DEF_DOCUMENT))
+		return false;
+
 	// ICON_INDEX_FOLDER
 	if(!AddShellIcon(himl, bSmall, SI_FOLDER_CLOSED))
 		return false;
@@ -194,17 +198,47 @@ int CIcons::AddAsociatedIcon(LPCTSTR pszPath)
 
 	LPCTSTR pszExtension = CString::GetExtension(pszPath);
 
+//	_ASSERT(0 != lstrcmpi(pszExtension, ".psd"));
+
 	tagFileType *newType = CreateNewFileType(pszExtension);
 
 	newType->hIconSmall = hIconSmall;
 	newType->hIconLarge = hIconLarge;
 
-	int s = ImageList_AddIcon(m_himlSmall, hIconSmall);
-	int l = ImageList_AddIcon(m_himlLarge, hIconLarge);
-	// assert(s == l);
-	newType->index = s;
+	int iSmall = ImageList_AddIcon(m_himlSmall, hIconSmall);
+	int iLarge = ImageList_AddIcon(m_himlLarge, hIconLarge);
+
+	_ASSERT(iSmall == iLarge);
+
+	newType->index = iSmall;
 
 	return newType->index;
+}
+
+HICON CIcons::GetAsociatedIcon(LPCTSTR pszPath, bool bSmall)
+{
+	// Problem: when path points to a .psd file,
+	// after the call to SHGetFileInfo, image lists
+	// get confused and when asked for a folder icon,
+	// they return psd icon. This happens even if I
+	// return NULL ignoring what SHGetFileInfo returned.
+
+	SHFILEINFO shfi = {0};
+	DWORD_PTR result = 0;
+
+	DWORD dwAttributes =
+		SHGFI_ICON
+		| SHGFI_USEFILEATTRIBUTES
+		| (bSmall ? SHGFI_SMALLICON : SHGFI_LARGEICON);
+
+	result = ::SHGetFileInfo(
+		pszPath,				// pszPath
+		FILE_ATTRIBUTE_NORMAL,	// dwFileAttributes
+		&shfi,					// psfi
+		sizeof(SHFILEINFO),		// cbFileInfo
+		dwAttributes);			// uFlags
+
+	return result ? shfi.hIcon : NULL;
 }
 
 tagFileType *CIcons::CreateNewFileType(LPCTSTR pszExtension)
@@ -225,28 +259,8 @@ tagFileType *CIcons::CreateNewFileType(LPCTSTR pszExtension)
 	lstrcpyn(
 		newType->szExtension,
 		pszExtension,
-		sizeof(newType->szExtension));
+		ARRAYSIZE(newType->szExtension));
 	return newType;
-}
-
-HICON CIcons::GetAsociatedIcon(LPCTSTR pszPath, bool bSmall)
-{
-	DWORD dwAttributes =
-		SHGFI_ICON
-		| SHGFI_USEFILEATTRIBUTES
-		| (bSmall ? SHGFI_SMALLICON : SHGFI_LARGEICON);
-
-	SHFILEINFO shfi = {0};
-	DWORD_PTR result = 0;
-
-	result = ::SHGetFileInfo(
-		pszPath,				// pszPath
-		FILE_ATTRIBUTE_NORMAL,	// dwFileAttributes
-		&shfi,					// psfi
-		sizeof(shfi),			// cbFileInfo
-		dwAttributes);			// uFlags
-
-	return result ? shfi.hIcon : NULL;
 }
 
 HIMAGELIST CIcons::CreateImageList(int size)

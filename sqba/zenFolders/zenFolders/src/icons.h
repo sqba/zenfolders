@@ -6,9 +6,9 @@
 #include <commctrl.h>
 
 
-#define ICON_INDEX_FOLDER		0
-#define ICON_INDEX_FOLDEROPEN	1
-#define ICON_INDEX_FILE			2
+#define ICON_INDEX_FOLDER		1
+#define ICON_INDEX_FOLDEROPEN	2
+#define ICON_INDEX_FILE			3
 
 
 struct tagFileType
@@ -49,7 +49,7 @@ private:
 	HINSTANCE	m_hInst;
 	HIMAGELIST	m_himlLarge;
 	HIMAGELIST	m_himlSmall;
-	HICON		m_ShellIcons[6];
+	HICON		m_ShellIcons[(ICON_INDEX_FILE+1)*2];
 	tagFileType	*m_pFileTypes;
 	int			m_iShellIconIndex;
 };

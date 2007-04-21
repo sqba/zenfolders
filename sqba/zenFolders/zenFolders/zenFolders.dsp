@@ -400,10 +400,6 @@ SOURCE=.\src\viewlist.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\src\util\XmlDOM.h
-# End Source File
-# Begin Source File
-
 SOURCE=.\src\zenfolders.h
 # End Source File
 # End Group
