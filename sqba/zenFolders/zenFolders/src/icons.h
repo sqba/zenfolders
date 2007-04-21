@@ -6,9 +6,9 @@
 #include <commctrl.h>
 
 
-#define ICON_INDEX_FOLDER		1
-#define ICON_INDEX_FOLDEROPEN	2
-#define ICON_INDEX_FILE			3
+#define ICON_INDEX_FOLDER		0
+#define ICON_INDEX_FOLDEROPEN	1
+#define ICON_INDEX_FILE			2
 
 
 struct tagFileType
@@ -36,10 +36,10 @@ public:
 	int GetIconIndex(LPCTSTR);
 
 private:
-	void		LoadShellIcons(HIMAGELIST, bool);
+	bool		LoadShellIcons(HIMAGELIST, bool);
 	HIMAGELIST	CreateImageList(int);
 	int			AddAsociatedIcon(LPCTSTR);
-	void		AddShellIcon(HIMAGELIST, int, bool);
+	bool		AddShellIcon(HIMAGELIST, bool, int);
 	HICON		GetAsociatedIcon(LPCTSTR, bool);
 	HICON		ExtractShellIcon(int, bool);
 	tagFileType *CreateNewFileType(LPCTSTR);
@@ -51,6 +51,7 @@ private:
 	HIMAGELIST	m_himlSmall;
 	HICON		m_ShellIcons[6];
 	tagFileType	*m_pFileTypes;
+	int			m_iShellIconIndex;
 };
 
 

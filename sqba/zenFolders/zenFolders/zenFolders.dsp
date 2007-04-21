@@ -56,7 +56,7 @@ LINK32=link.exe
 # ADD LINK32 advapi32.lib shell32.lib comctl32.lib version.lib /nologo /dll /machine:I386
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=..\release\bin\package.bat
+PostBuild_Cmds=..\..\release\bin\package.bat
 # End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "zenFolders - Win32 Debug"
@@ -86,7 +86,7 @@ LINK32=link.exe
 # ADD LINK32 advapi32.lib shell32.lib comctl32.lib version.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
 # Begin Special Build Tool
 SOURCE="$(InputPath)"
-PostBuild_Cmds=..\debug\bin\package.bat
+PostBuild_Cmds=..\..\debug\bin\package.bat
 # End Special Build Tool
 
 !ENDIF 

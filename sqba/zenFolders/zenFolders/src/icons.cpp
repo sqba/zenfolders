@@ -2,7 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
-//#include <crtdbg.h>
+#include <crtdbg.h>
 #include "icons.h"
 #include "util/string.h"
 #include "resource.h"
@@ -23,6 +23,8 @@ CIcons::CIcons(HINSTANCE hInst)
 {
 	m_hInst = hInst;
 
+	m_iShellIconIndex = 0;
+
 	memset(m_ShellIcons, 0, sizeof(m_ShellIcons));
 
 	m_pFileTypes = new tagFileType();
@@ -31,13 +33,27 @@ CIcons::CIcons(HINSTANCE hInst)
 	m_himlSmall = CreateImageList(16);
 	if(m_himlSmall)
 	{
-		LoadShellIcons(m_himlSmall, true);
+		if(!LoadShellIcons(m_himlSmall, true))
+		{
+			_RPTF0(_CRT_ERROR, "LoadShellIcons(small) failed\n");
+		}
+	}
+	else
+	{
+		_RPTF0(_CRT_ERROR, "CreateImageList(16) failed\n");
 	}
 
 	m_himlLarge = CreateImageList(32);
 	if(m_himlLarge)
 	{
-		LoadShellIcons(m_himlLarge, false);
+		if(!LoadShellIcons(m_himlLarge, false))
+		{
+			_RPTF0(_CRT_ERROR, "LoadShellIcons(large) failed\n");
+		}
+	}
+	else
+	{
+		_RPTF0(_CRT_ERROR, "CreateImageList(32) failed\n");
 	}
 }
 
@@ -72,6 +88,11 @@ CIcons::~CIcons()
 		tmp = next;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////
+// Public functions
+//////////////////////////////////////////////////////////////////////
 
 HICON CIcons::GetIconLarge(UINT index)
 {
@@ -111,6 +132,81 @@ int CIcons::GetIconIndex(LPCTSTR pszPath)
 	return AddAsociatedIcon(pszPath);
 }
 
+
+//////////////////////////////////////////////////////////////////////
+// Private functions
+//////////////////////////////////////////////////////////////////////
+
+bool CIcons::LoadShellIcons(HIMAGELIST himl, bool bSmall)
+{
+	// ICON_INDEX_FOLDER
+	if(!AddShellIcon(himl, bSmall, SI_FOLDER_CLOSED))
+		return false;
+
+	// ICON_INDEX_FOLDEROPEN
+	if(!AddShellIcon(himl, bSmall, SI_FOLDER_OPEN))
+		return false;
+
+	// ICON_INDEX_FILE
+	if(!AddShellIcon(himl, bSmall, SI_DEF_DOCUMENT))
+		return false;
+
+	return true;
+}
+
+bool CIcons::AddShellIcon(HIMAGELIST himl, bool bSmall, int nIconIndex)
+{
+	HICON hIcon = ExtractShellIcon(nIconIndex, bSmall);
+	if(NULL != hIcon)
+	{
+		if(-1 != ImageList_AddIcon(himl, hIcon))
+		{
+			m_ShellIcons[m_iShellIconIndex++] = hIcon;
+			return true;
+		}
+	}
+	_RPTF2(_CRT_ERROR, "AddShellIcon(himl, %d, %d) failed!\n", bSmall, nIconIndex);
+	return false;
+}
+
+int CIcons::AddAsociatedIcon(LPCTSTR pszPath)
+{
+	HICON hIconSmall = GetAsociatedIcon(pszPath, true);
+	HICON hIconLarge = GetAsociatedIcon(pszPath, false);
+
+	if((NULL == hIconSmall) && (NULL == hIconLarge))
+	{
+		_RPTF1(_CRT_ERROR, "AddAsociatedIcon(%s) failed to extract both small and big icon!\n", pszPath);
+		return -1;
+	}
+
+	if(NULL == hIconSmall)
+	{
+		_RPTF1(_CRT_WARN, "AddAsociatedIcon(%s) failed to extract small icon, adding default document icon\n", pszPath);
+		hIconSmall = ExtractShellIcon(SI_DEF_DOCUMENT, true);
+	}
+
+	if(NULL == hIconLarge)
+	{
+		_RPTF1(_CRT_WARN, "AddAsociatedIcon(%s) failed to extract big icon, adding default document icon\n", pszPath);
+		hIconLarge = ExtractShellIcon(SI_DEF_DOCUMENT, false);
+	}
+
+	LPCTSTR pszExtension = CString::GetExtension(pszPath);
+
+	tagFileType *newType = CreateNewFileType(pszExtension);
+
+	newType->hIconSmall = hIconSmall;
+	newType->hIconLarge = hIconLarge;
+
+	int s = ImageList_AddIcon(m_himlSmall, hIconSmall);
+	int l = ImageList_AddIcon(m_himlLarge, hIconLarge);
+	// assert(s == l);
+	newType->index = s;
+
+	return newType->index;
+}
+
 tagFileType *CIcons::CreateNewFileType(LPCTSTR pszExtension)
 {
 	tagFileType *tmp = m_pFileTypes;
@@ -131,67 +227,6 @@ tagFileType *CIcons::CreateNewFileType(LPCTSTR pszExtension)
 		pszExtension,
 		sizeof(newType->szExtension));
 	return newType;
-}
-
-void CIcons::LoadShellIcons(HIMAGELIST himl, bool bSmall)
-{
-	// Sometimes, first icon gets fucked up, and this seems to fix it...
-	AddShellIcon(himl, SI_FOLDER_CLOSED, bSmall);
-
-	AddShellIcon(himl, SI_FOLDER_CLOSED, bSmall);	// ICON_INDEX_FOLDER
-	AddShellIcon(himl, SI_FOLDER_OPEN, bSmall);		// ICON_INDEX_FOLDEROPEN
-	AddShellIcon(himl, SI_DEF_DOCUMENT, bSmall);	// ICON_INDEX_FILE
-}
-
-void CIcons::AddShellIcon(HIMAGELIST himl, int nIndex, bool bSmall)
-{
-	static int index = 0;
-	HICON hIcon;
-	hIcon = ExtractShellIcon(nIndex, bSmall);
-	ImageList_AddIcon(himl, hIcon);
-	if(index < ARRAYSIZE(m_ShellIcons))
-	{
-		m_ShellIcons[index++] = hIcon;
-	}
-}
-
-int CIcons::AddAsociatedIcon(LPCTSTR pszPath)
-{
-	HICON hIconSmall = GetAsociatedIcon(pszPath, true);
-	HICON hIconLarge = GetAsociatedIcon(pszPath, false);
-
-	if((NULL == hIconSmall) && (NULL == hIconLarge))
-		return -1;
-
-	if(NULL == hIconSmall)
-		hIconSmall = (HICON)::LoadImage(
-			m_hInst,
-			MAKEINTRESOURCE(IDI_FILE),
-			IMAGE_ICON,
-			16, 16,
-			LR_DEFAULTCOLOR);
-
-	if(NULL == hIconLarge)
-		hIconLarge = (HICON)::LoadImage(
-			m_hInst,
-			MAKEINTRESOURCE(IDI_FILE),
-			IMAGE_ICON,
-			32, 32,
-			LR_DEFAULTCOLOR);
-
-	LPCTSTR pszExtension = CString::GetExtension(pszPath);
-
-	tagFileType *newType = CreateNewFileType(pszExtension);
-
-	newType->hIconSmall = hIconSmall;
-	newType->hIconLarge = hIconLarge;
-
-	int s = ImageList_AddIcon(m_himlSmall, hIconSmall);
-	int l = ImageList_AddIcon(m_himlLarge, hIconLarge);
-	// assert(s == l);
-	newType->index = s;
-
-	return newType->index;
 }
 
 HICON CIcons::GetAsociatedIcon(LPCTSTR pszPath, bool bSmall)
@@ -232,11 +267,11 @@ HICON CIcons::ExtractShellIcon(int nIndex, bool bSmall)
     HICON hIcon = NULL;
 
     nIcons = ::ExtractIconEx(
-        TEXT("SHELL32.DLL"),	// lpszFile
-        nIndex,					// nIconIndex
-		bSmall ? NULL : &hIcon,	// phiconLarge
-        bSmall ? &hIcon : NULL,	// phiconSmall
-        1);						// nIcons
+        TEXT("SHELL32.DLL"),		// lpszFile
+        nIndex,						// nIconIndex
+		(bSmall ? NULL : &hIcon),	// phiconLarge
+        (bSmall ? &hIcon : NULL),	// phiconSmall
+        1);							// nIcons
 
 	//_RPTF3(_CRT_WARN, "ExtractIconEx(%d, %d) returned %d\n", nIndex, bSmall, nIcons);
 
