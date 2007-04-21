@@ -2,6 +2,7 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+//#include <crtdbg.h>
 #include "icons.h"
 #include "util/string.h"
 #include "resource.h"
@@ -22,23 +23,22 @@ CIcons::CIcons(HINSTANCE hInst)
 {
 	m_hInst = hInst;
 
+	memset(m_ShellIcons, 0, sizeof(m_ShellIcons));
+
+	m_pFileTypes = new tagFileType();
+	memset(m_pFileTypes, 0, sizeof(tagFileType));
+
 	m_himlSmall = CreateImageList(16);
 	if(m_himlSmall)
 	{
-		AddDefaultIcons(m_himlSmall, true);
+		LoadShellIcons(m_himlSmall, true);
 	}
 
 	m_himlLarge = CreateImageList(32);
 	if(m_himlLarge)
 	{
-		AddDefaultIcons(m_himlLarge, false);
+		LoadShellIcons(m_himlLarge, false);
 	}
-
-	memset(m_SystemIcons, 0, sizeof(m_SystemIcons));
-
-	m_pExtensions = new tagExtension();
-	m_pExtensions->next = NULL;
-	m_pExtensions->index = 0;
 }
 
 CIcons::~CIcons()
@@ -53,16 +53,16 @@ CIcons::~CIcons()
 		ImageList_Destroy(m_himlLarge);
 	}
 
-	for(int i=0; i<ARRAYSIZE(m_SystemIcons); i++)
+	for(int i=0; i<ARRAYSIZE(m_ShellIcons); i++)
 	{
-		if(m_SystemIcons[i])
+		if(m_ShellIcons[i])
 		{
-			::DestroyIcon( m_SystemIcons[i] );
+			::DestroyIcon( m_ShellIcons[i] );
 		}
 	}
 
-	tagExtension *tmp = m_pExtensions;
-	tagExtension *next;
+	tagFileType *tmp = m_pFileTypes;
+	tagFileType *next;
 	while(tmp->next)
 	{
 		next = tmp->next;
@@ -97,7 +97,7 @@ int CIcons::GetIconIndex(LPCTSTR pszPath)
 {
 	LPCTSTR pszExtension = CString::GetExtension(pszPath);
 
-	tagExtension *tmp = m_pExtensions;
+	tagFileType *tmp = m_pFileTypes;
 	while(tmp->next)
 	{
 		if(0 == lstrcmpi(tmp->szExtension, pszExtension))
@@ -106,14 +106,15 @@ int CIcons::GetIconIndex(LPCTSTR pszPath)
 		}
 		tmp = tmp->next;
 	}
-	// not found
-	return AddIcon(pszPath);
+
+	// Icon not found
+	return AddAsociatedIcon(pszPath);
 }
 
-tagExtension *CIcons::CreateNewExtension(LPCTSTR pszExtension)
+tagFileType *CIcons::CreateNewFileType(LPCTSTR pszExtension)
 {
-	tagExtension *tmp = m_pExtensions;
-	tagExtension *last = m_pExtensions;
+	tagFileType *tmp = m_pFileTypes;
+	tagFileType *last = m_pFileTypes;
 
 	while(tmp->next)
 	{
@@ -121,18 +122,18 @@ tagExtension *CIcons::CreateNewExtension(LPCTSTR pszExtension)
 		tmp = tmp->next;
 	}
 
-	tagExtension *newExtension = new tagExtension();
-	last->next = newExtension;
-	newExtension->next = NULL;
+	tagFileType *newType = new tagFileType();
+	memset(newType, 0, sizeof(tagFileType));
+	last->next = newType;
 
 	lstrcpyn(
-		newExtension->szExtension,
+		newType->szExtension,
 		pszExtension,
-		sizeof(newExtension->szExtension));
-	return newExtension;
+		sizeof(newType->szExtension));
+	return newType;
 }
 
-void CIcons::AddDefaultIcons(HIMAGELIST himl, bool bSmall)
+void CIcons::LoadShellIcons(HIMAGELIST himl, bool bSmall)
 {
 	AddShellIcon(himl, SI_FOLDER_CLOSED, bSmall);	// ICON_INDEX_FOLDER
 	AddShellIcon(himl, SI_FOLDER_OPEN, bSmall);		// ICON_INDEX_FOLDEROPEN
@@ -145,34 +146,13 @@ void CIcons::AddShellIcon(HIMAGELIST himl, int nIndex, bool bSmall)
 	HICON hIcon;
 	hIcon = ExtractShellIcon(nIndex, bSmall);
 	ImageList_AddIcon(himl, hIcon);
-	if(index < ARRAYSIZE(m_SystemIcons))
+	if(index < ARRAYSIZE(m_ShellIcons))
 	{
-		m_SystemIcons[index++] = hIcon;
+		m_ShellIcons[index++] = hIcon;
 	}
 }
 
-void CIcons::AddIcon(HIMAGELIST himl, int iconId, int size)
-{
-	int cx, cy;
-	
-	cx = cy = size;
-	
-	if(himl)
-	{
-		HICON hIcon;
-
-		hIcon = (HICON)::LoadImage(
-			m_hInst,
-			MAKEINTRESOURCE(iconId),
-			IMAGE_ICON,
-			cx, cy,
-			LR_DEFAULTCOLOR);
-
-		ImageList_AddIcon(himl, hIcon);
-	}
-}
-
-int CIcons::AddIcon(LPCTSTR pszPath)
+int CIcons::AddAsociatedIcon(LPCTSTR pszPath)
 {
 	HICON hIconSmall = GetAsociatedIcon(pszPath, true);
 	HICON hIconLarge = GetAsociatedIcon(pszPath, false);
@@ -198,17 +178,17 @@ int CIcons::AddIcon(LPCTSTR pszPath)
 
 	LPCTSTR pszExtension = CString::GetExtension(pszPath);
 
-	tagExtension *newExtension = CreateNewExtension(pszExtension);
+	tagFileType *newType = CreateNewFileType(pszExtension);
 
-	newExtension->hIconSmall = hIconSmall;
-	newExtension->hIconLarge = hIconLarge;
+	newType->hIconSmall = hIconSmall;
+	newType->hIconLarge = hIconLarge;
 
 	int s = ImageList_AddIcon(m_himlSmall, hIconSmall);
 	int l = ImageList_AddIcon(m_himlLarge, hIconLarge);
 	// assert(s == l);
-	newExtension->index = s;
+	newType->index = s;
 
-	return newExtension->index;
+	return newType->index;
 }
 
 HICON CIcons::GetAsociatedIcon(LPCTSTR pszPath, bool bSmall)
@@ -235,7 +215,6 @@ HIMAGELIST CIcons::CreateImageList(int size)
 {
 	int cx, cy;
 	cx = cy = size;
-	UINT flags = ILC_MASK;
 	return ImageList_Create(
 		cx,
 		cy,
@@ -256,5 +235,29 @@ HICON CIcons::ExtractShellIcon(int nIndex, bool bSmall)
         bSmall ? &hIcon : NULL,	// phiconSmall
         1);						// nIcons
 
+	//_RPTF3(_CRT_WARN, "ExtractIconEx(%d, %d) returned %d\n", nIndex, bSmall, nIcons);
+
     return nIcons ? hIcon : NULL;
 }
+/*
+void CIcons::AddIcon(HIMAGELIST himl, int iconId, int size)
+{
+	int cx, cy;
+	
+	cx = cy = size;
+	
+	if(himl)
+	{
+		HICON hIcon;
+
+		hIcon = (HICON)::LoadImage(
+			m_hInst,
+			MAKEINTRESOURCE(iconId),
+			IMAGE_ICON,
+			cx, cy,
+			LR_DEFAULTCOLOR);
+
+		ImageList_AddIcon(himl, hIcon);
+	}
+}
+*/

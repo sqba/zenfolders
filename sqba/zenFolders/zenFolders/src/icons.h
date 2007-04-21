@@ -11,13 +11,13 @@
 #define ICON_INDEX_FILE			2//3
 
 
-struct tagExtension
+struct tagFileType
 {
 	TCHAR		szExtension[5];
 	int			index;
 	HICON		hIconSmall;
 	HICON		hIconLarge;
-	tagExtension *next;
+	tagFileType *next;
 };
 
 
@@ -36,21 +36,21 @@ public:
 	int GetIconIndex(LPCTSTR);
 
 private:
-	void		AddDefaultIcons(HIMAGELIST, bool);
+	void		LoadShellIcons(HIMAGELIST, bool);
 	HIMAGELIST	CreateImageList(int);
-	int			AddIcon(LPCTSTR);
-	void		AddIcon(HIMAGELIST, int, int);
+	int			AddAsociatedIcon(LPCTSTR);
 	void		AddShellIcon(HIMAGELIST, int, bool);
 	HICON		GetAsociatedIcon(LPCTSTR, bool);
 	HICON		ExtractShellIcon(int, bool);
-	tagExtension *CreateNewExtension(LPCTSTR);
+	tagFileType *CreateNewFileType(LPCTSTR);
+//	void		AddIcon(HIMAGELIST, int, int);
 
 private:
 	HINSTANCE	m_hInst;
 	HIMAGELIST	m_himlLarge;
 	HIMAGELIST	m_himlSmall;
-	HICON		m_SystemIcons[6];
-	tagExtension	*m_pExtensions;
+	HICON		m_ShellIcons[6];
+	tagFileType	*m_pFileTypes;
 };
 
 
