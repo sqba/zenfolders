@@ -6,9 +6,9 @@
 #include <commctrl.h>
 
 
-#define ICON_INDEX_FOLDER		0//1
-#define ICON_INDEX_FOLDEROPEN	1//2
-#define ICON_INDEX_FILE			2//3
+#define ICON_INDEX_FOLDER		1
+#define ICON_INDEX_FOLDEROPEN	2
+#define ICON_INDEX_FILE			3
 
 
 struct tagFileType

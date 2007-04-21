@@ -38,8 +38,8 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "..\release\bin"
-# PROP Intermediate_Dir "..\release\obj"
+# PROP Output_Dir "..\..\release\bin"
+# PROP Intermediate_Dir "..\..\release\obj"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ZENFOLDERS_EXPORTS" /YX /FD /c
@@ -68,8 +68,8 @@ PostBuild_Cmds=..\release\bin\package.bat
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir "..\debug\bin"
-# PROP Intermediate_Dir "..\debug\obj"
+# PROP Output_Dir "..\..\debug\bin"
+# PROP Intermediate_Dir "..\..\debug\obj"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "ZENFOLDERS_EXPORTS" /YX /FD /GZ /c

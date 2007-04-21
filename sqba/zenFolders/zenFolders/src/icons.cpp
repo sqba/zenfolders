@@ -135,6 +135,9 @@ tagFileType *CIcons::CreateNewFileType(LPCTSTR pszExtension)
 
 void CIcons::LoadShellIcons(HIMAGELIST himl, bool bSmall)
 {
+	// Sometimes, first icon gets fucked up, and this seems to fix it...
+	AddShellIcon(himl, SI_FOLDER_CLOSED, bSmall);
+
 	AddShellIcon(himl, SI_FOLDER_CLOSED, bSmall);	// ICON_INDEX_FOLDER
 	AddShellIcon(himl, SI_FOLDER_OPEN, bSmall);		// ICON_INDEX_FOLDEROPEN
 	AddShellIcon(himl, SI_DEF_DOCUMENT, bSmall);	// ICON_INDEX_FILE
