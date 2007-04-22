@@ -4,11 +4,12 @@
 #include <windows.h>
 #include <shlobj.h>
 #include "pidlmgr.h"
+#include "shlfldr.h"
 
 class CExtractIcon : public IExtractIcon
 {
 public:
-	CExtractIcon(LPCITEMIDLIST);
+	CExtractIcon(CShellFolder*, LPCITEMIDLIST);
 	~CExtractIcon();
 	
 public:
@@ -24,6 +25,7 @@ public:
 private:
 	DWORD			m_ObjRefCount;
 	LPITEMIDLIST	m_pidl;
+	CShellFolder	*m_pSFParent;
 };
 
 #endif   //EXTRACTICON_H

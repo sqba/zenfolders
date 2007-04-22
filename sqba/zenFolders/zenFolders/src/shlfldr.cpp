@@ -62,6 +62,9 @@ CShellFolder::~CShellFolder()
 //	if(NULL != m_pDlg)
 //		delete m_pDlg;
 
+	if(m_pIcons)
+		delete m_pIcons;
+
 	gRelease(CSHELLFOLDER);
 }
 
@@ -77,6 +80,8 @@ void CShellFolder::Initialize()
 		delete this;
 		return;
 	}
+
+	m_pIcons = new CIcons(g_hInst);
 
 	m_ObjRefCount = 1;
 
@@ -534,7 +539,7 @@ STDMETHODIMP CShellFolder::GetUIObjectOf(HWND hwndOwner,
 	if(IsEqualIID(riid, IID_IExtractIcon))
 	{
 		CPidl pidl = m_pidlRel + pPidl[0];
-		CExtractIcon *pei = new CExtractIcon( pidl.GetFull() );
+		CExtractIcon *pei = new CExtractIcon( this, pidl.GetFull() );
 		
 		if(pei)
 		{

@@ -7,6 +7,7 @@
 //#include "foldprop.h"
 #include "util/dragdrop.h"
 #include "cfgxml.h"
+#include "icons.h"
 
 class CFolderPropertiesDlg;
 
@@ -82,6 +83,12 @@ public:
 	void SaveListViewStyle(LONG);
 	LONG GetListViewStyle();
 
+	HICON GetIconLarge(UINT index)		{ return m_pIcons->GetIconLarge(index); }
+	HICON GetIconSmall(UINT index)		{ return m_pIcons->GetIconSmall(index); }
+	HIMAGELIST GetListSmall()			{ return m_pIcons->GetListSmall(); }
+	HIMAGELIST GetListLarge()			{ return m_pIcons->GetListLarge(); }
+	int GetIconIndex(LPCTSTR pszPath)	{ return m_pIcons->GetIconIndex(pszPath); }
+
 private:
 	void Initialize();
 	void DisplayVersion();
@@ -95,6 +102,7 @@ private:
 //	CFolderPropertiesDlg	*m_pDlg;
 	UINT					m_iFileCount;
 	UINT					m_iFolderCount;
+	CIcons					*m_pIcons;
 };
 
 

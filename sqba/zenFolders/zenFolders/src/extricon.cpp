@@ -1,14 +1,16 @@
 
 #include "extricon.h"
-#include "icons.h"
+//#include "icons.h"
 #include "zenfolders.h"
 
 extern HINSTANCE	g_hInst;
-extern LPICONS		g_pIcons;
+///extern LPICONS		g_pIcons;
 extern LPPIDLMGR	g_pPidlMgr;
 
-CExtractIcon::CExtractIcon(LPCITEMIDLIST pidl)
+CExtractIcon::CExtractIcon(CShellFolder *pSFParent, LPCITEMIDLIST pidl)
 {
+	m_pSFParent = pSFParent;
+
 	m_pidl = g_pPidlMgr->Copy(pidl);
 	
 	m_ObjRefCount = 1;
@@ -105,8 +107,10 @@ STDMETHODIMP CExtractIcon::Extract(LPCTSTR pszFile,
 {
 //	*phiconLarge = ImageList_GetIcon(g_himlLarge, nIconIndex, ILD_TRANSPARENT);
 //	*phiconSmall = ImageList_GetIcon(g_himlSmall, nIconIndex, ILD_TRANSPARENT);
-	*phiconLarge = g_pIcons->GetIconLarge(nIconIndex);
-	*phiconSmall = g_pIcons->GetIconSmall(nIconIndex);
+//	*phiconLarge = g_pIcons->GetIconLarge(nIconIndex);
+//	*phiconSmall = g_pIcons->GetIconSmall(nIconIndex);
+	*phiconLarge = m_pSFParent->GetIconLarge(nIconIndex);
+	*phiconSmall = m_pSFParent->GetIconSmall(nIconIndex);
 
 	return S_OK;
 }
@@ -197,7 +201,9 @@ STDMETHODIMP CExtractIcon::GetIconLocation(UINT uFlags,
 		LPPIDLDATA pData = CPidlManager::GetDataPointer(pidlRel);
 		if(NULL != pData)
 		{
-			*piIndex = g_pIcons->GetIconIndex(pData->fileData.szPath);
+//			*piIndex = g_pIcons->GetIconIndex(pData->fileData.szPath);
+			*piIndex = m_pSFParent->GetIconIndex(pData->fileData.szPath);
+//			*piIndex = g_pIcons->GetIconIndex(pData->fileData.pidlFS);
 			if(*piIndex >= -1)
 				return S_OK;
 		}
