@@ -14,7 +14,6 @@
 #include "google/googleds.h"
 
 #include "viewlist.h"
-//#include "icons.h"
 #include "clsfact.h"
 #include "guid.h"
 #include "cfgxml.h"
@@ -24,7 +23,6 @@
 
 HINSTANCE	g_hInst			= NULL;
 UINT		g_DllRefCount	= 0;
-//CIcons		*g_pIcons		= NULL;
 CViewList	*g_pViewList	= NULL;
 CConfigXML	*g_pConfigXML	= NULL;
 LPPIDLMGR	g_pPidlMgr		= NULL;
@@ -42,7 +40,6 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 		g_hInst = hInstance;
 		CSettings::GetGlobalSettings();
 		g_pConfigXML = new CConfigXML();
-//		g_pIcons = new CIcons(hInstance);
 		g_pViewList = new CViewList();
 		g_pPidlMgr = new CPidlManager();
 		g_pDialogList = new CDialogList();
@@ -51,8 +48,6 @@ BOOL WINAPI DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID /*lpReserved*/)
 	case DLL_PROCESS_DETACH:
 		_RPTF0(_CRT_WARN, "DLL_PROCESS_DETACH\n");
 		CSettings::SaveGlobalSettings();
-//		if(g_pIcons)
-//			delete g_pIcons;
 		if(g_pViewList)
 			delete g_pViewList;
 		if(g_pConfigXML)

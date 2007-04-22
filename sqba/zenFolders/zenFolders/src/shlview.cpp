@@ -1,7 +1,5 @@
 
 #include <crtdbg.h>
-//#include <windows.h>
-//#include <commctrl.h>
 
 #include "shlview.h"
 #include "commands.h"
@@ -10,7 +8,6 @@
 #include "resource.h"
 #include "dataobj.h"
 #include "dropsrc.h"
-//#include "icons.h"
 #include "viewlist.h"
 #include "cfgxml.h"
 #include "statusbar.h"
@@ -32,7 +29,6 @@
 #define MENU_MAX		100
 
 
-//extern LPICONS		g_pIcons;
 extern HINSTANCE	g_hInst;
 extern LPVIEWSLIST	g_pViewList;
 extern LPCONFIGXML	g_pConfigXML;
@@ -1726,8 +1722,6 @@ BOOL CShellView::InitList(void)
 	LoadString(g_hInst, IDS_COLUMN2, szString, sizeof(szString));
 	m_pListView->InsertColumn(szString, g_nColumn2);
 
-//	m_pListView->SetImageList(g_pIcons->GetListSmall(), LVSIL_SMALL);
-//	m_pListView->SetImageList(g_pIcons->GetListLarge(), LVSIL_NORMAL);
 	m_pListView->SetImageList(m_pSFParent->GetListSmall(), LVSIL_SMALL);
 	m_pListView->SetImageList(m_pSFParent->GetListLarge(), LVSIL_NORMAL);
 

@@ -1,10 +1,8 @@
 
 #include "extricon.h"
-//#include "icons.h"
 #include "zenfolders.h"
 
 extern HINSTANCE	g_hInst;
-///extern LPICONS		g_pIcons;
 extern LPPIDLMGR	g_pPidlMgr;
 
 CExtractIcon::CExtractIcon(CShellFolder *pSFParent, LPCITEMIDLIST pidl)
@@ -105,10 +103,6 @@ STDMETHODIMP CExtractIcon::Extract(LPCTSTR pszFile,
 								   HICON *phiconSmall, 
 								   UINT nIconSize)
 {
-//	*phiconLarge = ImageList_GetIcon(g_himlLarge, nIconIndex, ILD_TRANSPARENT);
-//	*phiconSmall = ImageList_GetIcon(g_himlSmall, nIconIndex, ILD_TRANSPARENT);
-//	*phiconLarge = g_pIcons->GetIconLarge(nIconIndex);
-//	*phiconSmall = g_pIcons->GetIconSmall(nIconIndex);
 	*phiconLarge = m_pSFParent->GetIconLarge(nIconIndex);
 	*phiconSmall = m_pSFParent->GetIconSmall(nIconIndex);
 
@@ -201,9 +195,7 @@ STDMETHODIMP CExtractIcon::GetIconLocation(UINT uFlags,
 		LPPIDLDATA pData = CPidlManager::GetDataPointer(pidlRel);
 		if(NULL != pData)
 		{
-//			*piIndex = g_pIcons->GetIconIndex(pData->fileData.szPath);
 			*piIndex = m_pSFParent->GetIconIndex(pData->fileData.szPath);
-//			*piIndex = g_pIcons->GetIconIndex(pData->fileData.pidlFS);
 			if(*piIndex >= -1)
 				return S_OK;
 		}
@@ -212,32 +204,3 @@ STDMETHODIMP CExtractIcon::GetIconLocation(UINT uFlags,
 	
 	return S_OK;
 }
-
-///////////////////////////////////////////////////////////////////////////
-//
-// Private functions
-//
-/*
-void ExtractIcon()
-{
-	HICON hIconSmall, hIconLarge;
-	int iIcons = ExtractIconEx( szIconPath, 0, &hIconLarge, &hIconSmall, 1 );
-	ImageList_AddIcon(g_himlSmall, hIconSmall);
-	ImageList_AddIcon(g_himlLarge, hIconLarge);
-}
-*/
-/*
-UINT ExtractIconEx(
-  LPCTSTR lpszFile,        // file name
-  int nIconIndex,          // icon index
-  HICON *phiconLarge,      // large icon array
-  HICON *phiconSmall,      // small icon array
-  UINT nIcons              // number of icons to extract
-);
-
-HICON ExtractIcon(
-  HINSTANCE hInst,          // instance handle
-  LPCTSTR lpszExeFileName,  // file name
-  UINT nIconIndex           // icon index
-);
-*/

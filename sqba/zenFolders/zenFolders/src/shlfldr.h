@@ -94,15 +94,14 @@ private:
 	void DisplayVersion();
 
 private:
-	DWORD					m_ObjRefCount;
-	CShellFolder			*m_pSFParent;
-	CPidl					m_pidlRel;
-	CPidl					m_pidlFQ;
-	LPMALLOC				m_pMalloc;
-//	CFolderPropertiesDlg	*m_pDlg;
-	UINT					m_iFileCount;
-	UINT					m_iFolderCount;
-	CIcons					*m_pIcons;
+	DWORD			m_ObjRefCount;
+	CShellFolder	*m_pSFParent;
+	CPidl			m_pidlRel;
+	CPidl			m_pidlFQ;
+	LPMALLOC		m_pMalloc;
+	UINT			m_iFileCount;
+	UINT			m_iFolderCount;
+	CIcons			*m_pIcons;
 };
 
 

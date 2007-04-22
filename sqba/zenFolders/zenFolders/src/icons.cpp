@@ -56,7 +56,8 @@ CIcons::CIcons(HINSTANCE hInst)
 	{
 		_RPTF0(_CRT_ERROR, "CreateImageList(32) failed\n");
 	}
-	_RPTF0(_CRT_WARN, "Loaded shell icons\n");
+
+//	_RPTF0(_CRT_WARN, "Loaded shell icons\n");
 }
 
 CIcons::~CIcons()
@@ -93,7 +94,8 @@ CIcons::~CIcons()
 		tmp = next;
 		count++;
 	}
-	_RPTF1(_CRT_WARN, "Destroyed %d icons\n", count);
+
+//	_RPTF1(_CRT_WARN, "Destroyed %d icons\n", count);
 }
 
 
@@ -123,30 +125,19 @@ HIMAGELIST CIcons::GetListSmall()
 
 int CIcons::GetIconIndex(LPCTSTR pszPath)
 {
-//	LPCTSTR pszExtension = CString::GetExtension(pszPath);
-
 	tagFileType *tmp = m_pFileTypes;
 	while(tmp)
 	{
-//		if(0 == lstrcmpi(tmp->szExtension, pszExtension))
 		if(0 == lstrcmpi(tmp->szPath, pszPath))
 		{
-//			if(tmp->bDontCache)
-//				break;
 			return tmp->index;
 		}
 		tmp = tmp->next;
 	}
 
-	// Icon not found
 	return AddAsociatedIcon(pszPath);
 }
-/*
-int CIcons::GetIconIndex(LPITEMIDLIST pidl)
-{
-	return AddAsociatedIcon((LPCITEMIDLIST)pidl);
-}
-*/
+
 
 //////////////////////////////////////////////////////////////////////
 // Private functions
@@ -175,7 +166,6 @@ tagFileType *CIcons::CreateNewFileType(LPCTSTR pszPath)
 		tmp = tmp->next;
 	}
 
-//	if(strlen(last->szExtension) > 0)
 	if(strlen(last->szPath) > 0)
 	{
 		tagFileType *newType = new tagFileType();
@@ -184,14 +174,8 @@ tagFileType *CIcons::CreateNewFileType(LPCTSTR pszPath)
 		last = newType;
 	}
 
-//	lstrcpyn(last->szExtension, pszExtension, ARRAYSIZE(last->szExtension));
 	lstrcpyn(last->szPath, pszPath, ARRAYSIZE(last->szPath));
-/*
-	if(0 == lstrcmpi(last->szExtension, ".exe"))
-	{
-		last->bDontCache = true;
-	}
-*/
+
 	return last;
 }
 
@@ -233,38 +217,10 @@ bool CIcons::AddShellIcon(HIMAGELIST himl, bool bSmall, int nIconIndex)
 
 int CIcons::AddAsociatedIcon(LPCTSTR pszPath)
 {
+	tagFileType *newType = CreateNewFileType(pszPath);
+
 	HICON hIconSmall = GetAsociatedIcon(pszPath, true);
 	HICON hIconLarge = GetAsociatedIcon(pszPath, false);
-/*
-	if((NULL == hIconSmall) && (NULL == hIconLarge))
-	{
-		hIconSmall = LoadIcon(pszPath, true);
-		hIconLarge = LoadIcon(pszPath, false);
-		if((NULL == hIconSmall) && (NULL == hIconLarge))
-		{
-			_RPTF1(_CRT_WARN, "AddAsociatedIcon(%s) failed to extract both small and big icon!\n", pszPath);
-		}
-	}
-
-	if(NULL == hIconSmall)
-	{
-		_RPTF1(_CRT_WARN, "AddAsociatedIcon(%s) failed to extract small icon, adding default document icon\n", pszPath);
-		hIconSmall = ExtractShellIcon(SI_DEF_DOCUMENT, true);
-	}
-
-	if(NULL == hIconLarge)
-	{
-		_RPTF1(_CRT_WARN, "AddAsociatedIcon(%s) failed to extract big icon, adding default document icon\n", pszPath);
-		hIconLarge = ExtractShellIcon(SI_DEF_DOCUMENT, false);
-	}
-
-	LPCTSTR pszExtension = CString::GetExtension(pszPath);
-
-//	_ASSERT(0 != lstrcmpi(pszExtension, ".psd"));
-
-	tagFileType *newType = CreateNewFileType(pszExtension);
-*/
-	tagFileType *newType = CreateNewFileType(pszPath);
 
 	newType->hIconSmall = hIconSmall;
 	newType->hIconLarge = hIconLarge;
@@ -324,84 +280,8 @@ HICON CIcons::GetAsociatedIcon(LPCTSTR pszPath, bool bSmall)
 	{
 		return ExtractShellIcon(SI_DEF_DOCUMENT, bSmall);
 	}
-
-//	return result ? shfi.hIcon : NULL;
-}
-/*
-int CIcons::AddAsociatedIcon(LPCITEMIDLIST pidl)
-{
-	HICON hIconSmall = GetAsociatedIcon(pidl, true);
-	HICON hIconLarge = GetAsociatedIcon(pidl, false);
-
-	if((NULL == hIconSmall) && (NULL == hIconLarge))
-	{
-		_RPTF1(_CRT_ERROR, "AddAsociatedIcon(%s) failed to extract both small and big icon!\n", pszPath);
-	}
-
-	if(NULL == hIconSmall)
-	{
-		_RPTF1(_CRT_WARN, "AddAsociatedIcon(%s) failed to extract small icon, adding default document icon\n", pszPath);
-		hIconSmall = ExtractShellIcon(SI_DEF_DOCUMENT, true);
-	}
-
-	if(NULL == hIconLarge)
-	{
-		_RPTF1(_CRT_WARN, "AddAsociatedIcon(%s) failed to extract big icon, adding default document icon\n", pszPath);
-		hIconLarge = ExtractShellIcon(SI_DEF_DOCUMENT, false);
-	}
-
-	LPCTSTR pszExtension = CString::GetExtension(pszPath);
-
-//	_ASSERT(0 != lstrcmpi(pszExtension, ".psd"));
-
-	tagFileType *newType = CreateNewFileType(pszExtension);
-
-	newType->hIconSmall = hIconSmall;
-	newType->hIconLarge = hIconLarge;
-
-	int iSmall = ImageList_AddIcon(m_himlSmall, hIconSmall);
-	int iLarge = ImageList_AddIcon(m_himlLarge, hIconLarge);
-
-	_ASSERT(iSmall == iLarge);
-
-	newType->index = iSmall;
-
-	return newType->index;
 }
 
-HICON CIcons::GetAsociatedIcon(LPCITEMIDLIST pidl, bool bSmall)
-{
-	HRESULT hr;
-	//IShellFolder *psfDesktop = NULL;
-	IShellFolder *psfParent = NULL;	//A pointer to the parent folder object's IShellFolder interface
-	IExtractIcon *pExtractIcon = NULL;
-	LPITEMIDLIST pidlRelative = NULL; //the item's PIDL relative to the parent folder
-
-//	::SHGetDesktopFolder(&psfDesktop);
-//	hr = psfDesktop->GetUIObjectOf(
-//		NULL,
-//		1,
-//		(LPCITEMIDLIST)ppidl,
-//		IID_IExtractIcon,
-//		NULL,
-//		(void**)&pExtractIcon);
-//	psfDesktop->Release();
-
-	hr = ::SHBindToParent
-	(
-		pidl,
-		IID_IShellFolder,
-		(void **)&psfParent,
-		(LPCITEMIDLIST*)&pidlRelative
-	);
-
-	if(S_OK == hr)
-	{
-	}
-
-	return NULL;
-}
-*/
 HICON CIcons::ExtractShellIcon(int nIndex, bool bSmall)
 {
 	int nIcons = 0;
@@ -417,7 +297,6 @@ HICON CIcons::ExtractShellIcon(int nIndex, bool bSmall)
     return nIcons ? hIcon : NULL;
 
 }
-
 
 HICON CIcons::LoadIcon(LPCTSTR pszPath, bool bSmall)
 {

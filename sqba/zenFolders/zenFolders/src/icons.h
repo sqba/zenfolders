@@ -13,13 +13,11 @@
 
 struct tagFileType
 {
-//	TCHAR		szExtension[5];
 	TCHAR		szPath[MAX_PATH];
 	int			index;
 	HICON		hIconSmall;
 	HICON		hIconLarge;
 	tagFileType *next;
-	bool		bDontCache;
 };
 
 
@@ -36,7 +34,6 @@ public:
 	HIMAGELIST GetListSmall();
 
 	int GetIconIndex(LPCTSTR);
-//	int GetIconIndex(LPITEMIDLIST);
 
 private:
 	bool		LoadShellIcons(HIMAGELIST, bool);
@@ -47,12 +44,6 @@ private:
 	HICON		ExtractShellIcon(int, bool);
 	tagFileType *CreateNewFileType(LPCTSTR);
 	HICON		LoadIcon(LPCTSTR, bool);
-
-//	int			AddAsociatedIcon(LPCITEMIDLIST);
-//	HICON		GetAsociatedIcon(LPCITEMIDLIST, bool);
-
-//	HICON		ExtractIcon(LPCTSTR, int, bool);
-//	void		AddIcon(HIMAGELIST, int, int);
 
 private:
 	HINSTANCE	m_hInst;
