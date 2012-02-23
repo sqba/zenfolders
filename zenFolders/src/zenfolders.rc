@@ -1,0 +1,258 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ZENFOLDERS          ICON    DISCARDABLE     "../icons/zenFolders.ico"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_FOLDER_PROPERTIES DIALOG DISCARDABLE  0, 0, 241, 258
+STYLE DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Folder Properties"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,76,237,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,130,237,50,14
+    PUSHBUTTON      "Apply",IDAPPLY,184,237,50,14
+    EDITTEXT        IDC_FOLDER_NAME,62,24,172,14,ES_AUTOHSCROLL | WS_GROUP
+    ICON            IDI_ZENFOLDERS,IDC_STATIC,7,19,20,20
+    EDITTEXT        IDC_FOLDER_QUERY,7,65,227,75,ES_MULTILINE | 
+                    ES_AUTOVSCROLL
+    LTEXT           "http://zenFolders.googlepages.com",IDC_STATIC,64,216,
+                    114,8
+    COMBOBOX        IDC_CATEGORY,104,155,51,78,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Category:",IDC_STATIC,68,157,32,8
+    CONTROL         "Relevance",IDC_RANKING_RELEVANCE,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,104,170,49,9
+    CONTROL         "Recency",IDC_RANKING_RECENCY,"Button",
+                    BS_AUTORADIOBUTTON | WS_TABSTOP,158,170,43,9
+    LTEXT           "Ranking by:",IDC_STATIC,60,170,40,9
+    EDITTEXT        IDC_MAXRESULTS,104,182,19,14,ES_AUTOHSCROLL | ES_NUMBER
+    LTEXT           "Maximum results:",IDC_STATIC,44,184,55,8
+    CONTROL         "",13095,"Static",SS_ETCHEDHORZ,7,203,227,1
+    CONTROL         "",13097,"Static",SS_ETCHEDHORZ,7,147,227,1
+    LTEXT           "Search string:",IDC_STATIC,7,53,45,8
+    CONTROL         "",13098,"Static",SS_ETCHEDHORZ,7,46,227,1
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_FOLDER_PROPERTIES, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 234
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 251
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,7
+ PRODUCTVERSION 1,0,0,7
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "oneFingerZen\0"
+            VALUE "FileDescription", "zenFolders\0"
+            VALUE "FileVersion", "1, 0, 0, 7\0"
+            VALUE "InternalName", "zenFolders\0"
+            VALUE "LegalCopyright", "Copyright oneFingerZen© 2007\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "zenFolders.dll\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "OneFingerZen zenFolders\0"
+            VALUE "ProductVersion", "1, 0, 0, 7\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACCELERATORS ACCELERATORS DISCARDABLE 
+BEGIN
+    VK_DELETE,      IDM_DELETE,             VIRTKEY, NOINVERT
+    VK_F2,          IDM_RENAMEFOLDER,       VIRTKEY, NOINVERT
+    VK_F5,          IDM_REFRESH,            VIRTKEY, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_POPUP MENU DISCARDABLE 
+BEGIN
+    POPUP "View"
+    BEGIN
+        MENUITEM "Large Icons",                 IDC_LARGE_ICONS
+        MENUITEM "Small Icons",                 IDC_SMALL_ICONS
+        MENUITEM "List",                        IDC_LIST
+        MENUITEM "Details",                     IDC_DETAILS
+        MENUITEM "Report",                      IDC_DETAILS2
+        MENUITEM "Thumbnails",                  IDC_THUMBNAILS, GRAYED
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_REGISTRY_TITLE      "Registry: "
+    IDS_MI_REGISTRY         "&Registry"
+    IDS_MI_VIEW_KEYS        "&View Registry Keys"
+    IDS_TB_VIEW_KEYS        "View Registry Keys"
+    IDS_MI_VIEW_IDW         "Show &Docking Window"
+    IDS_TB_VIEW_IDW         "Show Docking Window"
+    IDS_COLUMN1             "Name"
+    IDS_COLUMN2             "Details"
+    IDS_DEFAULT             "(Default)"
+    IDS_NODATA              "(value not set)"
+    IDS_FOLDER              "(folder)"
+    IDS_MI_FILEITEM         "&Registry File Item"
+    IDS_SHOWONLYEXTENSION   "Show only '%s' files"
+    IDS_HIDEEXTENSION       "Hide all '%s' files"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_ADDEXTFOLDER        "Move all .%s files to '%s files' folder"
+    IDS_EXPLORE             "&Explore"
+    IDS_OPEN                "&Open"
+    IDS_DELETE_FOLDER       "&Delete"
+    IDS_RENAME              "&Rename"
+    IDS_CREATE_FOLDER       "&New Folder"
+    IDS_PROPERTIES          "&Properties"
+    IDS_NEWFOLDER           "New Folder"
+    IDS_OPENCONTAININGFOLDER "Open containing folder"
+    IDS_CLEARSEARCH         "Clear search string"
+    IDS_APPTITLE            "zenFolders"
+    IDS_APPDESC             "zenFolders - Google Desktop Search Namespace Extension"
+    IDS_DELETEFOLDERS       "Are you sure you want to remove these %d folders?"
+    IDS_DELETEFOLDERS_CAPTION "Confirm Folders Delete"
+    IDS_DELETEFOLDER        "Are you sure you want to remove the folder '%s'?"
+    IDS_DELETEFOLDER_CAPTION "Confirm Folder Delete"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_VERSIONINFO         "zenFolders\nversion: %s\npath :%s\nweb: http:\\\\zenfolders.googlepages.com\nemail: zenfolders@gmail.com"
+    IDS_DELETEITEMS         "Are you sure you want to remove these %d folders and %d files?"
+    IDS_DELETEITEMS_CAPTION "Confirm Delete"
+    IDS_DELETEFILES         "Are you sure you want to remove these %d files?"
+    IDS_DELETEFILES_CAPTION "Confirm File Delete"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

@@ -1,0 +1,201 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_MAIN DIALOG DISCARDABLE  0, 0, 271, 158
+STYLE DS_3DLOOK | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "zenFolders Installation Wizzard"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,161,137,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,214,137,50,14
+    LTEXT           "zenFolders",IDC_MESSAGE,7,56,257,70
+    CONTROL         103,IDC_STATIC,"Static",SS_BITMAP,0,0,274,45
+    RTEXT           "Version",IDC_VERSION,167,45,97,9
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_MAIN, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 264
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 151
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_MAIN                ICON    DISCARDABLE     "zenFolders.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_HEADER              BITMAP  DISCARDABLE     "header.bmp"
+
+#ifndef _MAC
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,9
+ PRODUCTVERSION 1,0,0,9
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x40004L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "Comments", "\0"
+            VALUE "CompanyName", "oneFingerZen\0"
+            VALUE "FileDescription", "zenFolders Setup\0"
+            VALUE "FileVersion", "1, 0, 0, 9\0"
+            VALUE "InternalName", "Setup\0"
+            VALUE "LegalCopyright", "Copyright oneFingerZen © 2007\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "Setup.exe\0"
+            VALUE "PrivateBuild", "\0"
+            VALUE "ProductName", "zenFolders Setup\0"
+            VALUE "ProductVersion", "1, 0, 0, 9\0"
+            VALUE "SpecialBuild", "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+#endif    // !_MAC
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_INSTALL_SUCCESS     "zenFolders succesfully installed."
+    IDS_REGISTERACTIVEXFAILED "Failed to register ActiveX control."
+    IDS_EXTRACTFAILED       "Failed to extract file %s: \nProbably previos uninstallation failed.\nPlease restart the computer before installing again.\nThank You"
+    IDS_CREATEFOLDERFAILED  "Failed to create folder %s. \nDo you have permissions to install software on this machine?"
+    IDS_INSTALLDIALOGTITLE  "zenFolders Installation Wizard"
+    IDS_INSTALL_FAILED      "Previous uninstallation required restart.\nPlease restart the computer before installing again."
+    IDS_UNINSTALL_SUCCESS   "zenFolders successfully uninstalled.\nThank you for using zenFolders.\nBye!"
+    IDS_UNINSTALL_RESTART   "zenFolders successfully uninstalled.\nPlease restart the computer.\nThank you for using zenFolders.\nBye!"
+    IDS_UNREGISTERACTIVEXFAILED "Failed to unregister ActiveX control."
+    IDS_CAPTION_UNINSTALL   "zenFolders Removal Wizard"
+    IDS_CAPTION_INSTALL     "zenFolders Installation Wizard"
+    IDS_BODY_UNINSTALL      "Remove zenFolders?"
+    IDS_BODY_INSTALL        "zenFolders will be installed in: '%s'"
+    IDS_SETUPCOPYFAILED     "Failed to copy setup file."
+    IDS_CREATEUNINSTALLKEYFAILED "RegCreateKeyEx failed."
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDS_SETUNINSTALLKEYFAILED "RegSetValueEx failed."
+    IDS_EXTRACTING          "Extracting %s: "
+    IDS_EXTRACTINGFAILED    "Failed"
+    IDS_EXTRACTINGSKIPPED   "Skipped"
+    IDS_LOCKRESOURCEFAILED  "Failed to lock resource"
+    IDS_LOADRESOURCEFAILED  "Failed to load resource"
+    IDS_RESOURCENOTFOUND    "Resource not found"
+    IDS_EXTRACTINGOK        "OK"
+    IDS_RESTARTBEFOREUPDATE "Previous version has been removed.\nPlease restart the computer and run setup again to install new version."
+    IDS_VERSION             "Version: %s"
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
