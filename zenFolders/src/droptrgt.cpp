@@ -78,12 +78,12 @@ STDMETHODIMP CDropTarget::QueryInterface(REFIID riid, LPVOID *ppReturn)
 	return E_NOINTERFACE;
 }
 
-STDMETHODIMP_(DWORD) CDropTarget::AddRef(VOID)
+STDMETHODIMP_(DWORD) CDropTarget::AddRef()
 {
 	return ++m_ObjRefCount;
 }
 
-STDMETHODIMP_(DWORD) CDropTarget::Release(VOID)
+STDMETHODIMP_(DWORD) CDropTarget::Release()
 {
 	if(--m_ObjRefCount == 0)
 	{
@@ -133,7 +133,7 @@ STDMETHODIMP CDropTarget::DragOver(DWORD dwKeyState, POINTL pt, LPDWORD pdwEffec
 	return S_OK;
 }
 
-STDMETHODIMP CDropTarget::DragLeave(VOID)
+STDMETHODIMP CDropTarget::DragLeave()
 {
 	m_fAcceptFmt = FALSE;
 	
@@ -306,7 +306,33 @@ BOOL CDropTarget::DoPrivateDrop(HGLOBAL hMem, BOOL fMove)
 BOOL CDropTarget::DoHDrop(HDROP hDrop, BOOL fMove)
 {
 	_RPTF0(_CRT_WARN, "CDropTarget::DoHDrop()\n");
+
+	TCHAR szFileName[MAX_PATH]={0};
+	UINT nFiles = ::DragQueryFile(hDrop, (UINT) -1, NULL, 0);
+    for( UINT i=0; i<nFiles; i++ ) 
+    {
+    	// Get dragged filename
+    	if( 0 == ::DragQueryFile(hDrop, i, szFileName, MAX_PATH) ) 
+			break;
+
+		_RPTF1(_CRT_WARN, " %s\n", szFileName);
+
+		DWORD dwAttrib = ::GetFileAttributes(szFileName);
+
+		// dragged a folder
+		bool bFolder = (0 != (dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
+
+		if( bFolder )
+		{
+			m_psfParent->AddFolderLink( szFileName );
+		}
+		else
+		{
+			m_psfParent->AddFileLink( szFileName );
+		}
+	}
 //	return SUCCEEDED(m_psfParent->MoveCopyFromHDrop(hDrop, fMove));
+
 	return FALSE;
 }
 
@@ -327,7 +353,7 @@ LPITEMIDLIST* CDropTarget::AllocPidlTable(DWORD dwEntries)
 	return aPidls;
 }
 
-VOID CDropTarget::FreePidlTable(LPITEMIDLIST *aPidls)
+void CDropTarget::FreePidlTable(LPITEMIDLIST *aPidls)
 {
 	if(aPidls && g_pPidlMgr)
 	{

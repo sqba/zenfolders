@@ -82,7 +82,8 @@ HRESULT CShellNSE::RegisterServer(HINSTANCE hInst, GUID guid)
 		DWORD dwData =
 			SFGAO_FOLDER
 			| SFGAO_HASSUBFOLDER
-			| SFGAO_FILESYSTEM;
+			| SFGAO_FILESYSTEM
+			| SFGAO_DROPTARGET;
 			//| SFGAO_CANRENAME;
 			//| SFGAO_HASPROPSHEET;
 		
@@ -326,7 +327,7 @@ int CShellNSE::GetName(GUID guid, LPCTSTR lpszName, int size)
 	return 0;
 }
 
-BOOL CShellNSE::IsRegistered(HINSTANCE hInst, GUID guid)
+bool CShellNSE::IsRegistered(HINSTANCE hInst, GUID guid)
 {
 //	int		i;
 	TCHAR	szSubKey[MAX_PATH];
@@ -351,13 +352,13 @@ BOOL CShellNSE::IsRegistered(HINSTANCE hInst, GUID guid)
 	wsprintf(szSubKey, TEXT(STR_SHELLFOLDER_KEY), szCLSID);
 	if( ERROR_SUCCESS == RegOpenKey(HKEY_CLASSES_ROOT, szSubKey, &hkResult) )
 	{
-		return TRUE;
+		return true;
 	}
 	
 	wsprintf(szSubKey, TEXT(STR_NAMESPACE_KEY), TEXT(ROOT_LOCATION), szCLSID);
 	if( ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, szSubKey, &hkResult) )
 	{
-		return TRUE;
+		return true;
 	}
 	
 	OSVERSIONINFO  osvi;
@@ -368,9 +369,9 @@ BOOL CShellNSE::IsRegistered(HINSTANCE hInst, GUID guid)
 		lstrcpy( szSubKey, TEXT(STR_SHELLEX_KEY));
 		if( ERROR_SUCCESS == RegOpenKey(HKEY_LOCAL_MACHINE, szSubKey, &hkResult) )
 		{
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
