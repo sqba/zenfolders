@@ -14,7 +14,7 @@ extern LPPIDLMGR		g_pPidlMgr;
 extern HINSTANCE		g_hInst;
 
 
-bool CSettings::GetPath(TCHAR *lpszPath, DWORD dwSize)
+BOOL CSettings::GetPath(TCHAR *lpszPath, DWORD dwSize)
 {
 	DWORD dwRet = ::GetCurrentDirectory(MAX_PATH, lpszPath);
 	if(dwRet > 0)
@@ -24,23 +24,23 @@ bool CSettings::GetPath(TCHAR *lpszPath, DWORD dwSize)
 		if(p)
 		{
 			*(++p) = 0;
-			return true;
+			return TRUE;
 		}
 	}
-	return false;
+	return FALSE;
 }
 
-bool CSettings::GetXmlFilePath(TCHAR *lpszPath, DWORD dwSize)
+BOOL CSettings::GetXmlFilePath(TCHAR *lpszPath, DWORD dwSize)
 {
 	if( GetPath(lpszPath, dwSize) )
 	{
 		strcat(lpszPath, ZENFOLDERS_XML);
-		return true;
+		return TRUE;
 	}
-	return false;
+	return FALSE;
 }
 
-bool CSettings::SaveGlobalSettings(void)
+BOOL CSettings::SaveGlobalSettings(void)
 {
 	DWORD dwArray[2] = {0};
 	dwArray[0] = g_nColumn1;
@@ -53,7 +53,7 @@ bool CSettings::SaveGlobalSettings(void)
 		sizeof(dwArray));
 }
 
-bool CSettings::GetGlobalSettings(void)
+BOOL CSettings::GetGlobalSettings(void)
 {
 	DWORD dwArray[2] = {0};
 
@@ -66,7 +66,7 @@ bool CSettings::GetGlobalSettings(void)
 		VALUE_STRING,
 		(LPBYTE)dwArray,
 		sizeof(dwArray)))
-		return false;
+		return FALSE;
 
 	g_nColumn1	= dwArray[0];
 	g_nColumn2	= dwArray[1];
@@ -78,7 +78,7 @@ bool CSettings::GetGlobalSettings(void)
 	if(g_nColumn2 < 0)
 		g_nColumn2 = INITIAL_COLUMN_SIZE;
 
-	return true;
+	return TRUE;
 }
 
 long CSettings::GetGoogleCookie()

@@ -17,7 +17,7 @@ typedef struct
     HWND        hwndFrom;
     VARIANTARG  *pva;
     DWORD       dwUnused;
-} TBDDDATA, FAR *LPTBDDDATA;
+} TBDDDATA, *LPTBDDDATA;
 
 
 typedef struct
@@ -28,7 +28,7 @@ typedef struct
 	UINT  iImage;
 	BYTE  bState;
 	BYTE  bStyle;
-} MYTOOLINFO, FAR *LPMYTOOLINFO;
+} MYTOOLINFO, *LPMYTOOLINFO;
 
 
 MYTOOLINFO g_Tools[] = 
@@ -104,7 +104,7 @@ BOOL CToolBar::OnTtnNeedTextW(LPNMHDR lpnmh)
 	return FALSE;
 }
 
-void CToolBar::MergeToolbar(LPSHELLBROWSER pShellBrowser)
+VOID CToolBar::MergeToolbar(LPSHELLBROWSER pShellBrowser)
 {
 	int         i;
 	TBADDBITMAP tbab;
@@ -164,16 +164,14 @@ void CToolBar::MergeToolbar(LPSHELLBROWSER pShellBrowser)
 	//::SendMessage(?, TB_SETEXTENDEDSTYLE, 0, (LPARAM)TBSTYLE_EX_DRAWDDARROWS);
 }
 
-void CToolBar::OnToolbarDropdown(CListView *pListView,
+VOID CToolBar::OnToolbarDropdown(CListView *pListView,
 								 LPSHELLBROWSER pShellBrowser,
 								 HWND hwndParent,
 								 HWND hWndView,
 								 LPARAM lParam)
 {
 	LPTBDDDATA ptbd = (LPTBDDDATA)lParam;
-	if(ptbd->pva)
-//	if(ptbd->pva && (VT_INT_PTR == ptbd->pva->vt))
-//	if(ptbd->pva && (VT_I4 == ptbd->pva->vt))
+	if(ptbd->pva && (VT_INT_PTR == ptbd->pva->vt))
 	{
 		HMENU hMenu  = ::LoadMenu(g_hInst, MAKEINTRESOURCE(IDR_POPUP)); 
 		HMENU hPopupMenu = ::GetSubMenu(hMenu, 0);

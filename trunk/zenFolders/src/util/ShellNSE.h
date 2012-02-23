@@ -5,14 +5,12 @@
 #include <olectl.h>
 #include <shlobj.h>
 
-
 typedef struct {
 	HKEY  hRootKey;
 	LPTSTR lpszSubKey;
 	LPTSTR lpszValueName;
 	LPTSTR lpszData;
-} REGSTRUCT, FAR *LPREGSTRUCT;
-
+} REGSTRUCT, *LPREGSTRUCT;
 
 class CShellNSE  
 {
@@ -23,7 +21,7 @@ public:
 	static HRESULT RegisterProperties(HINSTANCE, GUID, GUID);
 	static HRESULT UnregisterProperties(HINSTANCE, GUID);
 
-	static bool IsRegistered(HINSTANCE, GUID);
+	static BOOL IsRegistered(HINSTANCE, GUID);
 
 	static int GetName(GUID, LPCTSTR, int);
 

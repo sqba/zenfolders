@@ -49,7 +49,7 @@ CShellView* CViewList::GetNextView(CShellView *pViewIn)
 	return pViewOut;
 }
 
-bool CViewList::AddToList(CShellView *pView)
+BOOL CViewList::AddToList(CShellView *pView)
 {
 	LPVIEWLIST  pNew;
 	
@@ -76,13 +76,13 @@ bool CViewList::AddToList(CShellView *pView)
 		//update the last item pointer
 		m_pLast = pNew;
 		
-		return true;
+		return TRUE;
 	}
 	
-	return false;
+	return FALSE;
 }
 
-void CViewList::RemoveFromList(CShellView *pView)
+VOID CViewList::RemoveFromList(CShellView *pView)
 {
 	LPVIEWLIST  pDelete;
 	LPVIEWLIST  pPrev;
@@ -118,7 +118,7 @@ void CViewList::RemoveFromList(CShellView *pView)
 	}
 }
 
-void CViewList::DeleteList()
+BOOL CViewList::DeleteList(VOID)
 {
 	LPVIEWLIST  pDelete;
 	
@@ -132,6 +132,8 @@ void CViewList::DeleteList()
 	}
 	
 	m_pFirst = m_pLast = NULL;
+	
+	return TRUE;
 }
 
 void CViewList::Refresh()

@@ -409,7 +409,7 @@ BOOL CDataObject::AllocPidlTable(DWORD dwEntries)
 
 **************************************************************************/
 
-void CDataObject::FreePidlTable()
+VOID CDataObject::FreePidlTable(VOID)
 {
 	if(m_aPidls && g_pPidlMgr)
 	{

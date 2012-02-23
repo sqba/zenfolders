@@ -11,21 +11,21 @@
 #define ICON_INDEX_FILE			3
 
 
-typedef struct _FILETYPE
+struct tagFileType
 {
-	TCHAR				szPath[MAX_PATH];
-	int					index;
-	HICON				hIconSmall;
-	HICON				hIconLarge;
-	struct _FILETYPE	*next;
-} FILETYPE, FAR *LPFILETYPE;
+	TCHAR		szPath[MAX_PATH];
+	int			index;
+	HICON		hIconSmall;
+	HICON		hIconLarge;
+	tagFileType *next;
+};
 
 
-class CIconList  
+class CIcons  
 {
 public:
-	CIconList(HINSTANCE);
-	virtual ~CIconList();
+	CIcons(HINSTANCE);
+	virtual ~CIcons();
 
 	HICON GetIconLarge(UINT);
 	HICON GetIconSmall(UINT);
@@ -42,7 +42,7 @@ private:
 	bool		AddShellIcon(HIMAGELIST, bool, int);
 	HICON		GetAsociatedIcon(LPCTSTR, bool);
 	HICON		ExtractShellIcon(int, bool);
-	LPFILETYPE	CreateNewFileType(LPCTSTR);
+	tagFileType *CreateNewFileType(LPCTSTR);
 	HICON		LoadIcon(LPCTSTR, bool);
 
 private:
@@ -50,12 +50,12 @@ private:
 	HIMAGELIST	m_himlLarge;
 	HIMAGELIST	m_himlSmall;
 	HICON		m_ShellIcons[(ICON_INDEX_FILE+1)*2];
-	LPFILETYPE	m_pFileTypes;
+	tagFileType	*m_pFileTypes;
 	int			m_iShellIconIndex;
 };
 
 
-//typedef CIconList FAR *LPICONLIST;
+typedef CIcons FAR *LPICONS;
 
 
 #endif // ICONS_H

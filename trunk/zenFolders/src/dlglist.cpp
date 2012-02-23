@@ -56,7 +56,7 @@ CFolderPropertiesDlg* CDialogList::GetNextDialog(CFolderPropertiesDlg *pDialogIn
 	return pDialogOut;
 }
 
-void CDialogList::RemoveFromList(CFolderPropertiesDlg *pDialog)
+VOID CDialogList::RemoveFromList(CFolderPropertiesDlg *pDialog)
 {
 	LPDIALOGLIST  pDelete;
 	LPDIALOGLIST  pPrev;
@@ -92,7 +92,7 @@ void CDialogList::RemoveFromList(CFolderPropertiesDlg *pDialog)
 	}
 }
 
-void CDialogList::DeleteList()
+BOOL CDialogList::DeleteList(VOID)
 {
 	LPDIALOGLIST  pDelete;
 	
@@ -106,13 +106,12 @@ void CDialogList::DeleteList()
 	}
 	
 	m_pFirst = m_pLast = NULL;
+	
+	return TRUE;
 }
 
-bool CDialogList::AddToList(CFolderPropertiesDlg *pDialog)
+BOOL CDialogList::AddToList(CFolderPropertiesDlg *pDialog)
 {
-	if( Exists(pDialog) )
-		return false;
-
 	LPDIALOGLIST  pNew;
 	
 	pNew = (LPDIALOGLIST)m_pMalloc->Alloc(sizeof(DIALOGLIST));
@@ -138,23 +137,8 @@ bool CDialogList::AddToList(CFolderPropertiesDlg *pDialog)
 		//update the last item pointer
 		m_pLast = pNew;
 		
-		return true;
+		return TRUE;
 	}
 	
-	return false;
-}
-
-bool CDialogList::Exists(CFolderPropertiesDlg *pDialog)
-{
-	LPDIALOGLIST  pTemp;
-	for(pTemp = m_pFirst; pTemp; pTemp = pTemp->pNext)
-	{
-		if( pTemp->pDialog->Equals(pDialog) )
-		{
-			pTemp->pDialog->BringToFront();
-			return true;
-		}
-		//pTemp = pTemp->pNext;
-	}
-	return false;
+	return FALSE;
 }

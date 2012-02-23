@@ -94,12 +94,12 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData,
 											   BOOL bHasSubFolders)
 {
 	IGoogleDesktopQueryResultSet *pResults = NULL;
-	LPSEARCHDATA pSearchData = &pData->searchData;
-	UINT ranking	= pSearchData->ranking;
-	UINT maxResults	= pSearchData->maxResults;
-	_bstr_t query(pSearchData->szQuery);
+	LPFOLDERDATA pFolderData = &pData->folderData;
+	UINT ranking	= pFolderData->ranking;
+	UINT maxResults	= pFolderData->maxResults;
+	_bstr_t query(pFolderData->szQuery);
 
-	if(0 == lstrlen(pSearchData->szQuery))
+	if(0 == lstrlen(pFolderData->szQuery))
 	{
 		if(!bHasSubFolders)
 			query = pData->szName;
@@ -110,9 +110,9 @@ IGoogleDesktopQueryResultSet *CGoogleDS::Query(LPPIDLDATA pData,
 	HRESULT hr;
 
 START:
-	if(lstrlen(pSearchData->szCategory) > 0)
+	if(lstrlen(pFolderData->szCategory) > 0)
 	{
-		_bstr_t category(pSearchData->szCategory);
+		_bstr_t category(pFolderData->szCategory);
 		pResults = CGoogleDS::Query(query, category, ranking, maxResults, &hr);
 	}
 	else
@@ -147,7 +147,7 @@ HRESULT CGoogleDS::AddPairToSafeArray(int index,
 	return hr;
 }
 
-bool CGoogleDS::RegisterPlugin()
+BOOL CGoogleDS::RegisterPlugin()
 {
 //	_RPTF0(_CRT_WARN, "RegisterPlugin\n");
 	try
@@ -161,7 +161,7 @@ bool CGoogleDS::RegisterPlugin()
 		if( FAILED(hr) )
 		{
 			_RPTF0(_CRT_WARN, "CreateInstance('GoogleDesktop.Registrar') failed!\n");
-			return false;
+			return FALSE;
 		}
 
 		_bstr_t guid( CONSOLE_PLUGIN_GUID );
@@ -191,7 +191,7 @@ bool CGoogleDS::RegisterPlugin()
 		if (FAILED(hr))
 		{
 			_RPTF0(_CRT_WARN, "StartComponentRegistration failed!\n");
-			return false;
+			return FALSE;
 		}
 
 		// Ask for the specific registration object that gives us Query API access.
@@ -202,7 +202,7 @@ bool CGoogleDS::RegisterPlugin()
 		if (FAILED(hr))
 		{
 			_RPTF0(_CRT_WARN, "raw_GetRegistrationInterface failed!\n");
-			return false;
+			return FALSE;
 		}
 
 		// Now ask that registration object to give us a cookie representing
@@ -219,19 +219,19 @@ bool CGoogleDS::RegisterPlugin()
 		if (FAILED(hr))
 		{
 			_RPTF0(_CRT_WARN, "FinishComponentRegistration failed!\n");
-			return false;
+			return FALSE;
 		}
 
-		return true;
+		return TRUE;
 	}
 	catch(...)
 	{
 		_RPTF0(_CRT_WARN, "Exception in RegisterPlugin()!\n");
-		return false;
+		return FALSE;
 	}
 }
 
-bool CGoogleDS::UnregisterPlugin()
+BOOL CGoogleDS::UnregisterPlugin()
 {
 	try
 	{
@@ -244,7 +244,7 @@ bool CGoogleDS::UnregisterPlugin()
 		if( FAILED(hr) )
 		{
 			_RPTF0(_CRT_WARN, "CreateInstance('GoogleDesktop.Registrar') failed!\n");
-			return false;
+			return FALSE;
 		}
 
 		_bstr_t guid( CONSOLE_PLUGIN_GUID );
@@ -252,16 +252,16 @@ bool CGoogleDS::UnregisterPlugin()
 		if (FAILED(hr))
 		{
 			_RPTF0(_CRT_WARN, "UnregisterComponent failed!\n");
-			return false;
+			return FALSE;
 		}
 
 		g_lCookie = 0;
 
-		return true;
+		return TRUE;
 	}
 	catch(...)
 	{
-		return false;
+		return FALSE;
 	}
 }
 
@@ -361,7 +361,7 @@ IGoogleDesktopQueryResultSet *CGoogleDS::QueryEx(const OLECHAR *query,
 	return pResults;
 }
 
-bool CGoogleDS::IsInstalled()
+BOOL CGoogleDS::IsInstalled()
 {
 	HRESULT hr;
 
@@ -372,19 +372,22 @@ bool CGoogleDS::IsInstalled()
 	if( FAILED(hr) )
 	{
 		_RPTF0(_CRT_WARN, "CreateInstance('GoogleDesktop.Registrar') failed!\n");
-		return false;
+		return FALSE;
 	}
 
-	return true;
+	return TRUE;
 }
 
-bool CGoogleDS::IsRegistered()
+BOOL CGoogleDS::IsRegistered()
 {
 	HRESULT hr;
 	IGoogleDesktopQueryAPIPtr spQuery;
 
 	hr = spQuery.CreateInstance("GoogleDesktop.QueryAPI");
-	return SUCCEEDED(hr);
+	if( FAILED(hr) )
+		return FALSE;
+
+	return TRUE;
 }
 
 

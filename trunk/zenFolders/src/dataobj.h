@@ -43,7 +43,7 @@ public:
 
 private:
 	BOOL AllocPidlTable(DWORD);
-	void FreePidlTable();
+	VOID FreePidlTable(VOID);
 	BOOL FillPidlTable(LPCITEMIDLIST*, UINT);
 
 private:

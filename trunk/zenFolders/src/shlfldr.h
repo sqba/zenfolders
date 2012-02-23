@@ -46,28 +46,35 @@ public:
 	STDMETHOD (SetNameOf) (HWND, LPCITEMIDLIST, LPCOLESTR, DWORD, LPITEMIDLIST*);
 	
 public:
+	BOOL GetFolderPath(LPTSTR, DWORD);
 	void ShowProperties(LPCITEMIDLIST);
 	void RemoveFiletype(LPCTSTR);
 	void ShowOnlyExtension(LPCTSTR);
 	void AddExtensionSubfolder(LPCTSTR);
+	LPENUMIDLIST CreateList(DWORD, HRESULT*);
+	LPITEMIDLIST CreateSubfolder(LPCITEMIDLIST, LPCTSTR);
 	void ClearFolderSearch(LPCITEMIDLIST);
 	LPITEMIDLIST CreateNewFolder(LPCITEMIDLIST);
 	void OpenFolder(HWND, LPCITEMIDLIST, BOOL);
-	void OpenContainingFolder(LPCITEMIDLIST);
-	void Delete(LPITEMIDLIST*);
-	LPITEMIDLIST GetPidlRel()			{ return m_pidlRel.GetRelative(); }
-
 	void Execute(LPCITEMIDLIST);
+	void OpenContainingFolder(LPCITEMIDLIST);
 
 	BOOL Rename(LPCITEMIDLIST, LPCTSTR);
+	BOOL RenameFile(LPCITEMIDLIST, LPCTSTR);
+	BOOL RenameFolder(LPCITEMIDLIST, LPCTSTR);
 
+	BOOL DeletePidl(LPCITEMIDLIST, BOOL);
+	void Delete(LPITEMIDLIST*);
+	BOOL DeleteFile(LPCITEMIDLIST, BOOL);
 	BOOL DeleteFolder(LPCITEMIDLIST, BOOL bVerify = TRUE);
-	BOOL DeleteFolderLink(LPCITEMIDLIST, BOOL bVerify = TRUE);
 
 	LPITEMIDLIST CreateFQPidl(LPCITEMIDLIST);
 
-	UINT GetFileCount()					{ return m_iFileCount; }
-	UINT GetSubFolderCount()			{ return m_iFolderCount; }
+	UINT GetFileCount()			{ return m_iFileCount; }
+	UINT GetFolderCount()		{ return m_iFolderCount; }
+
+	LPITEMIDLIST GetPidlRel()	{ return m_pidlRel.GetRelative(); }
+	LPITEMIDLIST GetPidlFull()	{ return m_pidlRel.GetFull(); }
 	
 	STDMETHOD (MoveCopyItems)(CShellFolder*, LPITEMIDLIST*, UINT, BOOL);
 
@@ -82,21 +89,9 @@ public:
 	HIMAGELIST GetListLarge()			{ return m_pIcons->GetListLarge(); }
 	int GetIconIndex(LPCTSTR pszPath)	{ return m_pIcons->GetIconIndex(pszPath); }
 
-	void AddFolderLink(LPCTSTR);
-	void AddFileLink(LPCTSTR);
-
 private:
-	bool Init();
+	void Initialize();
 	void DisplayVersion();
-	void DisplayFolderProperties(LPCITEMIDLIST);
-	void DisplayShellProperties(LPCITEMIDLIST);
-	bool ConfirmDelete(LPITEMIDLIST*);
-	LPENUMIDLIST CreateList(DWORD, HRESULT*);
-	LPITEMIDLIST CreateSubfolder(LPCITEMIDLIST, LPCTSTR);
-	BOOL RenameSubFolder(LPCITEMIDLIST, LPCTSTR);
-	BOOL RenameFile(LPCITEMIDLIST, LPCTSTR);
-	BOOL DeletePidl(LPCITEMIDLIST, BOOL);
-	BOOL DeleteFile(LPCITEMIDLIST, BOOL);
 
 private:
 	DWORD			m_ObjRefCount;
@@ -106,7 +101,7 @@ private:
 	LPMALLOC		m_pMalloc;
 	UINT			m_iFileCount;
 	UINT			m_iFolderCount;
-	CIconList		*m_pIcons;
+	CIcons			*m_pIcons;
 };
 
 
@@ -114,25 +109,19 @@ class CFolderPropertiesDlg
 {
 public:
 	CFolderPropertiesDlg(CShellFolder*, LPCITEMIDLIST);
-	CFolderPropertiesDlg(CShellFolder*);
 	virtual ~CFolderPropertiesDlg();
 
 	void Show();
-	bool Equals(CFolderPropertiesDlg *pDlg);
-	void BringToFront();
 
-	bool OnInit(HWND);
-	bool OnApply(HWND);
-	bool OnOk(HWND);
-	bool OnCancel(HWND);
-	bool OnClose(HWND);
-	bool OnDestroy(HWND);
+	BOOL OnInit(HWND);
+	BOOL OnApply(HWND);
+	BOOL OnOk(HWND);
+	BOOL OnCancel(HWND);
+	BOOL OnClose(HWND);
 
 private:
-	static BOOL CALLBACK DlgProc(HWND, UINT, WPARAM, LPARAM);
-
-private:
-	bool ApplyChanges(HWND);
+//	void CenterDialog(HWND);
+	BOOL ApplyChanges(HWND);
 
 	void InitMaxResults(HWND);
 	void InitQueryString(HWND);
@@ -140,22 +129,21 @@ private:
 	void InitRanking(HWND);
 	void InitCategory(HWND);
 
-	bool SetMaxResults(HWND, LPPIDLDATA);
-	bool SetQueryString(HWND, LPPIDLDATA);
-	bool SetFolderName(HWND, LPPIDLDATA);
-	bool SetRanking(HWND, LPPIDLDATA);
-	bool SetCategory(HWND, LPPIDLDATA);
+	BOOL SetMaxResults(HWND, LPPIDLDATA);
+	BOOL SetQueryString(HWND, LPPIDLDATA);
+	BOOL SetFolderName(HWND, LPPIDLDATA);
+	BOOL SetRanking(HWND, LPPIDLDATA);
+	BOOL SetCategory(HWND, LPPIDLDATA);
 
 	void SetCaption(HWND, LPPIDLDATA);
 
-	void DisplayPath(HWND);
-	void DisplayVersion(HWND);
-
 private:
 	HWND			m_hDlg;
+//	HINSTANCE		m_hInst;
 	CPidl			m_pidl;
 	CShellFolder	*m_pParent;
 };
 
+BOOL CALLBACK PropertiesDlgProc(HWND, UINT, WPARAM, LPARAM);
 
 #endif   //SHELLFOLDER_H

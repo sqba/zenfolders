@@ -41,17 +41,31 @@ LPITEMIDLIST CPidl::operator + (CPidl pidl)
 
 bool CPidl::operator == (LPCITEMIDLIST pidl)
 {
-	return m_pidl ? (TRUE == CPidlManager::Equal(m_pidl, pidl)) : false;
+	if(m_pidl)
+		return (TRUE == CPidlManager::Equal(m_pidl, pidl));
+	else
+		return false;
 }
 
 bool CPidl::operator != (LPCITEMIDLIST pidl)
 {
-	return m_pidl ? (FALSE == CPidlManager::Equal(m_pidl, pidl)) : false;
+	if(m_pidl)
+		return (FALSE == CPidlManager::Equal(m_pidl, pidl));
+	else
+		return false;
 }
 
 LPITEMIDLIST CPidl::GetRelative()
 {
-	return m_pidl ? CPidlManager::GetLastItem(m_pidl) : NULL;
+	if(m_pidl)
+		return CPidlManager::GetLastItem(m_pidl);
+	else
+		return NULL;
+}
+
+LPITEMIDLIST CPidl::GetFull()
+{
+	return m_pidl;
 }
 
 MSXML2::IXMLDOMNodePtr CPidl::GetNode()
@@ -61,32 +75,40 @@ MSXML2::IXMLDOMNodePtr CPidl::GetNode()
 
 LPPIDLDATA CPidl::GetData()
 {
-	return m_pidl ? CPidlManager::GetDataPointer( GetRelative() ) : NULL;
+	if(m_pidl)
+		return CPidlManager::GetDataPointer( GetRelative() );
+	else
+		return NULL;
 }
 
-bool CPidl::IsFile()
+BOOL CPidl::IsFile()
 {
-	return CPidlManager::IsFile( m_pidl );
+	if(0 == m_pidl->mkid.cb)
+		return FALSE;
+//	return CPidlManager::IsFile( GetRelative() );
+	LPPIDLDATA pData = GetData();
+	if(NULL == pData)
+		return FALSE;
+	return (PT_FILE == pData->type);
 }
 
-bool CPidl::IsFolder()
+BOOL CPidl::IsFolder()
 {
-	return CPidlManager::IsFolder( m_pidl );
+	if(0 == m_pidl->mkid.cb)
+		return FALSE;
+	LPPIDLDATA pData = GetData();
+	if(NULL == pData)
+		return FALSE;
+	return (PT_FOLDER == pData->type);
 }
 
-bool CPidl::IsFolderLink()
+BOOL CPidl::IsRoot()
 {
-	return CPidlManager::IsFolderLink( m_pidl );
-}
-
-bool CPidl::IsRoot()
-{
-	return CPidlManager::IsRoot( m_pidl );
-}
-
-bool CPidl::IsSubFolder()
-{
-	return CPidlManager::IsSubFolder( m_pidl );
+//	return (0 == m_pidl->mkid.cb);
+	LPPIDLDATA pData = GetData();
+	if(NULL == pData)
+		return FALSE;
+	return ((PT_FOLDER != pData->type) && (PT_FILE != pData->type));
 }
 
 DWORD CPidl::GetName(LPTSTR lpszText, USHORT uSize)
@@ -101,7 +123,7 @@ DWORD CPidl::GetPath(LPTSTR lpszOut, DWORD dwOutSize)
 
 DWORD CPidl::GetFSPath(LPTSTR lpszOut, DWORD dwOutSize)
 {
-	if( !IsFile() && !IsSubFolder() )
+	if( !IsFile() )
 		return 0;
 	LPPIDLDATA pData = GetData();
 	lstrcpyn(lpszOut, pData->fileData.szPath, dwOutSize);
@@ -111,20 +133,5 @@ DWORD CPidl::GetFSPath(LPTSTR lpszOut, DWORD dwOutSize)
 LPITEMIDLIST CPidl::operator += (LPCITEMIDLIST pidl)
 {
 	g_pPidlMgr->Concatenate(m_pidl, pidl);
-	return m_pidl;
-}
-
-CPidl::operator LPITEMIDLIST()
-{
-	return m_pidl;
-}
-
-CPidl::operator LPPIDLDATA()
-{
-	return GetData();
-}
-
-CPidl::operator LPVOID()
-{
 	return m_pidl;
 }

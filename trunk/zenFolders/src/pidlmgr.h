@@ -24,46 +24,40 @@ public:
 	CPidlManager();
 	virtual ~CPidlManager();
 
-public: // Member functions
+public:
+	// Member functions
 	void Delete(LPITEMIDLIST);
 	LPITEMIDLIST Copy(LPCITEMIDLIST);
 	LPITEMIDLIST Concatenate(LPCITEMIDLIST, LPCITEMIDLIST);
-	LPITEMIDLIST CreateFileFromSearch(IGoogleDesktopQueryResultItem*);
-	LPITEMIDLIST CreateFileFromNode(MSXML2::IXMLDOMNodePtr);
-	LPITEMIDLIST CreateFileFromPath(LPCTSTR);
+	LPITEMIDLIST CreateFile(IGoogleDesktopQueryResultItem*);
 	LPITEMIDLIST CreateFolder(MSXML2::IXMLDOMNodePtr);
-	LPITEMIDLIST CreateSubFolder(LPCTSTR);
-	LPITEMIDLIST CreateFolderLink(MSXML2::IXMLDOMNodePtr);
+	LPITEMIDLIST CreateFromPath(LPCITEMIDLIST);
 	LPITEMIDLIST GetFSPidl(LPCITEMIDLIST);
 	LPITEMIDLIST GetFSPidl(LPCTSTR);
 
-public: // Static functions
-	static bool IsRoot(LPCITEMIDLIST);
-	static bool IsFile(LPCITEMIDLIST);
-	static bool IsFolder(LPCITEMIDLIST);
-	static bool IsFolderLink(LPCITEMIDLIST);
-	static bool IsSubFolder(LPCITEMIDLIST);
-	static bool IsOurPidl(LPCITEMIDLIST);
-	static bool HasSubFolders(LPCITEMIDLIST);
-	static bool Equal(LPCITEMIDLIST, LPCITEMIDLIST);
+public:
+	// Static functions
+	static BOOL IsFile(LPCITEMIDLIST);
+	static BOOL HasChildNodes(LPCITEMIDLIST);
+	static BOOL Equal(LPCITEMIDLIST, LPCITEMIDLIST);
 	static UINT GetSize(LPCITEMIDLIST);
 	static DWORD GetItemName(LPCITEMIDLIST, LPTSTR, USHORT);
 	static DWORD GetPidlPath(LPCITEMIDLIST, LPTSTR, DWORD);
 	static HRESULT CompareIDs(LPCITEMIDLIST, LPCITEMIDLIST);
-	static PIDLTYPE GetType(LPCITEMIDLIST);
 	static LPPIDLDATA GetDataPointer(LPCITEMIDLIST);
 	static LPITEMIDLIST GetNextItem(LPCITEMIDLIST);
 	static LPITEMIDLIST GetLastItem(LPCITEMIDLIST);
+	static BOOL IsOurPidl(LPCITEMIDLIST);
 
-#ifdef _DEBUG
-public: // Debugging functions
+public:
+	// Debugging functions
 	static void dbgTracePidlPath(LPCTSTR, LPCITEMIDLIST);
 	static void dbgTracePidlData(LPCTSTR, LPCITEMIDLIST);
-#endif	// _DEBUG
+	static void dbgTracePidlPath(LPCTSTR, CPidl*);
+	static void dbgTracePidlData(LPCTSTR, CPidl*);
 
 private:
 	LPITEMIDLIST Create(PIDLTYPE, LPVOID, USHORT);
-	bool SetTitle(IGoogleDesktopQueryResultItem *pItem, LPPIDLDATA pData);
 
 private:
 	LPMALLOC		m_pMalloc;
@@ -74,13 +68,12 @@ typedef CPidlManager FAR *LPPIDLMGR;
 
 
 #ifdef _DEBUG
-// Debugging macros
 #define TRACE_PIDL_PATH(a, b)	CPidlManager::dbgTracePidlPath(TEXT(a), b)
 #define TRACE_PIDL_DATA(a, b)	CPidlManager::dbgTracePidlData(TEXT(a), b)
-#else	// _DEBUG
+#else
 #define TRACE_PIDL_PATH(a, b)
 #define TRACE_PIDL_DATA(a, b)
-#endif	// _DEBUG
+#endif
 
 
 class CPidl  
@@ -91,28 +84,25 @@ public:
 	virtual ~CPidl();
 
 	void operator = (LPCITEMIDLIST);
+	LPITEMIDLIST operator + (LPCITEMIDLIST);
+	LPITEMIDLIST operator + (CPidl);
 	bool operator == (LPCITEMIDLIST);
 	bool operator != (LPCITEMIDLIST);
-	LPITEMIDLIST operator + (CPidl);
-	LPITEMIDLIST operator + (LPCITEMIDLIST);
 	LPITEMIDLIST operator += (LPCITEMIDLIST);
-	operator LPVOID();
-	operator LPPIDLDATA();
-	operator LPITEMIDLIST();
 
-	bool IsRoot();
-	bool IsFile();
-	bool IsFolder();
-	bool IsFolderLink();
-	bool IsSubFolder();
+	LPITEMIDLIST GetRelative();
+	LPITEMIDLIST GetFull();
+
+	MSXML2::IXMLDOMNodePtr GetNode();
+	LPPIDLDATA GetData();
+
+	BOOL IsFile();
+	BOOL IsFolder();
+	BOOL IsRoot();
 
 	DWORD GetName(LPTSTR, USHORT);
 	DWORD GetPath(LPTSTR, DWORD);
 	DWORD GetFSPath(LPTSTR, DWORD);
-
-	LPITEMIDLIST GetRelative();
-	MSXML2::IXMLDOMNodePtr GetNode();
-	LPPIDLDATA GetData();
 
 private:
 	LPITEMIDLIST m_pidl;

@@ -1,0 +1,9 @@
+Add checkbox "Show titles instead of file names"
+See if getting the icons from IShellFolder is fast enough.
+Currently, preview icons are not displayed.
+Cache icons only inside the folder, don't keep global icons.
+Now icons in the list view don't display the shaddow properly.
+See if it is possible to get file info (icon) while GDS is executing a query.
+How come .sldprt and .sldasm don't cache icons?
+
+

@@ -4,24 +4,19 @@
 #define ITEM_BACKGROUND		RGB(240, 240, 240)
 
 
-CListView::CListView(HINSTANCE hInst, HWND hWnd, CShellFolder *pFolder)
+CListView::CListView(HINSTANCE hInst, HWND hWnd)
 {
 	m_iColumns = 0;
 	m_lStyle = LVS_REPORT2;
 
 	DWORD dwStyle;
 	
-	dwStyle = WS_TABSTOP
-		| WS_VISIBLE
-		| WS_CHILD
-		| WS_BORDER
-		| LVS_SHAREIMAGELISTS
-		| LVS_EDITLABELS
-		| LVS_AUTOARRANGE
-		| LVS_REPORT | LVS_NOSORTHEADER;
+	dwStyle = WS_TABSTOP | WS_VISIBLE | WS_CHILD | WS_BORDER | LVS_SHAREIMAGELISTS | LVS_EDITLABELS | LVS_AUTOARRANGE;
 
-//	if(m_lStyle == LVS_REPORT)
-//		dwStyle |= LVS_NOSORTHEADER;
+	dwStyle |= LVS_REPORT;
+
+	if(m_lStyle == LVS_REPORT)
+		dwStyle |= LVS_NOSORTHEADER;
 	
 	m_hwndList = ::CreateWindowEx(
 		WS_EX_CLIENTEDGE,
@@ -51,25 +46,11 @@ CListView::CListView(HINSTANCE hInst, HWND hWnd, CShellFolder *pFolder)
 	//dwStyle = ListView_GetExtendedListViewStyle(m_hwndList);
 	//dwStyle |= LVS_EX_FULLROWSELECT;
 	//ListView_SetExtendedListViewStyle(m_hwndList, dwStyle);
-
-	InitDragAndDrop(hWnd, pFolder);
 }
 
 CListView::~CListView()
 {
-	//Unregister the drag drop
-	::RevokeDragDrop(m_hwndList);
-	m_pDropTarget->Release();
-}
 
-void CListView::InitDragAndDrop(HWND hWnd, CShellFolder *pFolder)
-{
-	HRESULT hr;
-	hr = pFolder->CreateViewObject(hWnd, IID_IDropTarget, (LPVOID*) &m_pDropTarget);
-	if(NULL != m_pDropTarget)
-	{
-		hr = ::RegisterDragDrop(m_hwndList, m_pDropTarget);
-	}
 }
 
 void CListView::Clear()

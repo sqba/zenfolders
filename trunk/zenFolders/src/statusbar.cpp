@@ -36,7 +36,7 @@ void CStatusBar::Fill(LPSHELLBROWSER pShellBrowser,
 
 	TCHAR szInfo[MAX_PATH] = {0};
 	int files = pSFParent->GetFileCount();
-	int folders = pSFParent->GetSubFolderCount();
+	int folders = pSFParent->GetFolderCount();
 
 	if((files > 0) && (folders > 0))
 		wsprintf(szInfo, TEXT("%d file(s) %d folder(s)"), files, folders);
@@ -49,7 +49,7 @@ void CStatusBar::Fill(LPSHELLBROWSER pShellBrowser,
 	
 	SetText(0, pData->szName, pShellBrowser);
 	SetText(1, szInfo, pShellBrowser);
-	SetText(2, pData->searchData.szQuery, pShellBrowser);
+	SetText(2, pData->folderData.szQuery, pShellBrowser);
 }
 
 void CStatusBar::SetText(int index,
