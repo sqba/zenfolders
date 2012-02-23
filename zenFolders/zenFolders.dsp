@@ -23,8 +23,6 @@ CFG=zenFolders - Win32 Debug
 
 # Begin Project
 # PROP AllowPerConfigDependencies 0
-# PROP Scc_ProjName ""$/sqba/zenFolders/zenFolders", GGEAAAAA"
-# PROP Scc_LocalPath "."
 CPP=cl.exe
 MTL=midl.exe
 RSC=rc.exe
@@ -54,10 +52,6 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
 # ADD LINK32 advapi32.lib shell32.lib comctl32.lib version.lib /nologo /dll /machine:I386
-# Begin Special Build Tool
-SOURCE="$(InputPath)"
-PostBuild_Cmds=..\..\release\bin\package.bat
-# End Special Build Tool
 
 !ELSEIF  "$(CFG)" == "zenFolders - Win32 Debug"
 
@@ -84,10 +78,6 @@ BSC32=bscmake.exe
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
 # ADD LINK32 advapi32.lib shell32.lib comctl32.lib version.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# Begin Special Build Tool
-SOURCE="$(InputPath)"
-PostBuild_Cmds=..\..\debug\bin\package.bat
-# End Special Build Tool
 
 !ENDIF 
 
@@ -236,23 +226,11 @@ SOURCE=.\src\zenfolders.rc
 # PROP Default_Filter "ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 # Begin Source File
 
-SOURCE=.\icons\file.ico
+SOURCE=.\src\res\zenFolders.bmp
 # End Source File
 # Begin Source File
 
-SOURCE=.\icons\folder.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\icons\folderop.ico
-# End Source File
-# Begin Source File
-
-SOURCE=.\icons\header.bmp
-# End Source File
-# Begin Source File
-
-SOURCE=.\icons\zenfolders.ico
+SOURCE=.\src\res\zenFolders.ico
 # End Source File
 # End Group
 # Begin Group "Header Files"

@@ -22,22 +22,30 @@
 #include "util/utilities.h"
 
 
-extern HINSTANCE		g_hInst;
-extern LPVIEWSLIST		g_pViewList;
-extern LPCONFIGXML		g_pConfigXML;
-extern LPPIDLMGR		g_pPidlMgr;
+extern HINSTANCE	g_hInst;
+extern LPVIEWSLIST	g_pViewList;
+extern LPCONFIGXML	g_pConfigXML;
+extern LPPIDLMGR	g_pPidlMgr;
 
 
 CShellFolder::CShellFolder()
 {
-	Initialize();
+	if( !Init() )
+	{
+		delete this;
+		return;
+	}
 }
 
 CShellFolder::CShellFolder(CShellFolder *pParent, LPCITEMIDLIST pidl)
 {
-	Initialize();
-
 	if(!pParent || !pidl)
+	{
+		delete this;
+		return;
+	}
+
+	if( !Init() )
 	{
 		delete this;
 		return;
@@ -59,33 +67,30 @@ CShellFolder::~CShellFolder()
 	if(m_pMalloc)
 		m_pMalloc->Release();
 
-//	if(NULL != m_pDlg)
-//		delete m_pDlg;
-
 	if(m_pIcons)
 		delete m_pIcons;
 
 	gRelease(CSHELLFOLDER);
 }
 
-void CShellFolder::Initialize()
+bool CShellFolder::Init()
 {
-//	m_pDlg			= NULL;
 	m_pSFParent		= NULL;
 	m_iFileCount	= 0;
 
-	if(FAILED(SHGetMalloc(&m_pMalloc)))
+	if(FAILED(::SHGetMalloc(&m_pMalloc)))
 	{
 		_RPTF0(_CRT_ERROR, "SHGetMalloc failed\n");
-		delete this;
-		return;
+		return false;
 	}
 
-	m_pIcons = new CIcons(g_hInst);
+	m_pIcons = new CIconList(g_hInst);
 
 	m_ObjRefCount = 1;
 
 	gAddRef(CSHELLFOLDER);
+
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -221,7 +226,24 @@ STDMETHODIMP CShellFolder::BindToObject(LPCITEMIDLIST pidl,
 //	TRACE_PIDL_PATH("CShellFolder::BindToObject(%s)\n", pidl);
 
 	*ppvOut = NULL;
-
+/*
+	if( !CPidlManager::IsFolder(pidl) )
+	{
+		IShellFolder *psfParent;
+		LPITEMIDLIST pidlRelative;
+		LPCITEMIDLIST fsPidl = g_pPidlMgr->GetFSPidl(pidl);
+		HRESULT hr = ::SHBindToParent(
+			fsPidl,
+			IID_IShellFolder,
+			(void **)&psfParent,
+			(LPCITEMIDLIST*)&pidlRelative);
+		if( SUCCEEDED(hr) )
+		{
+			hr = psfParent->BindToObject(pidlRelative, pbcReserved, riid, ppvOut);
+		}
+		return hr;
+	}
+*/
 	CShellFolder *pShellFolder = new CShellFolder(this, pidl);
 	if(!pShellFolder)
 		return E_OUTOFMEMORY;
@@ -334,23 +356,23 @@ STDMETHODIMP CShellFolder::CreateViewObject(HWND hwndOwner,
 	{
 		*ppvOut = NULL;
 		CShellView *pShellView;
-		pShellView = new CShellView(this, m_pidlRel.GetRelative());
+		LPITEMIDLIST pidl = m_pidlRel.GetRelative();
+		pShellView = new CShellView(this, pidl);
 		if(!pShellView)
 			return E_OUTOFMEMORY;
 		
 		hr = pShellView->QueryInterface(riid, ppvOut);
 		
 		pShellView->Release();
+
+		*ppvOut = pShellView;
 	}
 	else if(IsEqualIID(riid, IID_IDropTarget))
 	{
-		CDropTarget *pdt = new CDropTarget(this);
+		*ppvOut = new CDropTarget(this);
 		
-		if(pdt)
-		{
-			*ppvOut = pdt;
+		if( *ppvOut )
 			return S_OK;
-		}
 	}
 	
 	return hr;
@@ -388,10 +410,8 @@ STDMETHODIMP CShellFolder::EnumObjects(HWND hwndOwner,
 {
 	HRESULT  hr;
 	
-	*ppEnumIDList = NULL;
-	
 	*ppEnumIDList = CreateList(dwFlags, &hr);
-	if(!*ppEnumIDList)
+	if(NULL == *ppEnumIDList)
 		return hr;
 	
 	return S_OK;
@@ -433,7 +453,7 @@ STDMETHODIMP CShellFolder::GetAttributesOf(UINT uCount,
                   SFGAO_BROWSABLE | 
                   SFGAO_FILESYSANCESTOR |
                   SFGAO_FILESYSTEM |
-				  SFGAO_HASPROPSHEET |
+				  SFGAO_HASPROPSHEET,
                   0;
 	
 	for(i=0; i<uCount; i++)
@@ -444,28 +464,23 @@ STDMETHODIMP CShellFolder::GetAttributesOf(UINT uCount,
 		dwAttribs |= SFGAO_CANRENAME | 
 					  SFGAO_CANDELETE | 
 					  SFGAO_CANCOPY | 
-					  SFGAO_CANMOVE | 
-					  SFGAO_HASPROPSHEET |
+					  SFGAO_CANMOVE,
 					  0;
 		
 		//is this item a folder?
-		LPCITEMIDLIST pidlRel = CPidlManager::GetLastItem(aPidls[i]);
-		if( !CPidlManager::IsFile(pidlRel) )
-		{
-			dwAttribs |= SFGAO_FOLDER | 
-						 SFGAO_BROWSABLE | 
-						 SFGAO_CANLINK |
-						 SFGAO_FILESYSANCESTOR |
-						 SFGAO_FILESYSTEM |
-						 0;
-			
-			//does this item have a sub folder?
-			LPITEMIDLIST pidlFQ = CreateFQPidl(aPidls[i]);
-			if( CPidlManager::HasChildNodes(pidlFQ) )
-				dwAttribs |= SFGAO_HASSUBFOLDER;
-			g_pPidlMgr->Delete(pidlFQ);
-		}
+
+		dwAttribs |= SFGAO_FOLDER | 
+					 SFGAO_BROWSABLE | 
+					 SFGAO_CANLINK |
+					 SFGAO_FILESYSANCESTOR |
+					 SFGAO_FILESYSTEM |
+					 SFGAO_DROPTARGET,
+					 0;
 		
+		CPidl pidlFQ = CreateFQPidl(aPidls[i]);
+		if( CPidlManager::HasSubFolders(pidlFQ) )
+			dwAttribs |= SFGAO_HASSUBFOLDER;
+
 		*pdwAttribs &= dwAttribs;
 	}
 
@@ -511,25 +526,19 @@ STDMETHODIMP CShellFolder::GetUIObjectOf(HWND hwndOwner,
 	//IID_IContextMenu
 	if(IsEqualIID(riid, IID_IContextMenu))
 	{
-		CContextMenu *pcm = new CContextMenu(this, pPidl, uCount);
+		*ppvReturn = new CContextMenu(this, pPidl, uCount);
 		
-		if(pcm)
-		{
-			*ppvReturn = pcm;
+		if( *ppvReturn )
 			return S_OK;
-		}
 	}
 	
 	//IID_IDataObject
 	if(IsEqualIID(riid, IID_IDataObject))
 	{
-		CDataObject *pdo = new CDataObject(this, pPidl, uCount);
+		*ppvReturn = new CDataObject(this, pPidl, uCount);
 		
-		if(pdo)
-		{
-			*ppvReturn = pdo;
+		if( *ppvReturn )
 			return S_OK;
-		}
 	}
 
 	if(uCount != 1)
@@ -539,13 +548,10 @@ STDMETHODIMP CShellFolder::GetUIObjectOf(HWND hwndOwner,
 	if(IsEqualIID(riid, IID_IExtractIcon))
 	{
 		CPidl pidl = m_pidlRel + pPidl[0];
-		CExtractIcon *pei = new CExtractIcon( this, pidl.GetFull() );
+		*ppvReturn = new CExtractIcon( this, pidl );
 		
-		if(pei)
-		{
-			*ppvReturn = pei;
+		if( *ppvReturn )
 			return S_OK;
-		}
 		
 		return E_OUTOFMEMORY;
 	}
@@ -557,15 +563,12 @@ STDMETHODIMP CShellFolder::GetUIObjectOf(HWND hwndOwner,
 		
 		if(psfTemp)
 		{
-			CDropTarget *pdt = new CDropTarget(psfTemp);
+			*ppvReturn = new CDropTarget(psfTemp);
 			
 			psfTemp->Release();
 			
-			if(pdt)
-			{
-				*ppvReturn = pdt;
+			if( *ppvReturn )
 				return S_OK;
-			}
 		}
 	}
 
@@ -574,13 +577,10 @@ STDMETHODIMP CShellFolder::GetUIObjectOf(HWND hwndOwner,
 	{
 		CPidl pidl = m_pidlRel + pPidl[0];
 
-		CQueryInfo *pqit = new CQueryInfo( pidl.GetFull() );
+		*ppvReturn = new CQueryInfo( pidl );
 		
-		if(pqit)
-		{
-			*ppvReturn = pqit;
+		if( *ppvReturn )
 			return S_OK;
-		}
 		
 		return E_OUTOFMEMORY;
 	}
@@ -622,23 +622,18 @@ STDMETHODIMP CShellFolder::GetDisplayNameOf(LPCITEMIDLIST pidl,
 
 	if (NULL==pidl || pidl->mkid.cb == 0)//root folder
 	{
-		CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
+		CPidlManager::GetItemName(pidlRel, szText, ARRAYSIZE(szText));
 	}
 	else
 	{
-		SHGNO a = (SHGNO)GET_SHGDN_FOR(dwFlags);
-		SHGNO b = (SHGNO)GET_SHGDN_RELATION(dwFlags);
-
-		if(a == SHGDN_FORADDRESSBAR)
-		{
-			int d = 1;
-		}
+//		SHGNO a = (SHGNO)GET_SHGDN_FOR(dwFlags);
+//		SHGNO b = (SHGNO)GET_SHGDN_RELATION(dwFlags);
 
 		switch(GET_SHGDN_FOR(dwFlags))
 		{
 		case SHGDN_FOREDITING:
 		case SHGDN_FORADDRESSBAR:
-			CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
+			CPidlManager::GetItemName(pidlRel, szText, ARRAYSIZE(szText));
 			break;
 //		case SHGDN_FORPARSING:
 //			break;
@@ -646,20 +641,20 @@ STDMETHODIMP CShellFolder::GetDisplayNameOf(LPCITEMIDLIST pidl,
 			switch(GET_SHGDN_RELATION(dwFlags))
 			{
 			case SHGDN_INFOLDER:
-				CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
+				CPidlManager::GetItemName(pidlRel, szText, ARRAYSIZE(szText));
 				break;
 			case SHGDN_NORMAL:
 				{
 					CPidl cpidl(pidl);
 					if( cpidl.IsFile() )
 					{
-						cpidl.GetFSPath(szText, sizeof(szText));
+						cpidl.GetFSPath(szText, ARRAYSIZE(szText));
 					}
 					else
 					{
 						LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
 						//::SHGetPathFromIDList(pidlFQ, szText);
-						CPidlManager::GetPidlPath(pidlFQ, szText, sizeof(szText));
+						CPidlManager::GetPidlPath(pidlFQ, szText, ARRAYSIZE(szText));
 						g_pPidlMgr->Delete(pidlFQ);
 					}
 				}
@@ -669,44 +664,7 @@ STDMETHODIMP CShellFolder::GetDisplayNameOf(LPCITEMIDLIST pidl,
 			}
 		}
 	}
-/*
-	if(dwFlags & SHGDN_FORPARSING)
-	{
-		CPidl cpidl(pidl);
-		if( cpidl.IsFile() )
-		{
-			cpidl.GetFSPath(szText, sizeof(szText));
-		}
-		else
-		{
-			if(dwFlags & SHGDN_INFOLDER)
-			{
-				CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
-			}
-			else
-			{
-				LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
-				//::SHGetPathFromIDList(pidlFQ, szText);
-				CPidlManager::GetPidlPath(pidlFQ, szText, sizeof(szText));
-				g_pPidlMgr->Delete(pidlFQ);
-			}
-		}
-	}
-	else
-	{
-		if(dwFlags & SHGDN_INFOLDER)
-		{
-			CPidlManager::GetItemName(pidlRel, szText, sizeof(szText));
-		}
-		else
-		{
-			LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
-			//::SHGetPathFromIDList(pidlFQ, szText);
-			CPidlManager::GetPidlPath(pidlFQ, szText, sizeof(szText));
-			g_pPidlMgr->Delete(pidlFQ);
-		}
-	}
-*/
+
 	//get the number of characters required
 	cchOleStr = lstrlen(szText) + 1;
 
@@ -779,34 +737,36 @@ STDMETHODIMP CShellFolder::ParseDisplayName(HWND hwndOwner,
 											LPDWORD pdwAttributes)
 {
 	TCHAR szName[MAX_PATH] = {0};
+	MSXML2::IXMLDOMNodePtr ptrNode;
+	MSXML2::IXMLDOMNodePtr ptrChild;
 
-	CString::WideCharToLocal(szName, lpDisplayName, sizeof(szName)/sizeof(TCHAR));
+	CString::WideCharToLocal(szName, lpDisplayName, ARRAYSIZE(szName));
 
 //	_RPTF1(_CRT_WARN, "CShellFolder::ParseDisplayName(%s)\n", szName);
 //	TRACE_PIDL_PATH("CShellFolder::ParseDisplayName(m_pidlFQ = %s)\n", &m_pidlFQ);
 
-	MSXML2::IXMLDOMNodePtr ptrNode = m_pidlFQ.GetNode();
+	ptrNode = m_pidlFQ.GetNode();
 	if(NULL == ptrNode)
-		return S_FALSE;
+		return E_FAIL;
 
 	//_RPTF1(_CRT_WARN, "CShellFolder::ParseDisplayName(%d)\n", (pdwAttributes && SFGAO_FOLDER));
 
-	MSXML2::IXMLDOMNodePtr ptrChild = g_pConfigXML->GetSubfolder(ptrNode, szName);
-	if(ptrChild != NULL)
-	{
-		*pPidlNew = g_pPidlMgr->CreateFolder(ptrChild);
-//		TRACE_PIDL_PATH("CShellFolder::ParseDisplayName(pPidlNew = %s)\n", *pPidlNew);
-		return NOERROR;
-	}
-	else
+	ptrChild = g_pConfigXML->GetSubfolder(ptrNode, szName);
+	if(ptrChild == NULL)
 	{
 		// File
+		//TRACE_PIDL_PATH("CShellFolder::ParseDisplayName(m_pidlFQ = %s)\n", &m_pidlFQ);
 		_RPTF1(_CRT_WARN, "Get the file '%s'\n", szName);
 		//HRESULT hr;
 		//CEnumIDList *pEnumIdList = CreateList(SHCONTF_NONFOLDERS, &hr);
 		//delete pEnumIdList;
+		return E_FAIL;
 	}
-	return E_FAIL;
+
+	*pPidlNew = g_pPidlMgr->CreateFolder(ptrChild);
+//	TRACE_PIDL_PATH("CShellFolder::ParseDisplayName(pPidlNew = %s)\n", *pPidlNew);
+
+	return NOERROR;
 }
 
 /**************************************************************************
@@ -840,7 +800,7 @@ STDMETHODIMP CShellFolder::SetNameOf(HWND hwndOwner,
 {
 	TCHAR szName[MAX_PATH] = {0};
 
-	CString::WideCharToLocal(szName, (LPOLESTR)lpName, sizeof(szName)/sizeof(TCHAR));
+	CString::WideCharToLocal(szName, (LPOLESTR)lpName, ARRAYSIZE(szName));
 
 	if(0 == lstrlen(szName))
 		return E_FAIL;
@@ -856,8 +816,8 @@ STDMETHODIMP CShellFolder::SetNameOf(HWND hwndOwner,
 		LPPIDLDATA pData = pidlNew.GetData();
 		lstrcpy(pData->szName, szName);
 
-//		if(0 == lstrlen(pData->folderData.szQuery))
-//			lstrcpy(pData->folderData.szQuery, szName);
+//		if(0 == lstrlen(pData->searchData.szQuery))
+//			lstrcpy(pData->searchData.szQuery, szName);
 
 		if(pPidlOut)
 		{
@@ -876,8 +836,6 @@ STDMETHODIMP CShellFolder::SetNameOf(HWND hwndOwner,
 	}
 
 	return E_FAIL;
-
-//	return E_NOTIMPL;
 }
 
 
@@ -890,16 +848,16 @@ LPITEMIDLIST CShellFolder::CreateFQPidl(LPCITEMIDLIST pidl)
 {
 	return m_pidlFQ + pidl;
 }
-
+/*
 BOOL CShellFolder::GetFolderPath(LPTSTR lpszOut, DWORD dwOutSize)
 {
-	CPidlManager::GetPidlPath(m_pidlFQ.GetFull(), lpszOut, dwOutSize);
+	CPidlManager::GetPidlPath(m_pidlFQ, lpszOut, dwOutSize);
 	return TRUE;
 }
-
+*/
 LPENUMIDLIST CShellFolder::CreateList(DWORD dwFlags, HRESULT *hr)
 {
-	CEnumIDList *list = new CEnumIDList(m_pidlFQ.GetFull(), dwFlags, hr);
+	CEnumIDList *list = new CEnumIDList(m_pidlFQ, dwFlags, hr);
 	m_iFileCount = list->GetFileCount();
 	m_iFolderCount = list->GetFolderCount();
 	return list;
@@ -908,54 +866,57 @@ LPENUMIDLIST CShellFolder::CreateList(DWORD dwFlags, HRESULT *hr)
 BOOL CShellFolder::IsRoot()
 {
 	return (NULL == m_pSFParent);
-	/*BOOL bResult;
-	bResult = (NULL == m_pSFParent ? TRUE : FALSE);
-	_RPTF1(_CRT_WARN, "IsRoot() = %d\n", bResult);
-	return bResult;*/
 }
 
 void CShellFolder::ShowProperties(LPCITEMIDLIST pidl)
 {
-//	if(NULL != m_pDlg)
-//		delete m_pDlg;
-
-//	CPidl pidlRel(pidl);
-//	CPidl pidlFQ = CreateFQPidl(pidlRel.GetRelative());
-
-//	TRACE_PIDL_PATH("CShellFolder::ShowProperties(%s)\n", pidl);
+	pidl = pidl ? pidl : (IsRoot() ? NULL : m_pidlFQ);
 	
-	if( (NULL == pidl) || !CPidlManager::IsFile(pidl) )
-	{
-		if((NULL == pidl) && IsRoot())
-		{
-			DisplayVersion();
-		}
-		else
-		{
-			if(NULL != pidl)
-				pidl = CreateFQPidl( pidl );
+	if( NULL == pidl )
+		DisplayVersion();
+	else if( CPidlManager::IsFolder(pidl) )
+		DisplayFolderProperties( pidl );
+	else 
+		DisplayShellProperties( pidl );
+}
 
-			LPCITEMIDLIST tmpPidl = pidl ? pidl : m_pidlFQ.GetFull();
-			CShellFolder *pParent = pidl ? this : m_pSFParent;
+void CShellFolder::DisplayFolderProperties(LPCITEMIDLIST pidl)
+{
+	TRACE_PIDL_PATH("DisplayFolderProperties(%s)\n", pidl);
+	TRACE_PIDL_PATH("m_pidlFQ = %s\n", m_pidlFQ);
+	TRACE_PIDL_PATH("m_pidlRel = %s\n", m_pidlRel);
 
-			CFolderPropertiesDlg *pDlg;
-			pDlg = new CFolderPropertiesDlg(pParent, tmpPidl);
-			if(pDlg)
-				pDlg->Show();
-		}
-	}
-	else
+	CShellFolder *pParent = m_pSFParent;
+	LPCITEMIDLIST tmpPidl = pidl;
+
+	if(NULL == m_pSFParent)
 	{
-		LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-		SHELLEXECUTEINFO  sei;
-		ZeroMemory(&sei, sizeof(sei));
-		sei.cbSize = sizeof(SHELLEXECUTEINFO);
-		sei.lpFile = pData->fileData.szPath;
-		sei.nShow = SW_SHOW;
-		sei.fMask = SEE_MASK_INVOKEIDLIST;
-		sei.lpVerb = "properties";
-		ShellExecuteEx(&sei);
+		tmpPidl = CreateFQPidl(pidl);
+		pParent = this;
 	}
+
+	if((NULL == pParent) || (NULL == tmpPidl))
+		return;
+
+	TRACE_PIDL_PATH("CFolderPropertiesDlg(pParent, %s)\n", tmpPidl);
+
+	CFolderPropertiesDlg *pDlg;
+	pDlg = new CFolderPropertiesDlg(pParent, tmpPidl);
+	if(pDlg)
+		pDlg->Show();
+}
+
+void CShellFolder::DisplayShellProperties(LPCITEMIDLIST pidl)
+{
+	LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
+	SHELLEXECUTEINFO sei = {0};
+	//ZeroMemory(&sei, sizeof(sei));
+	sei.cbSize	= sizeof(SHELLEXECUTEINFO);
+	sei.lpFile	= pData->fileData.szPath;
+	sei.nShow	= SW_SHOW;
+	sei.fMask	= SEE_MASK_INVOKEIDLIST;
+	sei.lpVerb	= "properties";
+	::ShellExecuteEx(&sei);
 }
 
 BOOL CShellFolder::DeleteFolder(LPCITEMIDLIST pidl, BOOL bVerify)
@@ -963,7 +924,7 @@ BOOL CShellFolder::DeleteFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 	if((NULL == pidl) && (!IsRoot()))
 	{
 		//TRACE_PIDL_PATH("CShellFolder::DeleteFolder(%s)\n", &m_pidlRel);
-		m_pSFParent->DeleteFolder(m_pidlRel.GetFull(), bVerify);
+		m_pSFParent->DeleteFolder(m_pidlRel, bVerify);
 	}
 	else
 	{
@@ -987,10 +948,10 @@ BOOL CShellFolder::DeleteFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 		}
 
 		//TRACE_PIDL_PATH("CShellFolder::DeleteFolder(%s)\n", &pidlFQ);
-		if( g_pConfigXML->DeleteFolder(pidlFQ.GetFull()) )
+		if( g_pConfigXML->DeleteFolder(pidlFQ) )
 		{
 			//_RPTF1(_CRT_WARN, "CShellFolder::DeleteFolder(%s)\n", pData->szName);
-			::SHChangeNotify(SHCNE_RMDIR, SHCNF_IDLIST, pidlFQ.GetFull(), NULL);
+			::SHChangeNotify(SHCNE_RMDIR, SHCNF_IDLIST, pidlFQ, NULL);
 			g_pViewList->Refresh();
 		}
 	}
@@ -998,42 +959,46 @@ BOOL CShellFolder::DeleteFolder(LPCITEMIDLIST pidl, BOOL bVerify)
 	return FALSE;
 }
 
+BOOL CShellFolder::DeleteFolderLink(LPCITEMIDLIST pidl, BOOL bVerify)
+{
+	return DeleteFolder(pidl, bVerify);
+}
+
 BOOL CShellFolder::DeleteFile(LPCITEMIDLIST pidl, BOOL bVerify)
 {
 	if( !CPidlManager::IsFile(pidl) )
+	{
+		_RPTF0(_CRT_WARN, "Not a file\n");
 		return FALSE;
+	}
 
 	CPidl cpidl(pidl);
 	LPPIDLDATA pData = cpidl.GetData();
 
 	SHFILEOPSTRUCT shfos = {0};
 
-//	shfos.hwnd = ;
-	shfos.wFunc = FO_DELETE; //FO_COPY FO_DELETE FO_MOVE FO_RENAME 
-	shfos.pFrom = pData->fileData.szPath;
-//	shfos.pTo = ;
-	shfos.fFlags = FOF_ALLOWUNDO;
+	shfos.wFunc		= FO_DELETE; //FO_COPY FO_DELETE FO_MOVE FO_RENAME 
+	shfos.pFrom		= pData->fileData.szPath;
+	shfos.fFlags	= FOF_ALLOWUNDO;
 	if(!bVerify)
 		shfos.fFlags |= FOF_NOCONFIRMATION;
 
 	int result = ::SHFileOperation(&shfos);
-	if( 0 == result )
-	{
-		return TRUE;
-	}
-
-	return FALSE;
+	return ( 0 == result );
 }
 
 BOOL CShellFolder::DeletePidl(LPCITEMIDLIST pidl, BOOL bVerify)
 {
 	if( CPidlManager::IsFile(pidl) )
 		return DeleteFile( pidl, bVerify );
-	else
+	else if( CPidlManager::IsFolder(pidl) )
 		return DeleteFolder( pidl, bVerify );
+	else if( CPidlManager::IsFolderLink(pidl) )
+		return DeleteFolderLink( pidl, bVerify );
+	return FALSE;
 }
 
-void CShellFolder::Delete(LPITEMIDLIST *aPidls)
+bool CShellFolder::ConfirmDelete(LPITEMIDLIST *aPidls)
 {
 	int i, iFolders=0, iFiles=0;
 
@@ -1046,46 +1011,51 @@ void CShellFolder::Delete(LPITEMIDLIST *aPidls)
 			iFolders++;
 	}
 
-	if(iFolders + iFiles == 1)
-	{
-		DeletePidl( aPidls[0], TRUE );
-	}
-	else// if(iFolders > 0)
-	{
-		TCHAR msg[100] = {0};
-		TCHAR szCaption[50] = {0};
-		TCHAR szQuestion[200] = {0};
+	TCHAR msg[100] = {0};
+	TCHAR szCaption[50] = {0};
+	TCHAR szQuestion[200] = {0};
+	UINT nCaption, nQuestion;
+	int iCount1=0, iCount2=0;
 
-		if(iFolders > 0)
+	if(iFolders > 0)
+	{
+		if(iFiles == 0)
 		{
-			if(iFiles == 0)
-			{
-				::LoadString(g_hInst, IDS_DELETEFOLDERS_CAPTION, szCaption, ARRAYSIZE(szCaption));
-				::LoadString(g_hInst, IDS_DELETEFOLDERS, szQuestion, ARRAYSIZE(szQuestion));
-				wsprintf(msg, szQuestion, iFolders);
-			}
-			else
-			{
-				::LoadString(g_hInst, IDS_DELETEITEMS_CAPTION, szCaption, ARRAYSIZE(szCaption));
-				::LoadString(g_hInst, IDS_DELETEITEMS, szQuestion, ARRAYSIZE(szQuestion));
-				wsprintf(msg, szQuestion, iFolders, iFiles);
-			}
+			nCaption	= IDS_DELETEFOLDERS_CAPTION;
+			nQuestion	= IDS_DELETEFOLDERS;
+			iCount1		= iFolders;
 		}
 		else
 		{
-			::LoadString(g_hInst, IDS_DELETEFILES_CAPTION, szCaption, ARRAYSIZE(szCaption));
-			::LoadString(g_hInst, IDS_DELETEFILES, szQuestion, ARRAYSIZE(szQuestion));
-			wsprintf(msg, szQuestion, iFiles);
+			nCaption	= IDS_DELETEITEMS_CAPTION;
+			nQuestion	= IDS_DELETEITEMS;
+			iCount1		= iFolders;
+			iCount2		= iFiles;
 		}
+	}
+	else
+	{
+		nCaption	= IDS_DELETEFILES_CAPTION;
+		nQuestion	= IDS_DELETEFILES;
+		iCount1		= iFiles;
+	}
 
-		int nResult = ::MessageBox( NULL/*hWnd*/,msg, szCaption,MB_YESNO);
+	::LoadString(g_hInst, nCaption, szCaption, ARRAYSIZE(szCaption));
+	::LoadString(g_hInst, nQuestion, szQuestion, ARRAYSIZE(szQuestion));
+	wsprintf(msg, szQuestion, iCount1, iCount2);
 
-		if(IDYES == nResult)
+	int nResult = ::MessageBox( NULL/*hWnd*/,msg, szCaption,MB_YESNO);
+
+	return (IDYES == nResult);
+}
+
+void CShellFolder::Delete(LPITEMIDLIST *aPidls)
+{
+	if( ConfirmDelete(aPidls) )
+	{
+		for(int i=0; aPidls[i]; i++)
 		{
-			for(i=0; aPidls[i]; i++)
-			{
-				DeletePidl( aPidls[i], FALSE );
-			}
+			DeletePidl( aPidls[i], FALSE );
 		}
 	}
 }
@@ -1125,7 +1095,7 @@ BOOL CShellFolder::RenameFile(LPCITEMIDLIST pidl, LPCTSTR pszName)
 	return false;
 }
 
-BOOL CShellFolder::RenameFolder(LPCITEMIDLIST pidl, LPCTSTR pszName)
+BOOL CShellFolder::RenameSubFolder(LPCITEMIDLIST pidl, LPCTSTR pszName)
 {
 	BOOL bResult = FALSE;
 
@@ -1166,7 +1136,7 @@ BOOL CShellFolder::Rename(LPCITEMIDLIST pidl, LPCTSTR pszName)
 	}
 	else
 	{
-		return RenameFolder(pidl, pszName);
+		return RenameSubFolder(pidl, pszName);
 	}
 }
 
@@ -1179,14 +1149,14 @@ void CShellFolder::RemoveFiletype(LPCTSTR ext)
 	LPPIDLDATA pData = m_pidlFQ.GetData();
 	g_pConfigXML->GetFolderInfo(pData, ptrNode);
 
-	LPTSTR pszQuery = pData->folderData.szQuery;
+	LPTSTR pszQuery = pData->searchData.szQuery;
 
 	if(0 == lstrlen(pszQuery))
 		lstrcpy(pszQuery, pData->szName);
 
 	wsprintf(pszQuery, "%s -filetype:%s", pszQuery, ext);
 
-	g_pConfigXML->SaveFolder( m_pidlFQ.GetFull() );
+	g_pConfigXML->SaveFolder( m_pidlFQ );
 }
 
 void CShellFolder::AddExtensionSubfolder(LPCTSTR ext)
@@ -1203,19 +1173,19 @@ void CShellFolder::AddExtensionSubfolder(LPCTSTR ext)
 	MSXML2::IXMLDOMNodePtr ptrNode = m_pidlFQ.GetNode();
 	LPPIDLDATA pData = m_pidlFQ.GetData();
 	g_pConfigXML->GetFolderInfo(pData, ptrNode);
-	LPTSTR pszParentQuery = pData->folderData.szQuery;
+	LPTSTR pszParentQuery = pData->searchData.szQuery;
 
 	if(0 == lstrlen(pszParentQuery))
 		pszParentQuery = pData->szName;
 
 	// Set new folder's query
 	LPPIDLDATA pDataNew = pidlNewFQ.GetData();
-	wsprintf(pDataNew->folderData.szQuery, "%s filetype:%s", pszParentQuery, ext);
+	wsprintf(pDataNew->searchData.szQuery, "%s filetype:%s", pszParentQuery, ext);
 
 	// Save new folder
-	g_pConfigXML->SaveFolder( pidlNewFQ.GetFull() );
+	g_pConfigXML->SaveFolder( pidlNewFQ );
 
-//	::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_IDLIST, pidlNewFQ.GetFull(), NULL);
+//	::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_IDLIST, pidlNewFQ, NULL);
 }
 
 STDMETHODIMP CShellFolder::MoveCopyItems( CShellFolder *psfSource, 
@@ -1232,8 +1202,8 @@ STDMETHODIMP CShellFolder::MoveCopyItems( CShellFolder *psfSource,
 
 //		TRACE_PIDL_PATH("CShellFolder::MoveCopyItems(%s)\n", &pidlSrc);
 
-		LPITEMIDLIST src = cPidlSrc.GetFull();
-		LPITEMIDLIST dst = m_pidlFQ.GetFull();
+		LPITEMIDLIST src = cPidlSrc;
+		LPITEMIDLIST dst = m_pidlFQ;
 
 		if(fMove)
 		{
@@ -1243,7 +1213,7 @@ STDMETHODIMP CShellFolder::MoveCopyItems( CShellFolder *psfSource,
 
 				CPidl cPidlNewFQ = CreateFQPidl( aPidls[i] );
 //				TRACE_PIDL_PATH("CShellFolder::MoveCopyItems(%s)\n", &cPidlNewFQ);
-				::SHChangeNotify(SHCNE_MKDIR, SHCNF_IDLIST, cPidlNewFQ.GetFull(), NULL);
+				::SHChangeNotify(SHCNE_MKDIR, SHCNF_IDLIST, cPidlNewFQ, NULL);
 				g_pViewList->Refresh();
 			}
 		}
@@ -1262,14 +1232,14 @@ void CShellFolder::ShowOnlyExtension(LPCTSTR ext)
 	LPPIDLDATA pData = m_pidlFQ.GetData();
 	g_pConfigXML->GetFolderInfo(pData, ptrNode);
 
-	LPTSTR pszQuery = pData->folderData.szQuery;
+	LPTSTR pszQuery = pData->searchData.szQuery;
 
 	if(0 == lstrlen(pszQuery))
 		lstrcpy(pszQuery, pData->szName);
 
 	wsprintf(pszQuery, "%s filetype:%s", pszQuery, ext);
 
-	g_pConfigXML->SaveFolder( m_pidlFQ.GetFull() );
+	g_pConfigXML->SaveFolder( m_pidlFQ );
 }
 
 void CShellFolder::ClearFolderSearch(LPCITEMIDLIST pidl)
@@ -1277,16 +1247,16 @@ void CShellFolder::ClearFolderSearch(LPCITEMIDLIST pidl)
 	if(NULL == pidl)
 	{
 		LPPIDLDATA pData = m_pidlFQ.GetData();
-		memset(pData->folderData.szQuery, 0, sizeof(pData->folderData.szQuery));
-		g_pConfigXML->SaveFolder( m_pidlFQ.GetFull() );
+		memset(pData->searchData.szQuery, 0, sizeof(pData->searchData.szQuery));
+		g_pConfigXML->SaveFolder( m_pidlFQ );
 	}
 	else
 	{
 		CPidl pidlFQ = CreateFQPidl(pidl);
 		
 		LPPIDLDATA pData = pidlFQ.GetData();
-		memset(pData->folderData.szQuery, 0, sizeof(pData->folderData.szQuery));
-		g_pConfigXML->SaveFolder( pidlFQ.GetFull() );
+		memset(pData->searchData.szQuery, 0, sizeof(pData->searchData.szQuery));
+		g_pConfigXML->SaveFolder( pidlFQ );
 
 		g_pViewList->Refresh();
 	}
@@ -1392,6 +1362,17 @@ LPITEMIDLIST CShellFolder::CreateNewFolder(LPCITEMIDLIST pidlParent)
 
 void CShellFolder::DisplayVersion()
 {
+	CFolderPropertiesDlg *pDlg;
+	pDlg = new CFolderPropertiesDlg(m_pSFParent);
+	if(pDlg)
+		pDlg->Show();
+/*
+	CVersionInfoDlg *pDlg;
+	pDlg = new CVersionInfoDlg(m_pSFParent);
+	if(pDlg)
+		pDlg->Show();
+*/
+/*
 //	::MessageBeep(MB_OK);
 
 	TCHAR szFullPath[MAX_PATH] = {0};
@@ -1423,13 +1404,13 @@ void CShellFolder::DisplayVersion()
 		{
 			TCHAR szMessage[256] = {0};
 			TCHAR szPath[MAX_PATH] = {0};
-			CSettings::GetXmlFilePath(szPath, sizeof(szPath));
+			CSettings::GetXmlFilePath(szPath, ARRAYSIZE(szPath));
 			*strrchr(szPath, '\\') = 0;
 			TCHAR szTemp[200] = {0};
 			::LoadString(g_hInst, IDS_VERSIONINFO, szTemp, ARRAYSIZE(szTemp));
 			wsprintf(szMessage, szTemp, lpVersion, szPath);
 			::MessageBox(
-				NULL/*hWnd*/,
+				NULL,//hWnd
 				szMessage,
 				TEXT("About zenFolders"),
 				MB_OK | MB_ICONINFORMATION);
@@ -1438,6 +1419,7 @@ void CShellFolder::DisplayVersion()
 		::GlobalUnlock(hMem);
 		::GlobalFree(hMem);
 	}
+*/
 }
 
 void CShellFolder::OpenFolder(HWND hwnd, LPCITEMIDLIST pidl, BOOL bExplore)
@@ -1445,12 +1427,11 @@ void CShellFolder::OpenFolder(HWND hwnd, LPCITEMIDLIST pidl, BOOL bExplore)
 	if(NULL == pidl)
 		return;
 
-	LPITEMIDLIST pidlFQ = CreateFQPidl(pidl);
+	CPidl pidlFQ = CreateFQPidl(pidl);
 
 //	TRACE_PIDL_PATH("CContextMenu::OnOpenFolder(%s)\n", pidlFQ);
 
-	SHELLEXECUTEINFO  sei;
-	ZeroMemory(&sei, sizeof(sei));
+	SHELLEXECUTEINFO  sei = {0};
 	sei.cbSize		= sizeof(sei);
 	sei.fMask		= SEE_MASK_IDLIST | SEE_MASK_CLASSNAME;
 	sei.lpIDList	= pidlFQ;
@@ -1458,9 +1439,7 @@ void CShellFolder::OpenFolder(HWND hwnd, LPCITEMIDLIST pidl, BOOL bExplore)
 	sei.hwnd		= hwnd;
 	sei.nShow		= SW_SHOWNORMAL;
 	sei.lpVerb		= bExplore ? TEXT("explore") : TEXT("open");
-	::ShellExecuteEx(&sei);
-
-	g_pPidlMgr->Delete(pidlFQ);
+	::ShellExecuteEx( &sei );
 }
 
 void CShellFolder::Execute(LPCITEMIDLIST pidl)
@@ -1478,21 +1457,17 @@ void CShellFolder::Execute(LPCITEMIDLIST pidl)
 	if( NULL == pidlFS )
 		return;
 
-	SHELLEXECUTEINFO  sei;
-	ZeroMemory(&sei, sizeof(sei));
+	SHELLEXECUTEINFO  sei = {0};
 	sei.cbSize		= sizeof(SHELLEXECUTEINFO);
 	sei.fMask		= SEE_MASK_NOCLOSEPROCESS | SEE_MASK_IDLIST; 
 	sei.lpIDList	= pidlFS;
 	sei.nShow		= SW_SHOWNORMAL;
-	::ShellExecuteEx(&sei);
+	::ShellExecuteEx( &sei );
 }
 
 void CShellFolder::OpenContainingFolder(LPCITEMIDLIST pidl)
 {
-	if(NULL == pidl)
-		return;
-
-	if( !CPidlManager::IsFile(pidl) )
+	if( (NULL == pidl) || !CPidlManager::IsFile(pidl) )
 		return;
 
 	LPPIDLDATA pData = CPidlManager::GetDataPointer( pidl );
@@ -1504,31 +1479,28 @@ void CShellFolder::OpenContainingFolder(LPCITEMIDLIST pidl)
 	{
 		*(++p) = 0;
 
-		SHELLEXECUTEINFO  sei;
-		ZeroMemory(&sei, sizeof(sei));
+		SHELLEXECUTEINFO  sei = {0};
 		sei.cbSize		= sizeof(sei);
 		sei.fMask		= SEE_MASK_IDLIST | SEE_MASK_CLASSNAME;
 		sei.lpFile		= szPath;
 		sei.lpClass		= TEXT("folder");
 		sei.nShow		= SW_SHOWNORMAL;
 		sei.lpVerb		= TEXT("open");
-		::ShellExecuteEx(&sei);
+		::ShellExecuteEx( &sei );
 	}
 }
 
 void CShellFolder::SaveListViewStyle(LONG style)
 {
-	if( !IsRoot() )
+	if( IsRoot() )
+		return;
+
+	LPPIDLDATA pData = m_pidlFQ.GetData();
+	if(pData)
 	{
-		LPPIDLDATA pData = m_pidlFQ.GetData();
-		if(pData)
-		{
-//			if( IsRoot() )
-//				memset(pData, 0, sizeof(PIDLDATA));
-			LPFOLDERDATA pFolderData = &pData->folderData;
-			pFolderData->viewStyle = style;
-			g_pConfigXML->SaveFolder( m_pidlFQ.GetFull() );
-		}
+		LPSEARCHDATA pSearchData = &pData->searchData;
+		pSearchData->viewStyle = style;
+		g_pConfigXML->SaveFolder( m_pidlFQ );
 	}
 }
 
@@ -1541,9 +1513,26 @@ LONG CShellFolder::GetListViewStyle()
 		if(pData)
 		{
 			g_pConfigXML->GetFolderInfo(pData, ptrNode);
-			LPFOLDERDATA pFolderData = &pData->folderData;
-			return pFolderData->viewStyle;
+			LPSEARCHDATA pSearchData = &pData->searchData;
+			return pSearchData->viewStyle;
 		}
 	}
 	return LVS_REPORT2;
+}
+
+void CShellFolder::AddFolderLink(LPCTSTR lpszPath)
+{
+	g_pConfigXML->CreateFolderLink(lpszPath, m_pidlFQ.GetNode());
+
+	::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_IDLIST, m_pidlFQ, NULL);
+	g_pViewList->Refresh();
+}
+
+void CShellFolder::AddFileLink(LPCTSTR lpszPath)
+{
+	g_pConfigXML->CreateFileLink(lpszPath, m_pidlFQ.GetNode());
+
+	::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_IDLIST, m_pidlFQ, NULL);
+	//SHCNE_CREATE
+	g_pViewList->Refresh();
 }

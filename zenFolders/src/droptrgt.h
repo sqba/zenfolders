@@ -19,7 +19,7 @@ public:
 	//IDropTarget methods
 	STDMETHOD(DragEnter)(LPDATAOBJECT, DWORD, POINTL, LPDWORD);
 	STDMETHOD(DragOver)(DWORD, POINTL, LPDWORD);
-	STDMETHOD(DragLeave)(VOID);
+	STDMETHOD(DragLeave)();
 	STDMETHOD(Drop)(LPDATAOBJECT, DWORD, POINTL, LPDWORD);
 
 private:
@@ -28,7 +28,7 @@ private:
 	BOOL DoPrivateDrop(HGLOBAL, BOOL);
 	BOOL DoHDrop(HDROP, BOOL);
 	LPITEMIDLIST* AllocPidlTable(DWORD);
-	VOID FreePidlTable(LPITEMIDLIST*);
+	void FreePidlTable(LPITEMIDLIST*);
 
 private:
 	CShellFolder	*m_psfParent;

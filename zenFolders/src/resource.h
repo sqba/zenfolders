@@ -51,6 +51,10 @@
 #define IDC_CATEGORY                    110
 #define IDR_ACCELERATORS                111
 #define IDR_POPUP                       112
+#define IDD_ZENFOLDERS_INFO             113
+#define IDB_HEADER                      115
+#define IDC_VERSION                     1001
+#define IDC_PATH                        1002
 #define IDM_DELETE                      40001
 #define IDM_RENAMEFOLDER                40002
 #define IDC_LARGE_ICONS                 40003
@@ -65,7 +69,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        113
+#define _APS_NEXT_RESOURCE_VALUE        116
 #define _APS_NEXT_COMMAND_VALUE         40010
 #define _APS_NEXT_CONTROL_VALUE         1006
 #define _APS_NEXT_SYMED_VALUE           101

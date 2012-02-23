@@ -86,10 +86,10 @@ int CALLBACK SortFunc(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 			}
 			else
 			{
-				LPFOLDERDATA pFolderData1 = &pData1->folderData;
-				LPFOLDERDATA pFolderData2 = &pData2->folderData;
-				val1 = descending ? pFolderData1->szQuery : pFolderData2->szQuery;
-				val2 = descending ? pFolderData2->szQuery : pFolderData1->szQuery;
+				LPSEARCHDATA pSearchData1 = &pData1->searchData;
+				LPSEARCHDATA pSearchData2 = &pData2->searchData;
+				val1 = descending ? pSearchData1->szQuery : pSearchData2->szQuery;
+				val2 = descending ? pSearchData2->szQuery : pSearchData1->szQuery;
 			}
 		}
 		result = lstrcmp(val1, val2);
@@ -1226,7 +1226,7 @@ BOOL CShellView::CreateList(void)
 {
 	if( CGoogleDS::IsInstalled() )
 	{
-		m_pListView = new CListView(g_hInst, m_hWnd);
+		m_pListView = new CListView(g_hInst, m_hWnd, m_pSFParent);
 #ifdef USE_ADSENSE
 		m_pWebBrowser = new CWebBrowser(g_hInst, m_hWnd);
 #endif
@@ -1658,7 +1658,7 @@ int CShellView::OnGetDispInfo(LPNMHDR lpnmh)
 			else
 			{
 				LPPIDLDATA pData = CPidlManager::GetDataPointer(pidl);
-				lstrcpyn(lpdi->item.pszText, pData->folderData.szQuery, lpdi->item.cchTextMax);
+				lstrcpyn(lpdi->item.pszText, pData->searchData.szQuery, lpdi->item.cchTextMax);
 				if(!*lpdi->item.pszText)
 					LoadString(
 						g_hInst,
@@ -1800,7 +1800,7 @@ int CShellView::FindItemPidl(LPCITEMIDLIST pidl)
 	return -1;
 }
 
-VOID CShellView::UpdateData(LPCITEMIDLIST pidl)
+void CShellView::UpdateData(LPCITEMIDLIST pidl)
 {
 	int i = FindItemPidl(pidl);
 	

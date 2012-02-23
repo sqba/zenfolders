@@ -82,7 +82,7 @@ private:
 	int InsertItem(LPCITEMIDLIST);
 	BOOL InitList(void);
 	BOOL CreateList(void);
-	VOID UpdateData(LPCITEMIDLIST);
+	void UpdateData(LPCITEMIDLIST);
 	void FillList(void);
 	void InitMenu(UINT);
 	void UpdateShellSettings(void);

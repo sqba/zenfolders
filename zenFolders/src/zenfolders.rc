@@ -28,7 +28,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ZENFOLDERS          ICON    DISCARDABLE     "../icons/zenFolders.ico"
+IDI_ZENFOLDERS          ICON    DISCARDABLE     "res\\zenFolders.ico"
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -91,6 +91,27 @@ BEGIN
     CONTROL         "",13098,"Static",SS_ETCHEDHORZ,7,46,227,1
 END
 
+IDD_ZENFOLDERS_INFO DIALOG DISCARDABLE  0, 0, 274, 146
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "zenFolders"
+FONT 8, "MS Sans Serif"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,162,125,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,216,125,50,14
+    LTEXT           "version...",IDC_VERSION,78,55,97,9
+    CONTROL         "",13098,"Static",SS_ETCHEDHORZ,0,45,274,1
+    CONTROL         115,IDC_STATIC,"Static",SS_BITMAP,0,0,274,45
+    LTEXT           "zenfolders.googlepages.com",IDC_STATIC,78,83,92,9
+    LTEXT           "zenfolders@gmail.com",IDC_STATIC,78,97,92,9
+    LTEXT           "Filip Pavlovic",IDC_STATIC,78,111,92,9
+    LTEXT           "Website:",IDC_STATIC,43,83,31,9
+    LTEXT           "Email:",IDC_STATIC,43,97,31,9
+    LTEXT           "Author:",IDC_STATIC,43,111,31,9
+    LTEXT           "Version:",IDC_STATIC,43,55,31,9
+    LTEXT           "path...",IDC_PATH,77,69,188,9
+    LTEXT           "Path:",IDC_STATIC,43,69,31,9
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -107,6 +128,11 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 251
     END
+
+    IDD_ZENFOLDERS_INFO, DIALOG
+    BEGIN
+        BOTTOMMARGIN, 139
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -118,8 +144,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,7
- PRODUCTVERSION 1,0,0,7
+ FILEVERSION 1,1,0,0
+ PRODUCTVERSION 1,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -137,14 +163,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "oneFingerZen\0"
             VALUE "FileDescription", "zenFolders\0"
-            VALUE "FileVersion", "1, 0, 0, 7\0"
+            VALUE "FileVersion", "1, 1, 0, 0\0"
             VALUE "InternalName", "zenFolders\0"
             VALUE "LegalCopyright", "Copyright oneFingerZen© 2007\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "zenFolders.dll\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "OneFingerZen zenFolders\0"
-            VALUE "ProductVersion", "1, 0, 0, 7\0"
+            VALUE "ProductVersion", "1, 1, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
@@ -188,6 +214,13 @@ BEGIN
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_HEADER              BITMAP  DISCARDABLE     "res\\zenFolders.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

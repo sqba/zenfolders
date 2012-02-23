@@ -1,6 +1,8 @@
 
 #include <crtdbg.h>
 
+#include <shlobj.h>
+
 #include "commands.h"
 #include "contmenu.h"
 #include "cfgxml.h"
@@ -54,11 +56,13 @@ CContextMenu::CContextMenu(CShellFolder *pSFParent,
 		FillPidlTable(aPidls, uItemCount);
 	}
 	
-	m_fAllFiles = 1;
+	m_bAllFiles = 1;
+//	m_bAllLinks = 1;
 	UINT  u;
 	for(u = 0; u < uItemCount; u++)
 	{
-		m_fAllFiles &= (CPidlManager::IsFile(aPidls[u]) ? 1 : 0);
+		m_bAllFiles &= (CPidlManager::IsFile(aPidls[u]) ? 1 : 0);
+//		m_bAllLinks &= (CPidlManager::IsFolderLink(aPidls[u]) ? 1 : 0);
 	}
 
 //	_RPTF1(_CRT_WARN, "CContextMenu(%d)\n", g_DllRefCount);
@@ -366,7 +370,7 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 
 	if(!(CMF_DEFAULTONLY & uFlags))
 	{
-		if(!m_fAllFiles)
+		if(!m_bAllFiles)
 		{
 			BOOL  fExplore = uFlags & CMF_EXPLORE;
 			
@@ -451,7 +455,7 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 			AddMenuItem(hMenu, szText, indexMenu++, idCmdFirst+IDM_CLEARSEARCH, TRUE, FALSE);
 		}
 
-		if(m_fAllFiles && (NULL != m_aPidls[0]))
+		if(m_bAllFiles && (NULL != m_aPidls[0]))
 		{
 			LoadShellMenu(hMenu, indexMenu);
 		}
@@ -474,7 +478,7 @@ STDMETHODIMP CContextMenu::QueryContextMenu(HMENU hMenu,
 // Private functions
 //
 
-BOOL CContextMenu::AllocPidlTable(DWORD dwEntries)
+bool CContextMenu::AllocPidlTable(DWORD dwEntries)
 {
 	//add one for NULL terminator
 	dwEntries++;
@@ -504,7 +508,7 @@ void CContextMenu::FreePidlTable(void)
 	}
 }
 
-BOOL CContextMenu::FillPidlTable(LPCITEMIDLIST *aPidls, UINT uItemCount)
+bool CContextMenu::FillPidlTable(LPCITEMIDLIST *aPidls, UINT uItemCount)
 {
 	if(m_aPidls && g_pPidlMgr)
 	{
@@ -513,13 +517,13 @@ BOOL CContextMenu::FillPidlTable(LPCITEMIDLIST *aPidls, UINT uItemCount)
 		{
 			m_aPidls[i] = g_pPidlMgr->Copy(aPidls[i]);
 		}
-		return TRUE;
+		return true;
 	}
 	
-	return FALSE;
+	return false;
 }
 
-BOOL CContextMenu::CanRenameItems(void)
+BOOL CContextMenu::CanRenameItems()
 {
 	if(m_aPidls && g_pPidlMgr)
 	{

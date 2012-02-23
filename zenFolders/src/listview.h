@@ -3,13 +3,14 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include "shlfldr.h"
 
 #define LVS_REPORT2		0x8000
 
 class CListView  
 {
 public:
-	CListView(HINSTANCE, HWND);
+	CListView(HINSTANCE, HWND, CShellFolder*);
 	virtual ~CListView();
 
 	void Clear();
@@ -42,9 +43,13 @@ public:
 //	HWND GetHwnd() { return m_hwndList; }
 
 private:
-	int		m_iColumns;
-	LONG	m_lStyle;
-	HWND	m_hwndList;
+	void InitDragAndDrop(HWND, CShellFolder*);
+
+private:
+	int				m_iColumns;
+	LONG			m_lStyle;
+	HWND			m_hwndList;
+	LPDROPTARGET	m_pDropTarget;
 };
 
 #endif   //LISTVIEW_H

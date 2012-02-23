@@ -7,10 +7,6 @@ Project: "zenFolders"=.\zenFolders.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
-    begin source code control
-    "$/sqba/zenFolders/zenFolders", GGEAAAAA
-    .
-    end source code control
 }}}
 
 Package=<4>
