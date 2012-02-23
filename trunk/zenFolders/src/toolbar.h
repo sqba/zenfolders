@@ -12,8 +12,8 @@ class CToolBar
 public:
 	static BOOL OnTtnNeedTextA(LPNMHDR);
 	static BOOL OnTtnNeedTextW(LPNMHDR);
-	static VOID MergeToolbar(LPSHELLBROWSER);
-	static VOID OnToolbarDropdown(CListView*, LPSHELLBROWSER, HWND, HWND, LPARAM);
+	static void MergeToolbar(LPSHELLBROWSER);
+	static void OnToolbarDropdown(CListView*, LPSHELLBROWSER, HWND, HWND, LPARAM);
 
 //	static void MergeFileMenu(HMENU);
 //	static void MergeViewMenu(HMENU);

@@ -1,0 +1,118 @@
+Bagovi:
+-------
+-DLL_PROCESS_DETACH pukne u ~CConfigXML() (vezano za m_pXmlDoc)
+-Otvaranje iz File Open dijaloga ne radi
+-Drag and Drop ne prikazuje popup meni
+-Create shortcut ne radi
+-S_FALSE promeniti u E_FAIL a S_OK u NOERROR
+-fq putanja i dalje prikazuje fiksno ime root-a
+-Root-u ne moze da se snimi svoj view style (ni bilo sta drugo)
+-Drag and Drop ne radi unutar ListView-a
+-Open, Open With, Print i Send To ne rade
+-Folder properties dialog pokazuje 'file' kategoriju i kada
+ kategorija nije postavljena
+-drag and drop i dalje ne radi 100% (npr. u Floopy!)
+-Kada se klikne na samu ikonu view style umesto na strelicu, meni ne izadje
+
+Dodati:
+-------
+-Kolone 'category', 'extension', 'size', 'title', itd...
+-Thumbnails view
+-Povecati duzinu search string-a
+-Napraviti propertysheet-ove za root sa GDS komandama
+ i about (i mozda uninstall)
+-Filter za velichinu fajla (Mila)
+-multilingual support (Aharon)
+-Automatic updates
+-mozda FS pidl treba da se chita tek kada listview zatrazi.
+ onda bi se nepostojeci fajlovi obelezavali drugom ikonom
+-'Nasledjivanje' search string-a
+-Animacija umesto ListView-a dok GDS ne vrati rezultate
+-Po instalaciji pokazati specijalni fajl tipa "i shta sada"
+-Agregacije po filetype (mov, avi, ...)
+-Skinovi, izmenjive ikone za foldere
+-Automatsko kreiranje subfoldera po extenzijama
+-Refresh, Cut i Copy toolbar buttons
+-Mozda neki gradijent bar iznad ListView-a, chisto kao eye candy
+-Mozda neki limit shta koji user moze da pretrazuje (koje foldere)
+-Refresh root-a neka uchita ponovo XML
+-shift+del
+-Dodati i obichan details view
+-File, Edit and View menu (and Help?)
+-Dugme u Toolbar-u koje otvara prozor iznad ListView-a
+ u kome su search string i drugi folder properties
+-Open Folder dialog
+-Drag and Drop u Recycle Bin (root deinstalira a svaki drugi folder se brise)
+
+Website:
+--------
+-AdSense referrals (Google Pack)
+-Features, Requirements, History, Credits, How to Use?
+-razlicitim scenariji (xml?), npr. za:
+ programere, novinare, web dizajnere, (smisliti jos)
+-history/blog
+-Poslati link blogerima koji su pisali o vistinom search-u
+-link na wikipediji (virtual folders)
+-Save to delicious, digg...
+-Registrovati kod sajtova koji garantuju da je download virus free
+-"Find more on the web" u popup meniju, shalje search string
+-Pisati negde u hederu "Current version: ..."
+-Probati primere sa kuvanjem
+
+Kasnije:
+--------
+-Specijalni 'fajlovi':
+ "Dodaj novi folder", "Obrisi ovaj folder", "Edit Query", ...
+-animacija sa lupom dok se uchitavaju rezultati iz GDS-a
+-Kasnije bi to mogle da postanu kombinacije pravih foldera
+ i rezultata pretrage tako da mogu tu da se snimaju fajlovi
+-Eksportovanje foldera i slanje emailom
+-folder repository
+-proveriti shta se deshava pri instalaciji kada GDS nije instaliran
+-Opcija na root nivou: clean up - brishe is indexa sve nepostojece fajlove
+-[skroz asinhrono ucitavanje, bez ogranicenja rezultata]
+-Kontext meni:
+ "Create shortcut to containing folder" - znachi, dodati prave foldere
+ "Remove from index"
+
+-Context meni opcija "find more about '*' on internet" ili
+ "buy on amazon" ili sl.
+-Mozda mogu banneri u Folder Properties dialog
+-Proveriti da li AdSense moze u desktop aplikacije
+ Ako moze, pored listview-a sa, leve strane,
+ ubaciti uspravni explorer view sa adsense-om
+-Google pack referrals: $2 for download & install
+
+
+Google Pack is only available for Windows XP
+
+
+
+
+
+Mozda bi pomoglo da se napravi test aplikacija koja instancira File Open dijalog
+
+Labels
+------
+Napraviti shell extenziju koja u file menu dodaje neshto kao 'label file'.
+Ova komanda bi u specijalan (nevidljivi) fajl u istom folderu dodala ime
+lejbelovanog fajla i ime lejbela.
+Sa druge strane, indexing plugin bi znao da chita te fajlove i da indeksira
+sadrzaj
+
+
+LiveFolders
+
+
+
+%SystemRoot%\Explorer.exe /e,::{MyExtension CLSID}
+
+
+HKEY_CLASSES_ROOT\CLSID\{A5F90EDF-B00B-40E4-9B63-3C02847E5EC9}
+
+
+%SystemRoot%\Explorer.exe /e,::{A5F90EDF-B00B-40E4-9B63-3C02847E5EC9}
+
+
+Mozda bi bilo interesantno napraviti personalizovanu web stranicu
+gde je moguce snimati google search-eve

@@ -23,9 +23,9 @@ public:
 	STDMETHODIMP QueryContextMenu(HMENU, UINT, UINT, UINT, UINT);
 
 private:
-	BOOL AllocPidlTable(DWORD);
+	bool AllocPidlTable(DWORD);
 	void FreePidlTable(void);
-	BOOL FillPidlTable(LPCITEMIDLIST*, UINT);
+	bool FillPidlTable(LPCITEMIDLIST*, UINT);
 	BOOL CanRenameItems(void);
 	LPCTSTR GetFileExtension(LPCITEMIDLIST);
 	void AddMenuItem(HMENU, LPTSTR, UINT, UINT=0, BOOL=TRUE, BOOL=FALSE);
@@ -47,7 +47,8 @@ private:
 	LPITEMIDLIST	*m_aPidls;
 	IMalloc			*m_pMalloc;
 	CShellFolder	*m_pSFParent;
-	BOOL			m_fAllFiles;
+	BOOL			m_bAllFiles;
+//	BOOL			m_bAllLinks;
 	LPCONTEXTMENU	m_pContextMenu;
 };
 

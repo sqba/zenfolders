@@ -6,10 +6,10 @@
 #include "pidlmgr.h"
 #include "cfgxml.h"
 
-typedef struct tagENUMLIST
+typedef struct _ENUMLIST
 {
-	struct tagENUMLIST   *pNext;
-	LPITEMIDLIST         pidl;
+	struct _ENUMLIST	*pNext;
+	LPITEMIDLIST		pidl;
 } ENUMLIST, FAR *LPENUMLIST;
 
 class CEnumIDList : public IEnumIDList
@@ -37,9 +37,11 @@ public:
 private:
 	BOOL AddToEnumList(LPITEMIDLIST);
 	BOOL DeleteList(void);
-	BOOL CreateEnumList(MSXML2::IXMLDOMNodePtr, DWORD);
 	BOOL EnumerateFolders(MSXML2::IXMLDOMNodePtr);
 	BOOL EnumerateFiles(MSXML2::IXMLDOMNodePtr);
+	BOOL EnumerateFolderLinks(MSXML2::IXMLDOMNodePtr);
+	BOOL EnumerateFileLinks(MSXML2::IXMLDOMNodePtr);
+	BOOL EnumerateDirectory(LPCTSTR, DWORD);
 
 private:
 	DWORD		m_ObjRefCount;
