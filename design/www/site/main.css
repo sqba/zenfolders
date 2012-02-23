@@ -1,0 +1,50 @@
+body
+{
+	background-color: #3A6EA5;
+	/*background-color: #808080*/
+	font: 100.01% "Trebuchet MS",Verdana,Arial,sans-serif
+	/*margin-top: 20px;
+	margin-bottom: 2px;*/
+
+}
+
+td
+{
+	background-color: #FFF;
+}
+
+tr
+{
+	width: 100%
+}
+
+td.header_left
+{
+	background-image: url(header_left.GIF);
+	background-repeat:no-repeat;
+	width:313px;
+	height:100px
+}
+
+td.header_middle
+{
+	background-image: url(header_middle.GIF);
+	background-repeat:repeat-x;
+	width:auto;
+	height:100px
+}
+
+td.header_right
+{
+	background-image: url(header_right.GIF);
+	background-repeat:no-repeat;
+	width:129px;
+	height:100px
+}
+
+td.content
+{
+	background-color: #FFF;
+	height:700px
+}
+

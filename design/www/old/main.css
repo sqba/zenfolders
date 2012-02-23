@@ -1,0 +1,64 @@
+body { background-color: #3A6EA5; font: 100.01% "Trebuchet MS",Verdana,Arial,sans-serif }
+
+h1,h2,p { margin: 0 10px }
+h1 { font-size: 250%; color: #FFF }
+h2 { font-size: 200%; color: #f0f0f0 }
+h2 { padding-top: 0.3em }
+
+a { cursor: hand; text-decoration: none }
+a img { border: 0 }
+p { padding-bottom:1em }
+
+/*******************************************************************
+ * Rounded corners
+ *******************************************************************/
+div.rounded { margin: 0; height: 100%; background: #3A6EA5 }
+b.top, b.bottom { display:block; background: #FFF }
+b.top b, b.bottom b { display:block; height: 1px; overflow: hidden; background: #808080 }
+b.r1 { margin: 0 3px }
+b.r2 { margin: 0 2px }
+b.r3 { margin: 0 1px }
+
+/*******************************************************************
+ * Header
+ *******************************************************************/
+.header { background-color: #3A6EA5; }
+.header b.top { background: #3A6EA5; }
+.header b.bottom { background: #FFF; }
+.header .rounded h1 { font-size: 60pt }
+.header .rounded { margin: 0 0%; background: #808080 }
+.header b.top b { background: #808080 }
+.header b.bottom b { background: #4AA0E0 }
+
+/*******************************************************************
+ * Footer
+ *******************************************************************/
+.footer b.top { background: #FFF; }
+.footer b.bottom { background: #3A6EA5; }
+.footer .rounded { font-size: 9pt }
+.footer .rounded { margin: 0 0%; background: #808080 }
+.footer b.top b, .footer b.bottom b { background: #808080 }
+
+
+
+
+table { background-color: #FFF }
+table.logo { background-color: #808080  }
+/*table.menu { background-color: #4AA0E0 }*/
+table.menu { background-color: #808080 }
+.menu a { color: #FFDB1E; font-weight: normal; font-size: 16px }
+.menu a:visited { color: #FFDB1E }
+/*.menu { vertical-align:top; background-image: url(menuc.gif); background-repeat:repeat-x}*/
+
+
+.info { font-size: 14px; }
+
+.t { background-color: #808080; width:auto; height:10px }
+.rt { background-image: url(rt.gif); background-repeat:no-repeat; width:10px; height:10px }
+.c { background-color: #808080; height:auto; width:auto }
+.r { background-image: url(r.gif); background-repeat:repeat-y; width:10px }
+.lb { background-image: url(lb.gif); background-repeat:no-repeat; width:10px; height:10px }
+.b { background-image: url(b.gif); background-repeat:repeat-x; height:10px }
+.rb { background-image: url(rb.gif); background-repeat:no-repeat; width:10px; height:10px }
+
+
