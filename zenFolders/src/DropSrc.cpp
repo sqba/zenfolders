@@ -43,12 +43,12 @@ STDMETHODIMP CDropSource::QueryInterface(REFIID riid, LPVOID *ppReturn)
 	return E_NOINTERFACE;
 }
 
-STDMETHODIMP_(DWORD) CDropSource::AddRef(void)
+STDMETHODIMP_(DWORD) CDropSource::AddRef(VOID)
 {
 	return ++m_ObjRefCount;
 }
 
-STDMETHODIMP_(DWORD) CDropSource::Release(void)
+STDMETHODIMP_(DWORD) CDropSource::Release(VOID)
 {
 	if(--m_ObjRefCount == 0)
 	{

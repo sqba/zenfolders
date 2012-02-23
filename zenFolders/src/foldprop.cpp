@@ -20,10 +20,10 @@ extern LPPIDLMGR		g_pPidlMgr;
 extern LPDIALOGSLIST	g_pDialogList;
 
 
-BOOL CALLBACK CFolderPropertiesDlg::DlgProc(HWND hDlg,
-											UINT message,
-											WPARAM wParam,
-											LPARAM lParam)
+BOOL CALLBACK PropertiesDlgProc (HWND hDlg,
+								 UINT message,
+								 WPARAM wParam,
+								 LPARAM lParam)
 {
 	CFolderPropertiesDlg *pDlg = NULL;
 
@@ -50,16 +50,11 @@ BOOL CALLBACK CFolderPropertiesDlg::DlgProc(HWND hDlg,
 		break ;
 
 	case WM_CLOSE :
-		pDlg = (CFolderPropertiesDlg*)::GetWindowLong(hDlg, DWL_USER);
+		pDlg = (CFolderPropertiesDlg*)lParam;
 		pDlg->OnClose(hDlg);
-		return FALSE;
-
-	/*case WM_DESTROY:
-		pDlg = (CFolderPropertiesDlg*)::GetWindowLong(hDlg, DWL_USER);
-		pDlg->OnDestroy(hDlg);
-		return FALSE;*/
+		return FALSE ;
 	}
-	return FALSE;
+	return FALSE ;
 }
 
 
@@ -70,22 +65,16 @@ BOOL CALLBACK CFolderPropertiesDlg::DlgProc(HWND hDlg,
 CFolderPropertiesDlg::CFolderPropertiesDlg(CShellFolder *pParent,
 										   LPCITEMIDLIST pidl)
 {
+	m_hDlg = NULL;
+	m_pParent = pParent;
+
 	if(NULL == pidl)
 	{
 		delete this;
 		return;
 	}
 
-	m_hDlg		= NULL;
-	m_pParent	= pParent;
-	m_pidl		= pidl;
-}
-
-CFolderPropertiesDlg::CFolderPropertiesDlg(CShellFolder *pParent)
-{
-	m_hDlg		= NULL;
-	m_pParent	= pParent;
-	m_pidl		= NULL;
+	m_pidl = pidl;
 }
 
 CFolderPropertiesDlg::~CFolderPropertiesDlg()
@@ -102,26 +91,15 @@ CFolderPropertiesDlg::~CFolderPropertiesDlg()
 //////////////////////////////////////////////////////////////////////
 // Event handlers
 
-bool CFolderPropertiesDlg::OnInit(HWND hDlg)
+BOOL CFolderPropertiesDlg::OnInit(HWND hDlg)
 {
-	if( !g_pDialogList->AddToList(this) )
-	{
-		::DestroyWindow(hDlg);
-		return false;
-	}
+	g_pDialogList->AddToList(this);
 
 	// Set dialog icon, big and small
 	::SendMessage(hDlg, WM_SETICON, ICON_BIG,
 		(LPARAM)LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_ZENFOLDERS)));
 	::SendMessage(hDlg, WM_SETICON, ICON_SMALL,
 		(LPARAM)LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_ZENFOLDERS)));
-
-	if(NULL == (LPITEMIDLIST)m_pidl)
-	{
-		DisplayVersion(hDlg);
-		DisplayPath(hDlg);
-		return true;
-	}
 
 //	CenterDialog(hDlg);
 
@@ -136,40 +114,31 @@ bool CFolderPropertiesDlg::OnInit(HWND hDlg)
 	InitMaxResults(hDlg);
 	InitCategory(hDlg);
 
-	return true;
+	return TRUE ;
 }
 
-bool CFolderPropertiesDlg::OnApply(HWND hDlg)
+BOOL CFolderPropertiesDlg::OnApply(HWND hDlg)
 {
 	return ApplyChanges(hDlg);
 }
 
-bool CFolderPropertiesDlg::OnOk(HWND hDlg)
+BOOL CFolderPropertiesDlg::OnOk(HWND hDlg)
 {
-	g_pDialogList->RemoveFromList(this);
 	ApplyChanges(hDlg);
-	::EndDialog(hDlg, 0);
-	return true ;
+	EndDialog (hDlg, 0) ;
+	return TRUE ;
 }
 
-bool CFolderPropertiesDlg::OnCancel(HWND hDlg)
+BOOL CFolderPropertiesDlg::OnCancel(HWND hDlg)
+{
+	EndDialog (hDlg, 0) ;
+	return TRUE ;
+}
+
+BOOL CFolderPropertiesDlg::OnClose(HWND hDlg)
 {
 	g_pDialogList->RemoveFromList(this);
-	::EndDialog(hDlg, 0);
-	return true ;
-}
-
-bool CFolderPropertiesDlg::OnClose(HWND hDlg)
-{
-	g_pDialogList->RemoveFromList(this);
-	return true;
-}
-
-bool CFolderPropertiesDlg::OnDestroy(HWND hDlg)
-{
-//	g_pDialogList->RemoveFromList(this);
-//	::PostQuitMessage(0);
-	return true;
+	return TRUE ;
 }
 
 
@@ -178,68 +147,18 @@ bool CFolderPropertiesDlg::OnDestroy(HWND hDlg)
 
 
 
-void CFolderPropertiesDlg::DisplayPath(HWND hDlg)
-{
-	TCHAR szMessage[256] = {0};
-	TCHAR szPath[MAX_PATH] = {0};
-	CSettings::GetXmlFilePath(szPath, ARRAYSIZE(szPath));
-	//*strrchr(szPath, '\\') = 0;
-	::SetDlgItemText(hDlg, IDC_PATH, szPath);
-}
-
-void CFolderPropertiesDlg::DisplayVersion(HWND hDlg)
-{
-	TCHAR szFullPath[MAX_PATH] = {0};
-	::GetModuleFileName(g_hInst, szFullPath, MAX_PATH);
-
-	DWORD dwVerInfoSize;
-	DWORD dwVerHnd=0;
-	dwVerInfoSize = ::GetFileVersionInfoSize(szFullPath, &dwVerHnd);
-	if(dwVerInfoSize)
-	{
-		LPSTR   lpstrVffInfo;
-		HANDLE  hMem;
-		hMem = ::GlobalAlloc(GMEM_MOVEABLE, dwVerInfoSize);
-		lpstrVffInfo = (LPSTR)::GlobalLock(hMem);
-		::GetFileVersionInfo(szFullPath, dwVerHnd, dwVerInfoSize, lpstrVffInfo);
-
-		UINT uVersionLen = 0;
-		LPSTR lpVersion = NULL;
-		TCHAR szGetName[256];
-//		lstrcpy(szGetName, "\\StringFileInfo\\040904b0\\");	 
-//		lstrcat(szGetName, TEXT("ProductVersion"));
-		lstrcpy(szGetName, "\\StringFileInfo\\040904b0\\ProductVersion");	 
-		BOOL bRetCode = ::VerQueryValue(
-			(LPVOID)lpstrVffInfo,
-			(LPSTR)szGetName,
-			(LPVOID*)&lpVersion,
-			(UINT *)&uVersionLen);
-
-		if(bRetCode)
-			::SetDlgItemText(hDlg, IDC_VERSION, lpVersion);
-
-		::GlobalUnlock(hMem);
-		::GlobalFree(hMem);
-	}
-}
 
 
 
 
-bool CFolderPropertiesDlg::Equals(CFolderPropertiesDlg *pDlg)
-{
-	return (TRUE == CPidlManager::Equal(pDlg->m_pidl, this->m_pidl));
-}
 
 void CFolderPropertiesDlg::Show()
 {
-	UINT nRes = NULL == (LPITEMIDLIST)m_pidl ? IDD_ZENFOLDERS_INFO : IDD_FOLDER_PROPERTIES;
-
 	m_hDlg = ::CreateDialogParam(
 		g_hInst,
-		MAKEINTRESOURCE(nRes), 
+		MAKEINTRESOURCE(IDD_FOLDER_PROPERTIES), 
 		NULL, //HWND hWndParent
-		DlgProc,
+		PropertiesDlgProc,
 		(LPARAM)this);
 
 	::SetWindowLong(m_hDlg, DWL_USER, (LONG)this);
@@ -247,13 +166,6 @@ void CFolderPropertiesDlg::Show()
 	::ShowWindow(m_hDlg, SW_SHOW) ;
 
 	::SetFocus( GetDlgItem(m_hDlg, IDC_FOLDER_NAME) );
-}
-
-void CFolderPropertiesDlg::BringToFront()
-{
-//	::SetFocus( m_hDlg );
-//	::ShowWindow(m_hDlg, SW_SHOW) ;
-	::BringWindowToTop( m_hDlg );
 }
 /*
 void CFolderPropertiesDlg::CenterDialog(HWND hDlg)
@@ -308,13 +220,13 @@ void CFolderPropertiesDlg::InitFolderName(HWND hDlg)
 void CFolderPropertiesDlg::InitQueryString(HWND hDlg)
 {
 	LPPIDLDATA pData = m_pidl.GetData();
-	::SetDlgItemText(hDlg, IDC_FOLDER_QUERY, pData->searchData.szQuery);
+	::SetDlgItemText(hDlg, IDC_FOLDER_QUERY, pData->folderData.szQuery);
 }
 
 void CFolderPropertiesDlg::InitMaxResults(HWND hDlg)
 {
 	LPPIDLDATA pData = m_pidl.GetData();
-	::SetDlgItemInt(hDlg, IDC_MAXRESULTS, pData->searchData.maxResults, FALSE);
+	::SetDlgItemInt(hDlg, IDC_MAXRESULTS, pData->folderData.maxResults, FALSE);
 }
 
 void CFolderPropertiesDlg::InitRanking(HWND hDlg)
@@ -323,7 +235,7 @@ void CFolderPropertiesDlg::InitRanking(HWND hDlg)
 
 	LPPIDLDATA pData = m_pidl.GetData();
 
-	if(pData->searchData.ranking == RECENCY_RANKING)
+	if(pData->folderData.ranking == RECENCY_RANKING)
 		radioButton = IDC_RANKING_RECENCY;
 
 	::CheckRadioButton(
@@ -335,9 +247,9 @@ void CFolderPropertiesDlg::InitRanking(HWND hDlg)
 
 void CFolderPropertiesDlg::InitCategory(HWND hDlg)
 {
-	HWND hCombo = ::GetDlgItem(hDlg, IDC_CATEGORY);
+	HWND hCombo = GetDlgItem(hDlg, IDC_CATEGORY);
 
-	::SendMessage(hCombo, CB_LIMITTEXT , 20, 0);  
+	SendMessage(hCombo, CB_LIMITTEXT , 20, 0);  
 
 	LPCTSTR categories[] = 
 	{
@@ -347,7 +259,7 @@ void CFolderPropertiesDlg::InitCategory(HWND hDlg)
 	int n = sizeof(categories) / sizeof(LPCTSTR);
 	for(int i=0; i<n; i++)
 	{
-		::SendMessage(hCombo, CB_ADDSTRING, 0, (LPARAM)categories[i]);
+		SendMessage(hCombo, CB_ADDSTRING, 0, (LPARAM)categories[i]);
 	}
 
 	int selIndex = 0;
@@ -355,11 +267,11 @@ void CFolderPropertiesDlg::InitCategory(HWND hDlg)
 
 	LPPIDLDATA pData = m_pidl.GetData();
 
-	int index = ::SendMessage(hCombo, CB_FINDSTRING, -1, (LPARAM)pData->searchData.szCategory);
+	int index = SendMessage(hCombo, CB_FINDSTRING, -1, (LPARAM)pData->folderData.szCategory);
 	if(CB_ERR != index)
 		selIndex = index;
 
-	::SendMessage(hCombo, CB_SETCURSEL , selIndex, 0); 
+	SendMessage(hCombo, CB_SETCURSEL , selIndex, 0); 
 }
 
 
@@ -368,39 +280,33 @@ void CFolderPropertiesDlg::InitCategory(HWND hDlg)
 
 
 
-bool CFolderPropertiesDlg::ApplyChanges(HWND hDlg)
+BOOL CFolderPropertiesDlg::ApplyChanges(HWND hDlg)
 {
-	if(NULL == m_pParent)
-		return false;
+	SetCursor( LoadCursor(NULL, IDC_WAIT) );
 
-	if(NULL == (LPITEMIDLIST)m_pidl)
-		return true;
-
-	::SetCursor( ::LoadCursor(NULL, IDC_WAIT) );
-
-	bool bSave = false;
-	bool bResult = false;
-	bool bName = false;
+	BOOL bSave = FALSE;
+	BOOL bResult = FALSE;
+	BOOL bName = FALSE;
 
 	PIDLDATA dataNew;
 	LPPIDLDATA pDataOld = m_pidl.GetData();
 	memcpy(&dataNew, pDataOld, sizeof(PIDLDATA));
 
 	if( SetMaxResults(hDlg, &dataNew) )
-		bSave = true;
+		bSave = TRUE;
 
 	if( SetRanking(hDlg, &dataNew) )
-		bSave = true;
+		bSave = TRUE;
 
 	if( SetCategory(hDlg, &dataNew) )
-		bSave = true;
+		bSave = TRUE;
 
 	if( SetQueryString(hDlg, &dataNew) )
-		bSave = true;
+		bSave = TRUE;
 
 	if( SetFolderName(hDlg, &dataNew) )
 	{
-		bName = bSave = true;
+		bName = bSave = TRUE;
 	}
 
 	if(bSave)
@@ -408,34 +314,34 @@ bool CFolderPropertiesDlg::ApplyChanges(HWND hDlg)
 		CPidl pidlNew( m_pidl.GetRelative() );
 		LPPIDLDATA pDataTmp = pidlNew.GetData();
 		memcpy(pDataTmp, &dataNew, sizeof(PIDLDATA));
-		CPidl pidlFQNew = m_pParent->CreateFQPidl( pidlNew );
-		if( g_pConfigXML->SaveFolder(m_pidl, pidlFQNew) )
+		CPidl pidlFQNew = m_pParent->CreateFQPidl( pidlNew.GetRelative() );
+		if( g_pConfigXML->SaveFolder(m_pidl.GetFull(), pidlFQNew.GetFull()) )
 		{
-			TRACE_PIDL_PATH("CFolderPropertiesDlg::ApplyChanges pidlFQOld: %s\n", m_pidl);
-			TRACE_PIDL_PATH("CFolderPropertiesDlg::ApplyChanges pidlFQNew: %s\n", pidlFQNew);
+			TRACE_PIDL_PATH("CFolderPropertiesDlg::ApplyChanges pidlFQOld: %s\n", &m_pidl);
+			TRACE_PIDL_PATH("CFolderPropertiesDlg::ApplyChanges pidlFQNew: %s\n", &pidlFQNew);
 
 			if(bName)
 			{
-				::SHChangeNotify(SHCNE_RENAMEFOLDER, SHCNF_IDLIST, m_pidl, pidlFQNew);
+				::SHChangeNotify(SHCNE_RENAMEFOLDER, SHCNF_IDLIST, m_pidl.GetFull(), pidlFQNew.GetFull());
 				SetCaption(m_hDlg, &dataNew);
 			}
 			else
-				::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_IDLIST, pidlFQNew, NULL);
+				::SHChangeNotify(SHCNE_UPDATEDIR, SHCNF_IDLIST, pidlFQNew.GetFull(), NULL);
 
 			g_pViewList->Refresh();
-			bResult = true;
+			bResult = TRUE;
 		}
 	}
 
-	::SetCursor( LoadCursor(NULL, IDC_ARROW) );
+	SetCursor( LoadCursor(NULL, IDC_ARROW) );
 
 	return bResult;
 }
 
-bool CFolderPropertiesDlg::SetFolderName(HWND hDlg, LPPIDLDATA pDataNew)
+BOOL CFolderPropertiesDlg::SetFolderName(HWND hDlg, LPPIDLDATA pDataNew)
 {
 	UINT uLen;
-	bool bSave = false;
+	BOOL bSave = FALSE;
 	TCHAR szNewName[40] = {0};
 //	TCHAR attribName[] = _T("name");
 
@@ -453,17 +359,17 @@ bool CFolderPropertiesDlg::SetFolderName(HWND hDlg, LPPIDLDATA pDataNew)
 		{
 			lstrcpyn(pDataNew->szName, szNewName, sizeof(pData->szName)/sizeof(TCHAR));
 //			m_pParent->Rename(szNewName);
-			bSave = true;
+			bSave = TRUE;
 		}
 	}
 
 	return bSave;
 }
 
-bool CFolderPropertiesDlg::SetQueryString(HWND hDlg, LPPIDLDATA pDataNew)
+BOOL CFolderPropertiesDlg::SetQueryString(HWND hDlg, LPPIDLDATA pDataNew)
 {
 	UINT uLen;
-	bool bSave = false;
+	BOOL bSave = FALSE;
 	TCHAR szNewQuery[200] = {0};
 	TCHAR attribName[] = _T("query");
 
@@ -475,21 +381,21 @@ bool CFolderPropertiesDlg::SetQueryString(HWND hDlg, LPPIDLDATA pDataNew)
 
 	LPPIDLDATA pData = m_pidl.GetData();
 
-	if(0 != lstrcmp(pData->searchData.szQuery, szNewQuery))
+	if(0 != lstrcmp(pData->folderData.szQuery, szNewQuery))
 	{
-		int len = sizeof(pData->searchData.szQuery)/sizeof(TCHAR);
-		lstrcpyn(pDataNew->searchData.szQuery, szNewQuery, len);
-		bSave = true;
+		int len = sizeof(pData->folderData.szQuery)/sizeof(TCHAR);
+		lstrcpyn(pDataNew->folderData.szQuery, szNewQuery, len);
+		bSave = TRUE;
 	}
 
 	return bSave;
 }
 
-bool CFolderPropertiesDlg::SetMaxResults(HWND hDlg, LPPIDLDATA pDataNew)
+BOOL CFolderPropertiesDlg::SetMaxResults(HWND hDlg, LPPIDLDATA pDataNew)
 {
 	UINT maxResults;
 	BOOL bTranslated;
-	bool bSave = false;
+	BOOL bSave = FALSE;
 	TCHAR attribName[] = _T("maxResults");
 
 	maxResults = ::GetDlgItemInt(hDlg, IDC_MAXRESULTS, &bTranslated, FALSE);
@@ -499,36 +405,36 @@ bool CFolderPropertiesDlg::SetMaxResults(HWND hDlg, LPPIDLDATA pDataNew)
 
 	LPPIDLDATA pData = m_pidl.GetData();
 
-	if(maxResults != pData->searchData.maxResults)
+	if(maxResults != pData->folderData.maxResults)
 	{
-		pDataNew->searchData.maxResults = maxResults;
-		bSave = true;
+		pDataNew->folderData.maxResults = maxResults;
+		bSave = TRUE;
 	}
 
 	return bSave;
 }
 
-bool CFolderPropertiesDlg::SetRanking(HWND hDlg, LPPIDLDATA pDataNew)
+BOOL CFolderPropertiesDlg::SetRanking(HWND hDlg, LPPIDLDATA pDataNew)
 {
-	bool bSave = false;
+	BOOL bSave = FALSE;
 	UINT ranking = RELEVANCE_RANKING;
 
 	if( !IsDlgButtonChecked(hDlg, IDC_RANKING_RELEVANCE) )
 		ranking = RECENCY_RANKING;
 
 	LPPIDLDATA pData = m_pidl.GetData();
-	if(pData->searchData.ranking != ranking)
+	if(pData->folderData.ranking != ranking)
 	{
-		pDataNew->searchData.ranking = ranking;
-		bSave = true;
+		pDataNew->folderData.ranking = ranking;
+		bSave = TRUE;
 	}
 
 	return bSave;
 }
 
-bool CFolderPropertiesDlg::SetCategory(HWND hDlg, LPPIDLDATA pDataNew)
+BOOL CFolderPropertiesDlg::SetCategory(HWND hDlg, LPPIDLDATA pDataNew)
 {
-	bool bSave = false;
+	BOOL bSave = FALSE;
 	TCHAR szCategory[21] = {0};
 
 	HWND hCombo = GetDlgItem(hDlg, IDC_CATEGORY);
@@ -540,21 +446,21 @@ bool CFolderPropertiesDlg::SetCategory(HWND hDlg, LPPIDLDATA pDataNew)
 	UINT uLen = lstrlen(szCategory);
 
 	LPPIDLDATA pData = m_pidl.GetData();
-	if(0 != lstrcmp(pData->searchData.szCategory, szCategory))
+	if(0 != lstrcmp(pData->folderData.szCategory, szCategory))
 	{
-		int size = sizeof(pData->searchData.szCategory);
+		int size = sizeof(pData->folderData.szCategory);
 
 		if(0 == lstrcmpi(szCategory, "all"))
 		{
-			memset(pDataNew->searchData.szCategory, 0, size);
+			memset(pDataNew->folderData.szCategory, 0, size);
 		}
 		else
 		{
 			int len = size / sizeof(TCHAR);
-			lstrcpyn(pDataNew->searchData.szCategory, szCategory, len);
+			lstrcpyn(pDataNew->folderData.szCategory, szCategory, len);
 		}
 
-		bSave = true;
+		bSave = TRUE;
 	}
 
 	return bSave;

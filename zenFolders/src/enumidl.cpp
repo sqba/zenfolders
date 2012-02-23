@@ -1,7 +1,6 @@
 
 #include <crtdbg.h>
 #include <tchar.h>
-//#include <strsafe.h>
 
 #include "enumidl.h"
 #include "shlfldr.h"
@@ -11,8 +10,6 @@
 #include "util/string.h"
 #include "zenfolders.h"
 
-
-//#define IS_DIRECTORY(ffd)	((FILE_ATTRIBUTE_DIRECTORY & ffd.dwFileAttributes) > 0)
 
 extern HINSTANCE	g_hInst;
 extern LPCONFIGXML	g_pConfigXML;
@@ -32,7 +29,7 @@ CEnumIDList::CEnumIDList(LPCITEMIDLIST pidl,
 
 	//get the shell's IMalloc pointer
 	//we'll keep this until we get destroyed
-	if( FAILED(::SHGetMalloc(&m_pMalloc)) )
+	if(FAILED(SHGetMalloc(&m_pMalloc)))
 	{
 		if(pResult)
 			*pResult = E_OUTOFMEMORY;
@@ -43,34 +40,19 @@ CEnumIDList::CEnumIDList(LPCITEMIDLIST pidl,
 
 	CPidl cpidl(pidl);
 
-	if( cpidl.IsFolderLink() )
+	if( cpidl.IsRoot() && (dwFlags & SHCONTF_NONFOLDERS) )
+		dwFlags ^= SHCONTF_NONFOLDERS;
+
+	MSXML2::IXMLDOMNodePtr ptrNode = g_pConfigXML->GetNode(pidl);
+	if(!CreateEnumList(ptrNode, dwFlags))
 	{
-		MSXML2::IXMLDOMNodePtr ptrNode = g_pConfigXML->GetNode(pidl);
-		if(ptrNode)
-		{
-			EnumerateFolderLinks(ptrNode);
-			EnumerateFileLinks(ptrNode);
-			TCHAR szPath[MAX_PATH] = {0};
-			CConfigXML::GetNodeAttribute(ptrNode, TEXT("path"), szPath, MAX_PATH);
-			EnumerateDirectory(szPath, dwFlags);
-		}
-	}
-	else if( cpidl.IsSubFolder() )
-	{
-		TCHAR szPath[MAX_PATH] = {0};
-		if( cpidl.GetFSPath(szPath, MAX_PATH) > 0)
-			EnumerateDirectory(szPath, dwFlags);
-	}
-	else
-	{
-		MSXML2::IXMLDOMNodePtr node = g_pConfigXML->GetNode(pidl);
-		if(node != NULL)
-		{
-			if(dwFlags & SHCONTF_FOLDERS)
-				EnumerateFolders( node );
-			if(dwFlags & SHCONTF_NONFOLDERS)
-				EnumerateFiles( node );
-		}
+		_RPTF0(_CRT_ERROR, "CreateEnumList failed\n");
+
+		if(pResult)
+			*pResult = E_OUTOFMEMORY;
+		
+		delete this;
+		return;
 	}
 
 	m_ObjRefCount = 1;
@@ -311,6 +293,7 @@ BOOL CEnumIDList::DeleteList(void)
 		m_pFirst = pDelete->pNext;
 		
 		//free the pidl
+		//m_pMalloc->Free(pDelete->pidl);
 		g_pPidlMgr->Delete(pDelete->pidl);
 		
 		//free the list item
@@ -322,10 +305,29 @@ BOOL CEnumIDList::DeleteList(void)
 	return TRUE;
 }
 
+BOOL CEnumIDList::CreateEnumList(MSXML2::IXMLDOMNodePtr node,
+								 DWORD dwFlags)
+{
+	if(node != NULL)
+	{
+		//enumerate the folders
+		if(dwFlags & SHCONTF_FOLDERS)
+		{
+			if( !EnumerateFolders( node ) )
+				return FALSE;
+		}
+
+		if(dwFlags & SHCONTF_NONFOLDERS)
+		{
+			if( !EnumerateFiles( node ) )
+				return FALSE;
+		}
+	}
+	return TRUE;
+}
+
 BOOL CEnumIDList::EnumerateFiles(MSXML2::IXMLDOMNodePtr node)
 {
-	EnumerateFileLinks( node );
-
 	LPITEMIDLIST pidl;
 	IGoogleDesktopQueryResultSet *pResults;
 	IGoogleDesktopQueryResultItemPtr spItem;
@@ -341,16 +343,16 @@ BOOL CEnumIDList::EnumerateFiles(MSXML2::IXMLDOMNodePtr node)
 	BOOL bHasSubFolders = (m_iFolderCount > 0);
 	pResults = CGoogleDS::Query(&data, bHasSubFolders);
 
-	BOOL bFilesOnly = (0 == lstrcmpi(data.searchData.szCategory, "file"));
+	BOOL bFilesOnly = (0 == lstrcmpi(data.folderData.szCategory, "file"));
 
 	if(NULL == pResults)
 		return TRUE;
 
-	UINT maxResults = data.searchData.maxResults;
+	UINT maxResults = data.folderData.maxResults;
 
 	while(NULL != (spItem = pResults->Next()))
 	{
-		pidl = g_pPidlMgr->CreateFileFromSearch(spItem);
+		pidl = g_pPidlMgr->CreateFile(spItem);
 		
 		if(!pidl)
 			return FALSE;
@@ -375,16 +377,15 @@ BOOL CEnumIDList::EnumerateFiles(MSXML2::IXMLDOMNodePtr node)
 
 BOOL CEnumIDList::EnumerateFolders(MSXML2::IXMLDOMNodePtr node)
 {
-	LPITEMIDLIST				pidl;
-	MSXML2::IXMLDOMNodePtr		child;
-	MSXML2::IXMLDOMNodeListPtr	list;
+	LPITEMIDLIST	pidl;
+	MSXML2::IXMLDOMNodePtr	child;
 
-	list = g_pConfigXML->GetFolders(node);
+	child = node->firstChild;
 
-	for(long i=0; i<list->Getlength(); i++)
+	m_iFolderCount = 0;
+
+	while(child != NULL)
 	{
-		child = list->Getitem(i);
-
 		pidl = g_pPidlMgr->CreateFolder(child);
 
 		if(!pidl)
@@ -398,124 +399,5 @@ BOOL CEnumIDList::EnumerateFolders(MSXML2::IXMLDOMNodePtr node)
 		child = child->nextSibling;
 	}
 
-	EnumerateFolderLinks( node );
-
 	return TRUE;
-}
-
-BOOL CEnumIDList::EnumerateFolderLinks(MSXML2::IXMLDOMNodePtr node)
-{
-	long						index;
-	LPITEMIDLIST				pidl;
-	MSXML2::IXMLDOMNodePtr		child;
-	MSXML2::IXMLDOMNodeListPtr	list;
-	
-	list = g_pConfigXML->GetFolderLinks(node);
-
-	for(index=0; index<list->Getlength(); index++)
-	{
-		child = list->Getitem(index);
-
-		pidl = g_pPidlMgr->CreateFolderLink(child);
-
-		if(!pidl || !AddToEnumList(pidl))
-			return FALSE;
-
-		m_iFolderCount++;
-
-		child = child->nextSibling;
-	}
-
-	return TRUE;
-}
-
-BOOL CEnumIDList::EnumerateFileLinks(MSXML2::IXMLDOMNodePtr node)
-{
-	long						index;
-	LPITEMIDLIST				pidl;
-	MSXML2::IXMLDOMNodePtr		child;
-	MSXML2::IXMLDOMNodeListPtr	list;
-	
-	list = g_pConfigXML->GetFileLinks(node);
-
-	for(index=0; index<list->Getlength(); index++)
-	{
-		child = list->Getitem(index);
-
-		pidl = g_pPidlMgr->CreateFileFromNode(child);
-
-		if(!pidl || !AddToEnumList(pidl))
-			return FALSE;
-
-		m_iFolderCount++;
-
-		child = child->nextSibling;
-	}
-
-	return TRUE;
-}
-
-BOOL CEnumIDList::EnumerateDirectory(LPCTSTR lpszPath, DWORD dwFlags)
-{
-	WIN32_FIND_DATA	ffd = {0};
-	HANDLE			hFind = INVALID_HANDLE_VALUE;
-	DWORD			dwError;
-	TCHAR			DirSpec[MAX_PATH] = {0};
-	BOOL			bResult = FALSE;
-	LPITEMIDLIST	pidlTmp;
-	TCHAR			szFullPath[MAX_PATH] = {0};
-	LPPIDLDATA		pData = NULL;
-
-	// Prepare string for use with FindFile functions.  First, 
-	// copy the string to a buffer, then append '\*' to the 
-	// directory name.
-	_tcsncpy(DirSpec, lpszPath, _tcslen(lpszPath)+1);
-	_tcsncat(DirSpec, TEXT("\\*"), 2*sizeof(TCHAR));
-	
-	hFind = ::FindFirstFile(DirSpec, &ffd);
-	
-	if(INVALID_HANDLE_VALUE != hFind) 
-	{
-		do {
-			pidlTmp = NULL;
-			_tcsnset(szFullPath, 0, MAX_PATH);
-			_tcscpy(szFullPath, lpszPath);
-			_tcscat(szFullPath, "\\");
-			_tcscat(szFullPath, ffd.cFileName);
-			bool bFolder = ((FILE_ATTRIBUTE_DIRECTORY & ffd.dwFileAttributes) > 0);
-			if( bFolder )
-			{
-				if(dwFlags & SHCONTF_FOLDERS)
-					pidlTmp = g_pPidlMgr->CreateSubFolder(szFullPath);
-			}
-			else
-			{
-				if(dwFlags & SHCONTF_NONFOLDERS)
-					pidlTmp = g_pPidlMgr->CreateFileFromPath(szFullPath);
-			}
-			if(NULL != pidlTmp)
-			{
-				pData = CPidlManager::GetDataPointer(pidlTmp);
-				if(pData->fileData.pidlFS)
-				{
-					if( !AddToEnumList(pidlTmp) )
-						break;
-					if( bFolder )
-						m_iFolderCount++;
-					else
-						m_iFileCount++;
-				}
-				else
-				{
-					g_pPidlMgr->Delete(pidlTmp);
-				}
-			}
-		} while(::FindNextFile(hFind, &ffd) != 0);
-		
-		dwError = GetLastError();
-		::FindClose(hFind);
-		bResult = (ERROR_NO_MORE_FILES == dwError);
-	}
-
-	return bResult;
 }

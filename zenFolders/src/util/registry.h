@@ -7,18 +7,24 @@
 class CRegistry  
 {
 public:
-	static bool SaveValue(LPCTSTR, LPCTSTR, LPBYTE, DWORD);
-	static bool GetValue(LPCTSTR, LPCTSTR, LPBYTE, DWORD);
-	static bool GetValue(HKEY, LPCTSTR, LPCTSTR, LPBYTE, DWORD);
+//	static DWORD GetKeyName(HKEY, LPCTSTR, DWORD, LPTSTR, DWORD);
+//	static BOOL GetValueName(HKEY, LPCTSTR, DWORD, LPTSTR, DWORD);
+//	static DWORD GetRootKeyText(HKEY, LPTSTR, DWORD);
+//	static BOOL RootKeyExists(HKEY);
+//	static LPTSTR GetNextRegElement(LPTSTR, LPTSTR, DWORD);
 
-	static bool SaveString(LPCTSTR, LPCTSTR, LPCTSTR, DWORD);
+	static BOOL SaveValue(LPCTSTR, LPCTSTR, LPBYTE, DWORD);
+	static BOOL GetValue(LPCTSTR, LPCTSTR, LPBYTE, DWORD);
+	static BOOL GetValue(HKEY, LPCTSTR, LPCTSTR, LPBYTE, DWORD);
 
-	static bool GetValueGlobal(LPCTSTR, LPCTSTR, LPBYTE, DWORD);
-	static bool SaveIntGlobal(LPCTSTR, LPCTSTR, INT);
+	static BOOL SaveString(LPCTSTR, LPCTSTR, LPCTSTR, DWORD);
+
+	static BOOL GetValueGlobal(LPCTSTR, LPCTSTR, LPBYTE, DWORD);
+	static BOOL SaveIntGlobal(LPCTSTR, LPCTSTR, INT);
 
 private:
-	static bool SaveValue(LPCTSTR, LPCTSTR, LPBYTE, DWORD, DWORD);
-	static bool SaveValueGlobal(LPCTSTR, LPCTSTR, LPBYTE, DWORD, DWORD);
+	static BOOL SaveValue(LPCTSTR, LPCTSTR, LPBYTE, DWORD, DWORD);
+	static BOOL SaveValueGlobal(LPCTSTR, LPCTSTR, LPBYTE, DWORD, DWORD);
 };
 
 #endif // REGISTRY_H

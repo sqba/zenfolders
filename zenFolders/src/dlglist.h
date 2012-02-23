@@ -7,11 +7,11 @@
 #include "shlfldr.h"
 #include "PidlMgr.h"
 
-typedef struct _DIALOGLIST
+typedef struct tagDIALOGLIST
 {
-	struct _DIALOGLIST		*pNext;
+	struct tagDIALOGLIST	*pNext;
 	CFolderPropertiesDlg	*pDialog;
-} DIALOGLIST, FAR *LPDIALOGLIST;
+}DIALOGLIST, FAR *LPDIALOGLIST;
 
 class CDialogList  
 {
@@ -20,12 +20,11 @@ public:
 	virtual ~CDialogList();
 
 	CFolderPropertiesDlg* GetNextDialog(CFolderPropertiesDlg*);
-	bool AddToList(CFolderPropertiesDlg*);
-	void RemoveFromList(CFolderPropertiesDlg*);
+	BOOL AddToList(CFolderPropertiesDlg*);
+	VOID RemoveFromList(CFolderPropertiesDlg*);
 	
 private:
-	void DeleteList();
-	bool Exists(CFolderPropertiesDlg*);
+	BOOL DeleteList(VOID);
 	
 private:
 	LPMALLOC		m_pMalloc;

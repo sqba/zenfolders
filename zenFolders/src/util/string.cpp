@@ -3,15 +3,7 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "string.h"
-#include <tchar.h>
 
-
-
-
-
-//////////////////////////////////////////////////////////////////////
-// Static functions
-//////////////////////////////////////////////////////////////////////
 
 int CString::WideCharToLocal(LPTSTR pLocal, LPWSTR pWide, DWORD dwChars)
 {
@@ -44,14 +36,14 @@ int CString::LocalToWideChar(LPWSTR pWide, LPTSTR pLocal, DWORD dwChars)
 	return lstrlenW(pWide);
 }
 
-bool CString::AddBackslash(LPTSTR lpszString)
+BOOL CString::AddBackslash(LPTSTR lpszString)
 {
 	if(*lpszString && *(lpszString + lstrlen(lpszString) - 1) != '\\')
 	{
 		lstrcat(lpszString, TEXT("\\"));
-		return true;
+		return TRUE;
 	}
-	return false;
+	return FALSE;
 }
 
 UINT CString::GuidToString(GUID guid, LPTSTR lpszGUID, UINT uSize)
@@ -98,7 +90,7 @@ int CString::LocalToAnsi(LPSTR pAnsi, LPCTSTR pLocal, DWORD dwChars)
 	return lstrlenA(pAnsi);
 }
 
-void CString::SmartAppendBackslash(LPTSTR pszPath)
+VOID CString::SmartAppendBackslash(LPTSTR pszPath)
 {
 	if(*(pszPath + lstrlen(pszPath) - 1) != '\\')
 		lstrcat(pszPath, TEXT("\\"));
@@ -129,56 +121,5 @@ LPCTSTR CString::GetExtension(LPCTSTR pszPath)
 
 LPCTSTR CString::GetFilename(LPCTSTR pszPath)
 {
-	LPTSTR lpszName = strrchr(pszPath, '\\');
-	return lpszName ? lpszName + 1 : NULL;
-}
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////
-// CString functions
-//////////////////////////////////////////////////////////////////////
-
-CString::CString()
-{
-	m_pszString = NULL;
-}
-
-CString::~CString()
-{
-//	if(m_pszString)
-//		delete m_pszString;
-}
-
-void CString::operator = (LPCTSTR lpszVal)
-{
-	if(m_pszString)
-		_tcsncpy(m_pszString, lpszVal, _tcslen(m_pszString));
-}
-
-CString::operator LPTSTR()
-{
-	return m_pszString;
-}
-
-
-
-
-
-
-
-
-
-
-//////////////////////////////////////////////////////////////////////
-// CPath functions
-//////////////////////////////////////////////////////////////////////
-
-LPCTSTR CPath::GetExtension()
-{
-	if(m_pszString)
-		return CString::GetExtension(m_pszString);
-	return NULL;
+	return strrchr(pszPath, '\\');
 }
