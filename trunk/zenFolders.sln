@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Packager", "Packager\packager.vcproj", "{88822F93-6FAB-4A29-8AC9-DFB8493E2E87}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Setup", "Setup\Setup.vcproj", "{E7BD9587-FF7D-4BA7-86F8-B7391B598B0A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zenFolders", "zenFolders\zenFolders.vcproj", "{C04B35AC-FED9-4E22-83CE-0F283A96718C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{88822F93-6FAB-4A29-8AC9-DFB8493E2E87}.Debug|Win32.ActiveCfg = Debug|Win32
+		{88822F93-6FAB-4A29-8AC9-DFB8493E2E87}.Debug|Win32.Build.0 = Debug|Win32
+		{88822F93-6FAB-4A29-8AC9-DFB8493E2E87}.Release|Win32.ActiveCfg = Release|Win32
+		{88822F93-6FAB-4A29-8AC9-DFB8493E2E87}.Release|Win32.Build.0 = Release|Win32
+		{E7BD9587-FF7D-4BA7-86F8-B7391B598B0A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E7BD9587-FF7D-4BA7-86F8-B7391B598B0A}.Debug|Win32.Build.0 = Debug|Win32
+		{E7BD9587-FF7D-4BA7-86F8-B7391B598B0A}.Release|Win32.ActiveCfg = Release|Win32
+		{E7BD9587-FF7D-4BA7-86F8-B7391B598B0A}.Release|Win32.Build.0 = Release|Win32
+		{C04B35AC-FED9-4E22-83CE-0F283A96718C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C04B35AC-FED9-4E22-83CE-0F283A96718C}.Debug|Win32.Build.0 = Debug|Win32
+		{C04B35AC-FED9-4E22-83CE-0F283A96718C}.Release|Win32.ActiveCfg = Release|Win32
+		{C04B35AC-FED9-4E22-83CE-0F283A96718C}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

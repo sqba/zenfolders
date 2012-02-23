@@ -17,11 +17,11 @@ class CGoogleDS
 public:
 	static IGoogleDesktopQueryResultSet *Query(LPPIDLDATA, BOOL);
 
-	static BOOL RegisterPlugin();
-	static BOOL UnregisterPlugin();
+	static bool RegisterPlugin();
+	static bool UnregisterPlugin();
 
-	static BOOL IsInstalled();
-	static BOOL IsRegistered();
+	static bool IsInstalled();
+	static bool IsRegistered();
 
 private:
 	static IGoogleDesktopQueryResultSet *Query(const OLECHAR*, const OLECHAR*, int, int, HRESULT*);

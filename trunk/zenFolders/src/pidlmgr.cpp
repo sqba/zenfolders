@@ -11,8 +11,12 @@
 //#include "util/shellnse.h"
 //#include "guid.h"
 
-extern HINSTANCE	g_hInst;
-extern LPCONFIGXML	g_pConfigXML;
+
+#define ARRAYSIZE(a)	(sizeof(a)/sizeof(a[0]))
+
+
+extern HINSTANCE		g_hInst;
+extern LPCONFIGXML		g_pConfigXML;
 
 
 CPidlManager::CPidlManager()
@@ -106,43 +110,16 @@ LPITEMIDLIST CPidlManager::Copy(LPCITEMIDLIST pidlSource)
 	// Copy the source to the target
 	CopyMemory(pidlTarget, pidlSource, cbSource);
 
-/*
-	LPPIDLDATA pData1 = GetDataPointer(pidlTarget);
-	LPPIDLDATA pData2 = GetDataPointer(pidlSource);
-
-	pData1->maxResults = pData2->maxResults;
-	pData1->type = pData2->type;
-	lstrcpy(pData1->szName, pData2->szName);
-	if(IsFile(pidlSource))
-	{
-		lstrcpy(pData1->szPath, pData2->szPath);
-	}
-	else
-	{
-		pData1->folderData.maxResults = pData2->folderData.maxResults;
-		pData1->folderData.pNode = pData2->folderData.pNode;
-		pData1->folderData.ranking = pData2->folderData.ranking;
-		lstrcpy(pData1->folderData.szCategory, pData2->folderData.szCategory);
-		lstrcpy(pData1->folderData.szQuery, pData2->folderData.szQuery);
-	}
-*/
 	return pidlTarget;
 }
 
 LPPIDLDATA CPidlManager::GetDataPointer(LPCITEMIDLIST pidl)
 {
-	if(!pidl)
-		return NULL;
-
-//	if(pidl->mkid.cb != (sizeof(ITEMIDLIST) + sizeof(PIDLDATA)))
-//		return NULL;
-	
-	return (LPPIDLDATA)(pidl->mkid.abID);
+	return pidl ? (LPPIDLDATA)(pidl->mkid.abID) : NULL;
 }
 
-BOOL CPidlManager::IsOurPidl(LPCITEMIDLIST pidl)
+bool CPidlManager::IsOurPidl(LPCITEMIDLIST pidl)
 {
-	//root: pidl->mkid.cb = 0
 	return (pidl->mkid.cb == (sizeof(ITEMIDLIST) + sizeof(PIDLDATA)));
 }
 
@@ -184,50 +161,52 @@ LPITEMIDLIST CPidlManager::Concatenate(LPCITEMIDLIST pidl1,
 		
 		//copy the second PIDL
 		CopyMemory(((LPBYTE)pidlNew) + cb1, pidl2, cb2);
-//		LPITEMIDLIST next = GetNextItem(pidlNew);
-//		CopyMemory(next, pidl2, cb2);
-
-//		LPPIDLDATA pData1 = GetDataPointer(pidl1);// debug
-//		LPPIDLDATA pData2 = GetDataPointer(pidl2);// debug
-//		LPPIDLDATA pData3 = GetDataPointer(pidlNew);// debug
-//		LPPIDLDATA pData4 = GetDataPointer(next);// debug
 	}
 	
 	return pidlNew;
 }
 
-LPITEMIDLIST CPidlManager::CreateFile(IGoogleDesktopQueryResultItem *pItem)
+bool CPidlManager::SetTitle(IGoogleDesktopQueryResultItem *pItem, LPPIDLDATA pData)
 {
-	UINT len;
-	BOOL bExtractFilename = FALSE;
-	PIDLDATA data;
-	LPFILEDATA pFileData = &data.fileData;
+#ifdef _DEBUG
+	return false;
+#endif
+
+	_variant_t val;
+	_bstr_t title(::SysAllocString(L"title"));
+	try
+	{
+		val = pItem->GetProperty(title);
+	}
+	catch(...)
+	{
+		// Why isn't this enough in the debug version?
+		return false;
+	}
+
+	int len = sizeof(pData->szName) / sizeof(TCHAR);
+	CString::WideCharToLocal(pData->szName, val.bstrVal, len);
+	return (pData->szName[1] != ':');
+}
+
+LPITEMIDLIST CPidlManager::CreateFileFromSearch(IGoogleDesktopQueryResultItem *pItem)
+{
+	UINT		len;
+	BOOL		bExtractFilename = FALSE;
+	PIDLDATA	data;
+	_variant_t	val;
+	LPFILEDATA	pFileData = &data.fileData;
+
 	memset(&data, 0, sizeof(PIDLDATA));
 
 	data.type = PT_FILE;
-
-	_variant_t val;
 
 	_bstr_t uri(::SysAllocString(L"uri"));
 	val = pItem->GetProperty(uri);
 	len = sizeof(pFileData->szPath)/sizeof(TCHAR);
 	CString::WideCharToLocal(pFileData->szPath, val.bstrVal, len);
 
-	try
-	{
-		_bstr_t title(::SysAllocString(L"title"));
-		val = pItem->GetProperty(title);
-		len = sizeof(data.szName)/sizeof(TCHAR);
-		CString::WideCharToLocal(data.szName, val.bstrVal, len);
-		if(data.szName[1] == ':')
-			bExtractFilename = TRUE;
-	}
-	catch(...)
-	{
-		bExtractFilename = TRUE;
-	}
-
-	if(bExtractFilename || (0 == lstrcmp(pFileData->szPath, data.szName)))
+	if(!SetTitle(pItem, &data) || (0 == lstrcmp(pFileData->szPath, data.szName)))
 	{
 		LPCTSTR pszName = strrchr(pFileData->szPath, '\\');
 		if(NULL == pszName)
@@ -235,8 +214,41 @@ LPITEMIDLIST CPidlManager::CreateFile(IGoogleDesktopQueryResultItem *pItem)
 		else
 			pszName++;
 		memset(data.szName, 0, sizeof(data.szName));
-		CopyMemory(data.szName, pszName, lstrlen(pszName));
+		lstrcpyn(data.szName, pszName, ARRAYSIZE(data.szName));
 	}
+
+	pFileData->pidlFS = GetFSPidl(pFileData->szPath);
+
+	return Create(PT_FILE, (LPVOID)&data, 0);
+}
+
+LPITEMIDLIST CPidlManager::CreateFileFromNode(MSXML2::IXMLDOMNodePtr node)
+{
+	TCHAR szPath[MAX_PATH] = {0};
+	CConfigXML::GetNodeAttribute(node, TEXT("path"), szPath, MAX_PATH);
+
+	return CreateFileFromPath(szPath);
+}
+
+LPITEMIDLIST CPidlManager::CreateFileFromPath(LPCTSTR lpszPath)
+{
+	BOOL		bExtractFilename = FALSE;
+	PIDLDATA	data;
+	LPFILEDATA	pFileData = &data.fileData;
+
+	memset(&data, 0, sizeof(PIDLDATA));
+
+	data.type = PT_FILE;
+
+	CString::WideCharToLocal(pFileData->szPath, _bstr_t(lpszPath),  _tcslen(lpszPath));
+
+	LPCTSTR pszName = strrchr(pFileData->szPath, '\\');
+	if(NULL == pszName)
+		pszName = pFileData->szPath;
+	else
+		pszName++;
+	memset(data.szName, 0, sizeof(data.szName));
+	lstrcpyn(data.szName, pszName, ARRAYSIZE(data.szName));
 
 	pFileData->pidlFS = GetFSPidl(pFileData->szPath);
 
@@ -248,93 +260,112 @@ LPITEMIDLIST CPidlManager::CreateFolder(MSXML2::IXMLDOMNodePtr node)
 	return Create(PT_FOLDER, (LPVOID)node, 0);
 }
 
+LPITEMIDLIST CPidlManager::CreateSubFolder(LPCTSTR lpszPath)
+{
+	BOOL		bExtractFilename = FALSE;
+	PIDLDATA	data;
+	LPFILEDATA	pFileData = &data.fileData;
+
+	memset(&data, 0, sizeof(PIDLDATA));
+
+	data.type = PT_SUB_FOLDER;
+
+	CString::WideCharToLocal(pFileData->szPath, _bstr_t(lpszPath),  _tcslen(lpszPath));
+
+	LPCTSTR pszName = strrchr(pFileData->szPath, '\\');
+	if(NULL == pszName)
+		pszName = pFileData->szPath;
+	else
+		pszName++;
+	memset(data.szName, 0, sizeof(data.szName));
+	lstrcpyn(data.szName, pszName, ARRAYSIZE(data.szName));
+
+	pFileData->pidlFS = GetFSPidl(pFileData->szPath);
+
+	if(NULL != pFileData->pidlFS)
+		return Create(PT_SUB_FOLDER, (LPVOID)&data, 0);
+	else
+		return NULL;
+}
+
+LPITEMIDLIST CPidlManager::CreateFolderLink(MSXML2::IXMLDOMNodePtr node)
+{
+	return Create(PT_FOLDER_LINK, (LPVOID)node, 0);
+}
+
 LPITEMIDLIST CPidlManager::Create(PIDLTYPE type, LPVOID pIn, USHORT uInSize)
 {
-	LPITEMIDLIST	pidlOut;
+	LPITEMIDLIST	pidlOut = NULL;
 	USHORT			uSize;
-
-	pidlOut = NULL;
+	USHORT			uSizeOut;
+	LPITEMIDLIST	pidlTemp;
+	LPPIDLDATA		pData;
+	LPPIDLDATA		pDataIn;
 
 	uSize = sizeof(ITEMIDLIST) + sizeof(PIDLDATA);
+	uSizeOut = uSize + sizeof(ITEMIDLIST);
 
 	// Allocate the memory, adding an additional ITEMIDLIST
 	// for the NULL terminating  ID List.
-	pidlOut = (LPITEMIDLIST)m_pMalloc->Alloc(uSize + sizeof(ITEMIDLIST));
+	pidlOut = (LPITEMIDLIST)m_pMalloc->Alloc( uSizeOut );
 	
 	if(pidlOut)
 	{
-		memset(pidlOut, 0, uSize + sizeof(ITEMIDLIST));
-
-		LPITEMIDLIST   pidlTemp = pidlOut;
-		LPPIDLDATA     pData;
-		
+		memset(pidlOut, 0, uSizeOut);
+		pidlTemp = pidlOut;
 		pidlTemp->mkid.cb = uSize;
-		
 		pData = GetDataPointer(pidlTemp);
-
 		memset(pData->szName, 0, sizeof(pData->szName));
-
 		pData->type = type;
+
 		switch(type)
 		{
 		case PT_FOLDER:
-			{
-				CConfigXML::GetFolderInfo(pData, (MSXML2::IXMLDOMNode*)pIn);
-			}
+			CConfigXML::GetFolderInfo(pData, (MSXML2::IXMLDOMNode*)pIn);
 			break;
-			
+
+		case PT_FOLDER_LINK:
+			CConfigXML::GetFolderLinkInfo(pData, (MSXML2::IXMLDOMNode*)pIn);
+			break;
+
 		case PT_FILE:
-			{
-				LPPIDLDATA pDataIn = (LPPIDLDATA)pIn;
-				//CopyMemory(pData, pDataIn, sizeof(LPPIDLDATA));
-				CopyMemory(pData->szName, pDataIn->szName, sizeof(pData->szName));
-				CopyMemory(&pData->fileData, &pDataIn->fileData, sizeof(pData->fileData));
-				/*LPCTSTR pszFilePath = (LPCTSTR)pIn;
-				LPCTSTR pszName = strrchr(pszFilePath, '\\');
-				if(NULL == pszName)
-					pszName = pszFilePath;
-				else
-					pszName++;
-				UINT uNameSize = lstrlen(pszName);
-
-				CopyMemory(pData->szName, pszName, uNameSize);
-
-				UINT size = sizeof(pData->szPath)/sizeof(TCHAR);
-				memset(pData->szPath, 0, size);
-				CopyMemory(pData->szPath, pIn, uInSize);*/
-			}
+		case PT_SUB_FOLDER:
+			pDataIn = (LPPIDLDATA)pIn;
+			lstrcpyn(pData->szName, pDataIn->szName, sizeof(pData->szName));
+			memcpy(&pData->fileData, &pDataIn->fileData, sizeof(pData->fileData));
 			break;
 		}
 		
 		//set the NULL terminator to 0
 		pidlTemp = GetNextItem(pidlTemp);
 		memset(pidlTemp, 0, sizeof(ITEMIDLIST));
-		//pidlTemp->mkid.cb = 0;
-		//pidlTemp->mkid.abID[0] = 0;
 	}
 
 	return pidlOut;
 }
 
-BOOL CPidlManager::HasChildNodes(LPCITEMIDLIST pidl)
+bool CPidlManager::HasSubFolders(LPCITEMIDLIST pidl)
 {
 	if( IsFile(pidl) )
-		return FALSE;
+		return false;
 
-	try
+	if( IsFolder(pidl) )
 	{
-		MSXML2::IXMLDOMNodePtr ptrNode = g_pConfigXML->GetNode(pidl);
-		LPPIDLDATA pData = GetDataPointer(pidl);
-		if(NULL == ptrNode)
-			return FALSE;
-		VARIANT_BOOL hasChild = ptrNode->hasChildNodes();
-		return hasChild;
+		return g_pConfigXML->HasSubFolders( pidl );
 	}
-	catch(...)
+	else
 	{
-		_RPTF0(_CRT_WARN, "CPidlManager::HasChildNodes exception\n");
-		return FALSE;
+		int check_sub_folders;
+		return true;
 	}
+/*
+	else if( IsSubFolder(pidlRel) )
+	{
+	}
+	else if( IsFolderLink(pidlRel) )
+	{
+	}
+*/
 }
 
 DWORD CPidlManager::GetItemName(LPCITEMIDLIST pidl,
@@ -367,10 +398,10 @@ HRESULT CPidlManager::CompareIDs(LPCITEMIDLIST pidl1,
 		}
 		else 
 		{
-			memset(szString1, 0, MAX_PATH);
+			memset(szString1, 0, sizeof(szString1));
 			GetItemName(pidlTemp1, szString1, sizeof(szString1));
 
-			memset(szString2, 0, MAX_PATH);
+			memset(szString2, 0, sizeof(szString2));
 			GetItemName(pidlTemp2, szString2, sizeof(szString2));
 			
 			//now compare the value strings
@@ -385,8 +416,14 @@ HRESULT CPidlManager::CompareIDs(LPCITEMIDLIST pidl1,
 	return 0;
 }
 
-BOOL CPidlManager::Equal(LPCITEMIDLIST pidl1, LPCITEMIDLIST pidl2)
+bool CPidlManager::Equal(LPCITEMIDLIST pidl1, LPCITEMIDLIST pidl2)
 {
+	if((NULL == pidl1) && (NULL == pidl2))
+		return true;
+
+	if((NULL == pidl1) || (NULL == pidl2))
+		return false;
+
 	LPCITEMIDLIST pidlRel1 = GetLastItem(pidl1);
 	LPCITEMIDLIST pidlRel2 = GetLastItem(pidl2);
 
@@ -394,38 +431,39 @@ BOOL CPidlManager::Equal(LPCITEMIDLIST pidl1, LPCITEMIDLIST pidl2)
 	LPPIDLDATA pData2 = GetDataPointer(pidlRel2);
 
 	if(pData1->type != pData2->type)
-		return FALSE;
+		return false;
 
 	if(0 != lstrcmpi(pData1->szName, pData2->szName))
-		return FALSE;
+		return false;
 
-	if(PT_FILE == pData1->type)
+	switch(pData1->type)
 	{
+	case PT_FILE:
 		return (0 == lstrcmpi(pData1->fileData.szPath, pData2->fileData.szPath));
-	}
-	else if(PT_FOLDER == pData1->type)
-	{
-		LPFOLDERDATA pFolder1 = &pData1->folderData;
-		LPFOLDERDATA pFolder2 = &pData2->folderData;
 
-		if(pFolder1->maxResults != pFolder2->maxResults)
-			return FALSE;
+	case PT_FOLDER:
+		{
+			LPSEARCHDATA pFolder1 = &pData1->searchData;
+			LPSEARCHDATA pFolder2 = &pData2->searchData;
 
-		if(pFolder1->ranking != pFolder2->ranking)
-			return FALSE;
+			if(pFolder1->maxResults != pFolder2->maxResults)
+				return false;
 
-		if(0 != lstrcmpi(pFolder1->szCategory, pFolder2->szCategory))
-			return FALSE;
+			if(pFolder1->ranking != pFolder2->ranking)
+				return false;
 
-		if(0 != lstrcmpi(pFolder1->szQuery, pFolder2->szQuery))
-			return FALSE;
-	}
-	else
-	{
+			if(0 != lstrcmpi(pFolder1->szCategory, pFolder2->szCategory))
+				return false;
+
+			if(0 != lstrcmpi(pFolder1->szQuery, pFolder2->szQuery))
+				return false;
+		}
+
+	default:
 		_RPTF1(_CRT_WARN, "pData1->type unknown (%d)!\n", pData1->type);
 	}
 
-	return TRUE;
+	return true;
 }
 
 DWORD CPidlManager::GetPidlPath(LPCITEMIDLIST pidl,
@@ -461,28 +499,31 @@ DWORD CPidlManager::GetPidlPath(LPCITEMIDLIST pidl,
 	
 	*lpszOut = 0;
 	
-	while(pidlTemp->mkid.cb && (dwCopied < dwOutSize))
+	bool bBreak = false;
+	while(pidlTemp && !bBreak && pidlTemp->mkid.cb && (dwCopied < dwOutSize))
 	{
 		LPPIDLDATA  pData = GetDataPointer(pidlTemp);
-		//if( IsFile(pidlTemp) )
-		if(pData->type == PT_FILE)
+
+		switch(pData->type)
+		{
+		case PT_FILE:
+			bBreak = true;
 			break;
 
-		if(pData->type == PT_FOLDER)
-		{
+		case PT_FOLDER:
+		case PT_FOLDER_LINK:
 			dwCopied += GetItemName(pidlTemp, szText, sizeof(szText)/sizeof(TCHAR));
 			lstrcat(lpszOut, szText);
-		}
-		else // Root
-		{
-			TCHAR szName[MAX_PATH] = {0};
+			break;
 
-			dwCopied += CSettings::GetRootName(pidlTemp, szName, sizeof(szName)/sizeof(TCHAR));
-
-			//lstrcat(lpszOut, TEXT(SHELLEX_NAME));
-			lstrcat(lpszOut, szName);
-			//dwCopied += (lstrlen(szName));
+		default:
+			{
+				TCHAR szName[MAX_PATH] = {0};
+				dwCopied += CSettings::GetRootName(pidlTemp, szName, sizeof(szName)/sizeof(TCHAR));
+				lstrcat(lpszOut, szName);
+			}
 		}
+
 		lstrcat(lpszOut, TEXT("\\"));
 		dwCopied += 1;
 		
@@ -502,18 +543,54 @@ DWORD CPidlManager::GetPidlPath(LPCITEMIDLIST pidl,
 	return dwCopied;
 }
 
-BOOL CPidlManager::IsFile(LPCITEMIDLIST pidl)
+PIDLTYPE CPidlManager::GetType(LPCITEMIDLIST pidl)
 {
 	if(NULL == pidl)
-		return TRUE;
+		return PT_UNKNOWN;
 
-	LPPIDLDATA  pData = GetDataPointer(pidl);
+	LPITEMIDLIST pidlLast = GetLastItem(pidl);
+
+	LPPIDLDATA  pData = GetDataPointer(pidlLast);
 	if(NULL == pData)
-		return TRUE;
-	
-	return (PT_FILE == pData->type);
+		return PT_UNKNOWN;
+
+	return pData->type;
 }
 
+bool CPidlManager::IsRoot(LPCITEMIDLIST pidl)
+{
+	if(NULL == pidl)
+		return false;
+	
+	return (
+		!IsFile(pidl) &&
+		!IsFolder(pidl) &&
+		!IsFolderLink(pidl) &&
+		!IsSubFolder(pidl)
+		);
+}
+
+bool CPidlManager::IsFile(LPCITEMIDLIST pidl)
+{
+	return (PT_FILE == GetType(pidl));
+}
+
+bool CPidlManager::IsFolder(LPCITEMIDLIST pidl)
+{
+	return (PT_FOLDER == GetType(pidl));
+}
+
+bool CPidlManager::IsFolderLink(LPCITEMIDLIST pidl)
+{
+	return (PT_FOLDER_LINK == GetType(pidl));
+}
+
+bool CPidlManager::IsSubFolder(LPCITEMIDLIST pidl)
+{
+	return (PT_SUB_FOLDER == GetType(pidl));
+}
+
+#ifdef _DEBUG
 void CPidlManager::dbgTracePidlPath(LPCTSTR text, LPCITEMIDLIST pidl)
 {
 	TCHAR szPath[MAX_PATH] = TEXT("NULL");
@@ -539,62 +616,15 @@ void CPidlManager::dbgTracePidlData(LPCTSTR text, LPCITEMIDLIST pidl)
 		{
 			wsprintf(szOutput, "name: %s, query: %s, category: %s, ranking: %d, max: %d",
 				pData->szName,
-				pData->folderData.szQuery,
-				pData->folderData.szCategory,
-				pData->folderData.ranking,
-				pData->folderData.maxResults);
+				pData->searchData.szQuery,
+				pData->searchData.szCategory,
+				pData->searchData.ranking,
+				pData->searchData.maxResults);
 		}
 	}
 	_RPTF1(_CRT_WARN, text, szOutput);
 }
-
-void CPidlManager::dbgTracePidlPath(LPCTSTR text, CPidl *pCpidl)
-{
-	dbgTracePidlPath(text, pCpidl->GetFull());
-}
-
-void CPidlManager::dbgTracePidlData(LPCTSTR text, CPidl *pCpidl)
-{
-	dbgTracePidlData(text, pCpidl->GetRelative());
-}
-
-LPITEMIDLIST CPidlManager::CreateFromPath(LPCITEMIDLIST pidl)
-{
-	LPITEMIDLIST last = GetLastItem(pidl);
-	LPPIDLDATA pData = GetDataPointer(last);
-	LPITEMIDLIST result = NULL;
-	if(PT_FILE == pData->type)
-	{
-		LPTSTR lpszPath = pData->fileData.szPath;
-		TCHAR *token = strtok(lpszPath, "\\");
-        while (token != NULL)
-		{
-			PIDLDATA data;
-			memset(&data, 0, sizeof(PIDLDATA));
-			data.type = PT_FILE;
-			lstrcpy(data.szName, token);
-			lstrcpy(data.fileData.szPath, "CPidlManager::CreateFromPath");
-			//_RPTF1(_CRT_WARN, "Created %s\n", data.szName);
-			//TRACE_PIDL_DATA("CPidlManager::CreateFromPath(data: %s)\n", tmp);
-			if(NULL == result)
-				result = Create(PT_FILE, (LPVOID)&data, 0);
-			else
-			{
-				LPITEMIDLIST tmp = Create(PT_FILE, (LPVOID)&data, 0);
-				Concatenate(result, tmp);
-				Delete(tmp);
-			}
-
-			token = strtok(NULL, "\\");
-        }
-		//TRACE_PIDL_PATH("CPidlManager::CreateFromPath(%s)\n", result);
-	}
-	else
-	{
-		//_RPTF0(_CRT_WARN, "PT_FILE == pData->type\n");
-	}
-	return result;
-}
+#endif	// _DEBUG
 
 LPITEMIDLIST CPidlManager::GetFSPidl(LPCTSTR lpszPath)
 {
@@ -620,9 +650,6 @@ LPITEMIDLIST CPidlManager::GetFSPidl(LPCTSTR lpszPath)
 		NULL,
 		&pidlFS,
 		NULL);
-
-//	if(hr == NOERROR)
-//		_RPTF1(_CRT_WARN, "psfDesktop->ParseDisplayName(%s)\n", lpszPath);
 
 	free(olePath);
 

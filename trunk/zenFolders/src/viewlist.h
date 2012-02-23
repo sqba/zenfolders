@@ -7,11 +7,11 @@
 #include "PidlMgr.h"
 #include "ShlView.h"
 
-typedef struct tagVIEWLIST
+typedef struct _VIEWLIST
 {
-	struct tagVIEWLIST   *pNext;
-	CShellView           *pView;
-}VIEWLIST, FAR *LPVIEWLIST;
+	struct _VIEWLIST	*pNext;
+	CShellView			*pView;
+} VIEWLIST, FAR *LPVIEWLIST;
 
 class CViewList
 {
@@ -21,13 +21,13 @@ public:
 	
 	CShellView* GetNextView(CShellView*);
 	CShellView* GetActiveView();
-	BOOL AddToList(CShellView*);
-	VOID RemoveFromList(CShellView*);
+	bool AddToList(CShellView*);
+	void RemoveFromList(CShellView*);
 
 	void Refresh();
 	
 private:
-	BOOL DeleteList(VOID);
+	void DeleteList();
 	
 private:
 	LPMALLOC	m_pMalloc;
