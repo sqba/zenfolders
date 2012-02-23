@@ -1,0 +1,306 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head>
+
+
+
+  
+  <title>zenFolders - zenFolders Your files. When and where you need them.</title><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <style type="text/css">
+  #g_title p, #g_footer p, #g_description p {
+    margin: 0;
+  }
+  /*
+
+  	-- -- -- -- -- -- --
+  	Browser Fixes
+  	-- -- -- -- -- -- --
+  	
+  	This file uses CSS filtering methods to fix various
+  	layout bugs.
+
+  	Each of the following three imported files is a 
+  	separate, browser-specific CSS file that keeps all 
+  	hacks out of the main style sheet.
+  	
+  	Over time, as supporting these browsers no longer
+  	remains a priority, cleaning up the hacks is as
+  	easy as deleting the @import statement below, or
+  	simply no longer linking this file from the HTML.
+  	
+  */
+
+  /* 
+    fix ie6 "peekaboo bug" using the "holly hack". 
+    Note, this style only gets applied to ie6
+  */
+  * html .wrapper {
+    height: 0.1%;
+  }
+
+  /* 
+   * IE5 mac - overrides the IE/Win hack 
+   */
+
+  /*\*//*/
+
+  * html #threecolumn div {
+  	height: auto;
+  }
+
+  /**/
+
+
+  /* 
+   * IE5/Win-specific CSS -ensures #container wraps all content on window resize
+   */
+
+  @media tty {
+   i{content:"\";/*" "*/}} * html #container { height: 1%; } /*";}
+  }/* */
+  /* Styling for editable elements. Eventually, this will be part of the style. */
+  .editable {
+    border: 1px dashed blue;
+  }
+  
+  #footer {
+    clear: both;
+  }
+  
+  /* Extra divs hidden by default. The custom CSS can override this though */
+  #extraDiv1, #extraDiv2, #extraDiv3, #extraDiv4, #extraDiv5, #extraDiv6 {
+    display: none;
+  }
+  
+  a img,:link img,:visited img {border: none;}
+
+
+  body {
+    text-align: center;
+  }
+  #container {
+    width: 718px;
+    text-align: left;
+    margin: 0 auto;
+  }
+  /** BEGIN CUSTOM SKIN **/
+  /*
+
+  	-- -- -- -- -- -- --
+  	Base CSS
+  	-- -- -- -- -- -- --
+  	
+  	This file simply removes default styling on most HTML elements in 
+  	order to reduce the need to later override them.
+  	
+  */
+
+  h1,h2,h3,h4,h5,h6,pre,code,p {font-size: 1em;}
+  dl,li,dt,dd,h1,h2,h3,h4,h5,h6,pre,form,body,html,p,blockquote,fieldset,input {margin: 0; padding: 0;}
+  a img,:link img,:visited img {border: none;}
+  address {font-style: normal;}html {background:#eee;}
+  body {background:#eee;font-family:'Verdana','Helvetica', 'Arial', sans-serif;font-size:0.85em;}
+  a {color:#00c;text-decoration:underline !important;}
+  a:visited {color:#551a8b;}
+  b, strong {font-weight:bold;}
+  blockquote {border-left:1px solid #ccc;margin:1em 3em;padding-left:1em;font-size:0.9em;}
+  blockquote p {line-height:1.45em;}
+  em {font-style:italic;}
+  h1, h2, h3, h4, h5, h6 {font-weight:normal;margin:1.5em 0 0.5em 0;}
+  h1 {font-size:2.25em;color:#666;margin:0;}
+  h2 {font-size:1.5em;color:#333;}
+  h3 {font-size:1.3em;}
+  h4 {font-size:1.15em;}
+  h5 {font-size:1em;}
+  h6 {font-size:0.8em;}
+  p, li {color:#000;line-height:1.75em;margin:0 0 1.5em 0;}
+  blockquote p, table p, dd p, li p, #header p {margin-bottom:0.5em;}
+  ul, ol {margin:1em 0; padding-left: 1.6em;}
+  li {margin:0.25em 0;}
+  ul li {list-style-type:disc;}
+  ol li {list-style-type:decimal;}
+  table {border:1px solid #ccc;border-width:1px 1px 0 1px;}
+  table caption {display:block;font-style:italic;white-space:nowrap;margin:0.5em 1em;}
+  table td, table th {padding:0.5em 1em;text-align:left;vertical-align:top;}
+  table th {font-weight:bold;border-bottom:1px solid #999;}
+  table td {border-bottom:1px solid #ddd;}
+
+  dl {margin:1em;line-height:1.5em;list-style-type:disc;}
+  dt {font-weight:bold;margin-top:0.5em;}
+  dd {margin-left:2em;}
+
+  #adsense {text-align:center;}
+  #container {
+  	padding: 25px 40px 10px 40px; 
+  	border: 1px solid #ccc;
+  	background:#fff;
+  	margin:1em auto;
+  }
+  #footer {border-top:1px solid #ccc;margin-top:2em;}
+  #header {border-bottom:1px solid #ccc;margin-bottom:2em;}
+  #sidebar {font-size:1.0em;}
+  #sidebar :first-child {margin-top:0;}
+  #sidebar-alternate {font-size:1.0em;}
+  #sidebar-alternate :first-child {margin-top:0;}
+  #main-content {background:#fff;}
+  #main-content h2:first-child {margin-top:0;}	
+
+  @media print {
+    html {background:#fff !important;}
+    #container {border-width:0px !important;padding:0 !important;}
+  }
+
+  /* Tweaks for Three-column layout
+  ----------------------------------------------- */
+  #threecolumn #main-content .wrapper {padding:0 25px;}
+
+  /* Tweaks for Two-column Left layout
+  ----------------------------------------------- */
+  #twocolumn-left #main-content .wrapper {padding-left:25px;}
+
+  /* Tweaks for Two-column Right layout
+  ----------------------------------------------- */
+  #twocolumn-right #main-content .wrapper {padding-right:25px;}
+
+  /* Tweaks for Two-column Liquid layout
+  ----------------------------------------------- */
+  #twocolumn-liquid-right #container {margin:1em 1em;}
+  #twocolumn-liquid-right #main-content .wrapper {padding-right:25px;}
+  #twocolumn-liquid-left #container {margin:1em 1em;}
+  #twocolumn-liquid-left #main-content .wrapper {padding-left:25px;}
+
+  /* Tweaks for One-column Liquid layout
+  ----------------------------------------------- */
+
+  /* Tweaks for One-column layout
+  ----------------------------------------------- */
+  #onecolumn #main-content .wrapper {padding-left:0;}
+
+  /* ie5win */
+  @media tty { i{content:"\";/*" "*/}} * html #container { padding: 25px 0px 10px 10px; } /*";}
+  }/* */
+
+  /** END CUSTOM SKIN **/
+  </style><!-- Hack to avoid flash of unstyled content in IE -->
+
+  
+  <script> </script></head><body id="onecolumn">
+  <div id="container">
+    <div class="wrapper">
+      <div id="header">
+        <div class="wrapper">
+          <h1 id="page-title"><div id="g_title"><p class="separator" style="clear: both; text-align: center;"><a style="border-width: 0pt; clear: left; float: left; margin-bottom: 1em; margin-right: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/zenFolder.gif/zenFolder-full.jpg" imageanchor="1"><img style="border-width: 0pt;" src="screenshots_files/zenFolder-full.gif"></a></p>
+<h2 style="border: medium none ; text-align: right;" hashcode="" closure=""><a style="border-width: 0pt; clear: right; float: right; margin-bottom: 1em; margin-left: 0em; margin-right: 0em; background-color: transparent;" href="" imageanchor="1" hashcode="" closure=""><b><font color="#009900"></font></b></a><font style="color: rgb(51, 204, 0);" color="#009900" size="12"><b><font color="#006600">zen</font>Folders</b></font></h2>
+<p style="text-align: right;"><font color="#ff6600" size="2"><b><i>Your files. <font color="#009900">When</font> and <font color="#009900">where</font> you need them.</i></b></font></p></div></h1>
+          <div style="clear: both;"></div>
+          <p class="description"></p><div id="g_description"><p style="text-align: center;"><font color="#009900"><b>
+<table style="width: 716px;" padding="0" bgcolor="#ff6600" border="0">
+<tbody>
+<tr>
+<td style="padding: 0pt; border-bottom-width: 0pt; text-align: center;" width="25%"><a style="color: rgb(255, 255, 255); text-decoration: none;" href="http://zenfolders.googlepages.com/home">Home</a></td>
+<td style="padding: 0pt; border-bottom-width: 0pt; text-align: center;" width="25%">Screenshots</td>
+<td style="padding: 0pt; border-bottom-width: 0pt; text-align: center;" width="25%"><a style="color: rgb(255, 255, 255); text-decoration: none;" href="http://zenfolders.googlepages.com/history">History</a></td>
+<td style="padding: 0pt; border-bottom-width: 0pt; text-align: center;" width="25%"><a style="color: rgb(255, 255, 255); text-decoration: none;" href="http://zenfolders.googlepages.com/download">Download</a></td></tr></tbody></table></b></font></p></div>
+          <div style="clear: both;"></div>
+        </div>
+      </div>
+      <!-- /editable --><!-- /wrapper --><!-- /header -->
+      <div id="main-content">
+        <div class="wrapper">
+          <div class="content-item"><div id="g_body"><p class="separator" style="clear: both; text-align: center;"><a style="border-width: 0pt; clear: left; float: left; margin-bottom: 1em; margin-right: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/desktop.GIF/desktop-full.jpg" imageanchor="1"><img style="border-width: 0pt;" src="screenshots_files/desktop-full.gif"></a></p>
+<p>&nbsp;<span style="font-family: arial,sans-serif;">After the succesfull instalation of </span><span style="font-weight: bold; color: rgb(51, 204, 0);"><font color="#009900">zenFolders</font></span><span style="font-family: arial,sans-serif;">, a new icon appears on the desktop. This is the root </span><span style="font-weight: bold; color: rgb(51, 204, 0);"><font color="#009900">zenFolder</font></span><span style="font-family: arial,sans-serif;">. It does not contain any files, just some predefined folders for some of the most common searches.&nbsp;</span></p>
+<p class="separator" style="clear: both; text-align: center;"></p>
+<p><a style="border-width: 0pt; clear: right; float: right; margin-bottom: 1em; margin-left: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/submenu1.GIF/submenu1-full.jpg" imageanchor="1"><img style="border-width: 0pt; padding: 0px; position: relative;" src="screenshots_files/submenu1-full.gif"></a><span style="font-weight: bold; color: rgb(51, 204, 0);"><font color="#009900">zenFolders</font></span><span style="font-family: arial,sans-serif;">
+can be browsed in Windows Explorer like any other folder. And like any
+other folder, they can have subfolders. Subfolders are created by
+right-clicking on the empty space in the list view on the right side of
+Windows Explorer and selecting "New Folder" option from the sub menu.
+&nbsp;</span></p>
+<p class="separator" style="clear: both; text-align: center;"></p>
+<p><a style="border-width: 0pt; clear: left; float: left; margin-bottom: 1em; margin-right: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/newfolder.GIF/newfolder-full.jpg" imageanchor="1"><img style="border-width: 0pt;" src="screenshots_files/newfolder-full.gif"></a><span style="font-family: arial,sans-serif;">&nbsp;A&nbsp;
+new subfolder&nbsp; appears&nbsp; waiting to be renamed. As soon as it
+is given a name, it will contain files that are related to that name.</span></p>
+<p><span style="font-family: arial,sans-serif;">In this example, we've
+created a folder called "Astronomy". Following picture shows that&nbsp;
+this folder contains all sorts of files somehow related to
+astronomy:&nbsp;</span></p>
+<p class="separator" style="clear: both; text-align: center;"><a style="border-width: 0pt; margin-left: 1em; margin-right: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/files.GIF/files-full.jpg" imageanchor="1"><img style="border-width: 0pt; padding: 0px; position: relative;" src="screenshots_files/files-full.gif"></a></p>
+<p class="separator" style="clear: both; text-align: center;"></p>
+<p><a style="border-width: 0pt; clear: right; float: right; margin-bottom: 1em; margin-left: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/hidefiles.GIF/hidefiles-full.jpg" imageanchor="1"><img style="border-width: 0pt;" src="screenshots_files/hidefiles-full.gif"></a><span style="font-family: arial,sans-serif;">&nbsp;Now,
+we don't really need to see those ".js" and ".css" files, so we
+right-click on any of the ".js" files and select "Hide all '.js' files"
+from the popup menu. We do the same operation for ".css" files and on
+any other file type we do not want to see.</span></p>
+<p class="separator" style="clear: both; text-align: center;"><a style="border-width: 0pt; clear: left; float: left; margin-bottom: 1em; margin-right: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/showonly.GIF/showonly-full.jpg" imageanchor="1"><img style="border-width: 0pt;" src="screenshots_files/showonly-full.gif"></a></p>
+<p><span style="font-family: arial,sans-serif;">Similar to the&nbsp; </span><span style="font-family: arial,sans-serif;">"Hide all '.js' files", there's a command </span><span style="font-family: arial,sans-serif;">"Show only '.pdf' files". It instructs the folder to display only ".pdf" files, or files with any other extension.<br></span></p>
+<p><a style="border-width: 0pt; clear: right; float: right; margin-bottom: 1em; margin-left: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/move.GIF/move-full.jpg" imageanchor="1"><img style="border-width: 0pt;" src="screenshots_files/move-full.gif"></a><span style="font-family: arial,sans-serif;">For
+those files we wish to see but somehow grouped together, there's the
+command "Move all '.jpg' files to 'jpg files' folder". This command
+creates a new folder "jpg files", or any other extension, and then
+'moves' all files with that extension (.jpg in our case) in that
+folder. Note that files are not really moved. Instead, the "Astronomy"
+folder is instructed not to show any ".jpg" files, and the subfolder
+"jpg files" is set to show only ".jpg" files.</span></p>
+<p><span style="font-family: arial,sans-serif;">And, finally ,
+right-clicking the folder itself and then selecting "Properties"
+command from the popup menu, we are presented with the folder
+properties dialog. Here we can manualy set the search string and a
+number of other options.</span></p>
+<p class="separator" style="clear: both; text-align: center;"><a style="border-width: 0pt; margin-left: 1em; margin-right: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/properties.GIF/properties-full.jpg" imageanchor="1"><img style="border-width: 0pt;" src="screenshots_files/properties-full.gif"></a></p>
+<p><span style="font-family: arial,sans-serif;">&nbsp;The search string
+text box accepts a search string that is passed on to Google Desktop
+Search. This means that it uses the exact same syntax as Google Desktop
+Search. You can learn more about&nbsp; the search string <a href="http://desktop.google.com/features.html#advancedsearch">here</a>.</span></p>
+
+
+
+<p class="" style="clear: both; text-align: left;"><span style="font-family: arial,sans-serif;">Currently, </span><span style="font-weight: bold; color: rgb(51, 204, 0);"><font color="#009900">zenFolders </font></span><span style="font-family: arial,sans-serif;">display only files that exist somewhere on the file system. </span><br><a style="border-width: 0pt; margin-left: 1em; margin-right: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/files.GIF/files-full.jpg" imageanchor="1"><span id="ch_chimera-image-container" style="border-width: 0pt; padding: 0px; overflow: visible; width: 526px; cursor: auto; height: 337px;"></span></a></p>
+<div style="display: none;">
+<div id="selbox" style="border-color: transparent; border-width: 0px; background: transparent none repeat scroll 0% 50%; overflow: hidden; z-index: 20; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; width: 2px; cursor: move; position: absolute; height: 2px;"><a style="border-width: 0pt; margin-left: 1em; margin-right: 1em; background-color: transparent;" href="http://zenfolders.googlepages.com/files.GIF/files-full.jpg" imageanchor="1"><img style="border-width: 0px; padding: 0px; left: 0px; position: absolute; top: 0px;" src="screenshots_files/files-full.gif" closure="" hashcode="" galleryimg="no" border="0" height="337" width="526"></a></div>
+<div style="border: 1px solid white; background: rgb(0, 68, 102) none repeat scroll 0% 50%; font-size: 4pt; z-index: 40; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; left: 0px; width: 8px; cursor: nw-resize; position: absolute; top: 0px; height: 8px; opacity: 0.75;"></div>
+<div style="border: 1px solid white; background: rgb(0, 68, 102) none repeat scroll 0% 50%; font-size: 4pt; z-index: 40; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; left: 0px; width: 8px; cursor: ne-resize; position: absolute; top: 0px; height: 8px; opacity: 0.75;"></div>
+<div style="border: 1px solid white; background: rgb(0, 68, 102) none repeat scroll 0% 50%; font-size: 4pt; z-index: 40; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; left: 0px; width: 8px; cursor: sw-resize; position: absolute; top: 0px; height: 8px; opacity: 0.75;"></div>
+<div style="border: 1px solid white; background: rgb(0, 68, 102) none repeat scroll 0% 50%; font-size: 4pt; z-index: 40; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; left: 0px; width: 8px; cursor: se-resize; position: absolute; top: 0px; height: 8px; opacity: 0.75;"></div>
+<div style="border: 1px solid white; background: rgb(0, 68, 102) none repeat scroll 0% 50%; font-size: 4pt; z-index: 40; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; left: 0px; width: 8px; cursor: s-resize; position: absolute; top: 0px; height: 8px; opacity: 0.75;"></div>
+<div style="border: 1px solid white; background: rgb(0, 68, 102) none repeat scroll 0% 50%; font-size: 4pt; z-index: 40; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; left: 0px; width: 8px; cursor: n-resize; position: absolute; top: 0px; height: 8px; opacity: 0.75;"></div>
+<div style="border: 1px solid white; background: rgb(0, 68, 102) none repeat scroll 0% 50%; font-size: 4pt; z-index: 40; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; left: 0px; width: 8px; cursor: w-resize; position: absolute; top: 0px; height: 8px; opacity: 0.75;"></div>
+<div style="border: 1px solid white; background: rgb(0, 68, 102) none repeat scroll 0% 50%; font-size: 4pt; z-index: 40; -moz-background-clip: -moz-initial; -moz-background-origin: -moz-initial; -moz-background-inline-policy: -moz-initial; left: 0px; width: 8px; cursor: e-resize; position: absolute; top: 0px; height: 8px; opacity: 0.75;"></div></div>
+<p></p></div></div>
+          <div style="clear: both;"></div>
+        </div>
+      </div>
+      <!-- /wrapper --><!-- /main-content -->
+      <div id="footer"><div class="wrapper">
+        <hr>
+        <p></p><div id="g_footer"><div style="text-align: center;">Tell us what you think at <a style="font-style: italic;" href="mailto:zenfolders@gmail.com">zenfolders@gmail.com</a><br></div>
+<div style="text-align: center;">© 2007 <b><span style="color: rgb(51, 255, 51);"><font color="#009900">oneFingerZen</font></span></b> inc.</div>
+<script src="screenshots_files/urchin.js" type="text/javascript">
+</script>
+
+<script type="text/javascript">
+_uacct = "UA-1368497-1";
+urchinTracker();
+</script>
+
+<script language="javascript" type="text/javascript">
+var sc_project=2286125; 
+var sc_invisible=1; 
+var sc_partition=21; 
+var sc_security="de194133"; 
+</script>
+
+<script language="javascript" src="screenshots_files/counter.js" type="text/javascript"></script>
+<noscript><a href="http://www.statcounter.com/" target="_blank"><img
+src="http://c22.statcounter.com/counter.php?sc_project=2286125&amp;java=0&amp;security=de194133&amp;invisible=1"
+alt="counter" border="0"></a></noscript></div>
+        <div style="clear: both;"></div>
+      </div></div>
+      <!-- /wrapper --><!-- /footer -->
+    </div>
+  </div>
+<!-- /wrapper --><!-- /container -->
+
+<div id="extraDiv1"><span></span></div><div id="extraDiv2"><span></span></div>
+<div id="extraDiv3"><span></span></div><div id="extraDiv4"><span></span></div>
+<div id="extraDiv5"><span></span></div><div id="extraDiv6"><span></span></div>
+
+</body></html>
