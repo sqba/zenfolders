@@ -1,0 +1,1 @@
+Windows shell extension that provides an alternate interface to Google Desktop Search.
